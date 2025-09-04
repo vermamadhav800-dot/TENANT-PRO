@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: {
+    allowedDevOrigins: ["*.cloudworkstations.dev"],
+  },
   images: {
     remotePatterns: [
       {
