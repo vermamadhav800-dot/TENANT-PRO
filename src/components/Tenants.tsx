@@ -201,6 +201,9 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
   }, [tenants, rooms]);
   
   const getRentStatus = (tenant: Tenant): { label: string; color: "success" | "destructive" | "warning" } => {
+    if (!tenant.dueDate) {
+      return { label: 'Upcoming', color: 'warning' };
+    }
     const today = new Date();
     today.setHours(0,0,0,0);
     const dueDate = parseISO(tenant.dueDate);
@@ -266,7 +269,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                         <div className="text-sm text-muted-foreground">{tenant.email}</div>
                     </TableCell>
                     <TableCell>₹{tenant.rentAmount.toLocaleString()}</TableCell>
-                    <TableCell>{new Date(tenant.dueDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{tenant.dueDate ? new Date(tenant.dueDate).toLocaleDateString() : 'N/A'}</TableCell>
                     <TableCell>XXXX-XXXX-{tenant.aadhaar.slice(-4)}</TableCell>
                     <TableCell>
                       <Badge variant={status.color === 'success' ? 'default' : status.color}>
