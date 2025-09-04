@@ -78,7 +78,7 @@ setIsModalOpen(true);
       toast({ variant: "destructive", title: "Error", description: "Cannot delete room with tenants. Please reassign tenants first." });
       return;
     }
-    if(confirm('Are you sure you want to delete this room?')) {
+    if (window.confirm('Are you sure you want to delete this room?')) {
       setAppState(prev => ({
         ...prev,
         rooms: prev.rooms.filter(r => r.id !== roomId)

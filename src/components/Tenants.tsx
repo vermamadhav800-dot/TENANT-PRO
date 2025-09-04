@@ -189,7 +189,7 @@ const TenantFormModal = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={defaultDueDate} required /></div>
-            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="^\d{12}$" title="Aadhaar must be 12 digits" /></div>
           </div>
           <div>
             <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
@@ -210,15 +210,11 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
 
     const handleDelete = () => {
         setAppState(prev => {
-            const { rooms, electricity } = prev;
+            const { rooms } = prev;
             const roomToUpdate = rooms.find(r => r.number === tenant.unitNo);
 
             let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
             const updatedPayments = prev.payments.filter(p => p.tenantId !== tenant.id);
-            
-            // Note: This logic assumes electricity bills are not tenant-specific but room-specific.
-            // Deleting a tenant does not delete electricity readings for the room.
-            // Rent recalculation for remaining tenants will handle the financial adjustment.
             
             if (roomToUpdate) {
                 const tenantsInRoom = updatedTenants.filter(t => t.unitNo === roomToUpdate.number);

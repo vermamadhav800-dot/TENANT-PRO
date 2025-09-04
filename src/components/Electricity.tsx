@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -54,7 +55,7 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
   };
 
   const handleDeleteReading = (readingId: string) => {
-    if(confirm('Are you sure you want to delete this electricity reading?')) {
+    if (window.confirm('Are you sure you want to delete this electricity reading?')) {
       setAppState(prev => ({ ...prev, electricity: prev.electricity.filter(e => e.id !== readingId) }));
       toast({ title: "Success", description: "Reading deleted." });
     }
