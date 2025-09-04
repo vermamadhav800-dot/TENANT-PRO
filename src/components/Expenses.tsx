@@ -22,7 +22,7 @@ interface ExpensesProps {
 }
 
 export default function Expenses({ appState, setAppState }: ExpensesProps) {
-  const { expenses } = appState;
+  const { expenses = [] } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
@@ -40,7 +40,7 @@ export default function Expenses({ appState, setAppState }: ExpensesProps) {
       date: new Date(formData.get('date') as string).toISOString(),
     };
     
-    setAppState(prev => ({ ...prev, expenses: [...prev.expenses, newExpense] }));
+    setAppState(prev => ({ ...prev, expenses: [...(prev.expenses || []), newExpense] }));
     toast({ title: "Success", description: "Expense added successfully." });
     setIsAddModalOpen(false);
   };
@@ -52,7 +52,7 @@ export default function Expenses({ appState, setAppState }: ExpensesProps) {
 
   const handleDeleteExpense = () => {
     if (!expenseToDelete) return;
-    setAppState(prev => ({ ...prev, expenses: prev.expenses.filter(e => e.id !== expenseToDelete.id) }));
+    setAppState(prev => ({ ...prev, expenses: (prev.expenses || []).filter(e => e.id !== expenseToDelete.id) }));
     toast({ title: "Success", description: "Expense deleted." });
     setIsDeleteAlertOpen(false);
     setExpenseToDelete(null);
@@ -156,3 +156,5 @@ export default function Expenses({ appState, setAppState }: ExpensesProps) {
     </div>
   );
 }
+
+    
