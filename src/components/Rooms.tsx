@@ -112,7 +112,7 @@ setIsModalOpen(true);
                 </CardContent>
                 <CardFooter className="grid grid-cols-2 gap-2 pt-4">
                   <Button variant="outline" onClick={() => openModal(room)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-                  <Button variant="destructive" outline onClick={() => handleDeleteRoom(room.id)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+                  <Button variant="destructive" onClick={() => handleDeleteRoom(room.id)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
                 </CardFooter>
               </Card>
             );
