@@ -14,7 +14,6 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
   const handleAuthAction = async (e: React.FormEvent) => {
@@ -22,19 +21,8 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        // Sign Up
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        toast({
-          title: "Check your email!",
-          description: "We've sent a confirmation link to your email address.",
-        });
-      } else {
-        // Sign In
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -53,8 +41,8 @@ export default function Auth() {
           <div className="w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="text-white h-10 w-10" />
           </div>
-          <CardTitle className="text-3xl font-headline">{isSignUp ? 'Create an Account' : 'Welcome Back'}</CardTitle>
-          <CardDescription>{isSignUp ? 'Get started with EstateFlow' : 'Sign in to access your Dashboard'}</CardDescription>
+          <CardTitle className="text-3xl font-headline">Welcome Back</CardTitle>
+          <CardDescription>Sign in to access your Dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuthAction} className="space-y-6">
@@ -95,21 +83,13 @@ export default function Auth() {
               {isLoading ? (
                 <>
                   <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-                  {isSignUp ? 'Signing Up...' : 'Signing In...'}
+                  Signing In...
                 </>
               ) : (
-                isSignUp ? 'Sign Up' : 'Sign In'
+                'Sign In'
               )}
             </Button>
           </form>
-           <div className="text-center mt-4">
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-primary hover:underline"
-              >
-                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-              </button>
-            </div>
         </CardContent>
       </Card>
     </div>
