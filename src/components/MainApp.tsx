@@ -26,7 +26,6 @@ import Payments from "@/components/Payments";
 import Electricity from "@/components/Electricity";
 import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
-import RentAdvisor from "@/components/RentAdvisor";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -58,7 +57,6 @@ const TABS = [
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "electricity", label: "Electricity", icon: Zap },
   { id: "reports", label: "Reports", icon: BarChart },
-  { id: "rent-advisor", label: "Rent Advisor", icon: Sparkles },
 ];
 
 function AppContent({
@@ -92,8 +90,6 @@ function AppContent({
         return <Electricity {...props} />;
       case "reports":
         return <Reports {...props} />;
-      case "rent-advisor":
-        return <RentAdvisor {...props} />;
       case "settings":
         return <AppSettings {...props} user={user} />;
       default:
