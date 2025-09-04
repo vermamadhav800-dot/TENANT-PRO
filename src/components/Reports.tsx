@@ -171,7 +171,7 @@ export default function Reports({ appState }: ReportsProps) {
                                         </Avatar>
                                         <div>
                                             <p className="font-medium">{tenant.name}</p>
-                                            <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                                            <p className="text-sm text-muted-foreground">{tenant.username}</p>
                                         </div>
                                     </div>
                                 </TableCell>
