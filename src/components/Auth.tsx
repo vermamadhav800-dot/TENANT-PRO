@@ -54,7 +54,7 @@ export default function Auth({ onLoginSuccess }: AuthProps) {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="email"
-                  placeholder="Email (vermamadhav800@gmail.com)"
+                  placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 py-6"
@@ -67,7 +67,7 @@ export default function Auth({ onLoginSuccess }: AuthProps) {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password (jaibabalal123)"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 py-6"
