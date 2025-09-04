@@ -119,19 +119,19 @@ export default function Reports({ appState }: ReportsProps) {
       <Card>
         <CardHeader><CardTitle>This Month's Summary</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{totalCollected.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Total Collected</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{totalPending > 0 ? totalPending.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
                 <p className="text-sm text-muted-foreground">Total Pending</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{paidTenantsCount}</p>
                 <p className="text-sm text-muted-foreground">Tenants Paid</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{pendingTenantsCount}</p>
                 <p className="text-muted-foreground text-sm">Tenants Pending</p>
             </div>
