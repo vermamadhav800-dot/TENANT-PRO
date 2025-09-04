@@ -6,6 +6,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, Zap, FileText, Calculator, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,6 +24,8 @@ interface ElectricityProps {
 export default function Electricity({ appState, setAppState }: ElectricityProps) {
   const { electricity, rooms } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [readingToDelete, setReadingToDelete] = useState<ElectricityReading | null>(null);
   const { toast } = useToast();
 
   const handleAddReading = (event: React.FormEvent<HTMLFormElement>) => {
@@ -54,11 +57,17 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
     setIsAddModalOpen(false);
   };
 
-  const handleDeleteReading = (readingId: string) => {
-    if (window.confirm('Are you sure you want to delete this electricity reading?')) {
-      setAppState(prev => ({ ...prev, electricity: prev.electricity.filter(e => e.id !== readingId) }));
-      toast({ title: "Success", description: "Reading deleted." });
-    }
+  const confirmDeleteReading = (reading: ElectricityReading) => {
+    setReadingToDelete(reading);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleDeleteReading = () => {
+    if (!readingToDelete) return;
+    setAppState(prev => ({ ...prev, electricity: prev.electricity.filter(e => e.id !== readingToDelete.id) }));
+    toast({ title: "Success", description: "Reading deleted." });
+    setIsDeleteAlertOpen(false);
+    setReadingToDelete(null);
   };
 
   const thisMonthReadings = electricity.filter(r => new Date(r.date).getMonth() === new Date().getMonth());
@@ -114,7 +123,7 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
                       <TableCell>{reading.ratePerUnit.toFixed(2)}</TableCell>
                       <TableCell className="font-semibold text-green-600">{reading.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>{new Date(reading.date).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDeleteReading(reading.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                      <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => confirmDeleteReading(reading)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                     </TableRow>
                   );
                 })
@@ -123,6 +132,21 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this electricity reading.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setReadingToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteReading}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

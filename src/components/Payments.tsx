@@ -6,6 +6,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +26,8 @@ interface PaymentsProps {
 export default function Payments({ appState, setAppState }: PaymentsProps) {
   const { payments, tenants, rooms, electricity } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
   const { toast } = useToast();
 
   const handleAddPayment = (event: React.FormEvent<HTMLFormElement>) => {
@@ -50,12 +53,18 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
     toast({ title: "Success", description: `Payment of ${newPayment.amount} recorded for ${tenant.name}.` });
     setIsAddModalOpen(false);
   };
+  
+  const confirmDeletePayment = (payment: Payment) => {
+    setPaymentToDelete(payment);
+    setIsDeleteAlertOpen(true);
+  };
 
-  const handleDeletePayment = (paymentId: string) => {
-    if(confirm('Are you sure you want to delete this payment record?')) {
-      setAppState(prev => ({ ...prev, payments: prev.payments.filter(p => p.id !== paymentId) }));
-      toast({ title: "Success", description: "Payment record deleted." });
-    }
+  const handleDeletePayment = () => {
+    if (!paymentToDelete) return;
+    setAppState(prev => ({ ...prev, payments: prev.payments.filter(p => p.id !== paymentToDelete.id) }));
+    toast({ title: "Success", description: "Payment record deleted." });
+    setIsDeleteAlertOpen(false);
+    setPaymentToDelete(null);
   };
 
   const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -174,7 +183,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(payment.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => confirmDeletePayment(payment)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -186,6 +195,21 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
           </Table>
         </CardContent>
       </Card>
+      
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this payment record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPaymentToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePayment}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
