@@ -1,75 +1,93 @@
--- EstateFlow Supabase Setup Script
--- This script sets up the necessary database table and security policies
--- for the EstateFlow application.
+-- supabase_setup.sql
+-- This script sets up the database schema for the EstateFlow application.
+-- It creates tables for rooms, tenants, payments, and electricity readings,
+-- and establishes relationships between them. It also enables Row Level Security (RLS)
+-- and creates policies to ensure that users can only access their own data.
 
--- 1. Create the user_app_state table
--- This table will store the entire application state for each user as a JSONB object.
--- - user_id is the primary key and links to the authenticated user.
--- - state holds all the application data (rooms, tenants, payments, etc.).
--- - updated_at automatically tracks the last modification time.
-
-CREATE TABLE IF NOT EXISTS public.user_app_state (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  state JSONB,
-  updated_at TIMESTAMPTZ DEFAULT now()
+-- 1. Create the 'rooms' table
+-- This table stores information about each room or unit.
+CREATE TABLE IF NOT EXISTS rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    "number" TEXT NOT NULL,
+    capacity INT NOT NULL,
+    rent NUMERIC NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc', now()) NOT NULL,
+    UNIQUE(user_id, "number") -- Each room number must be unique per user
 );
 
--- Add a comment to the table for clarity
-COMMENT ON TABLE public.user_app_state IS 'Stores the entire application state for each user.';
+-- 2. Create the 'tenants' table
+-- This table stores information about each tenant.
+-- It links to the 'rooms' table via the 'room_id'.
+CREATE TABLE IF NOT EXISTS tenants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    room_id UUID REFERENCES rooms(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    rent_amount NUMERIC NOT NULL,
+    due_date DATE NOT NULL,
+    aadhaar TEXT NOT NULL,
+    aadhaar_card_url TEXT,
+    profile_photo_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc', now()) NOT NULL
+);
 
+-- 3. Create the 'payments' table
+-- This table records all payments made by tenants.
+-- It links to the 'tenants' table via the 'tenant_id'.
+CREATE TABLE IF NOT EXISTS payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE NOT NULL,
+    amount NUMERIC NOT NULL,
+    date DATE NOT NULL,
+    method TEXT NOT NULL CHECK (method IN ('Cash', 'UPI', 'Bank Transfer')),
+    created_at TIMESTAMPTZ DEFAULT timezone('utc', now()) NOT NULL
+);
 
--- 2. Enable Row Level Security (RLS)
--- This is a crucial security step. It ensures that, by default, no one can
--- access any rows in this table unless a specific policy allows them to.
+-- 4. Create the 'electricity_readings' table
+-- This table tracks electricity usage for each room.
+-- It links to the 'rooms' table via the 'room_id'.
+CREATE TABLE IF NOT EXISTS electricity_readings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    room_id UUID REFERENCES rooms(id) ON DELETE CASCADE NOT NULL,
+    previous_reading NUMERIC NOT NULL,
+    current_reading NUMERIC NOT NULL,
+    rate_per_unit NUMERIC NOT NULL,
+    date DATE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc', now()) NOT NULL
+);
 
-ALTER TABLE public.user_app_state ENABLE ROW LEVEL SECURITY;
+-- 5. Enable Row Level Security (RLS) for all tables
+-- This is a crucial security step to ensure data privacy.
+ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE electricity_readings ENABLE ROW LEVEL SECURITY;
 
--- Add a comment explaining RLS
-COMMENT ON TABLE public.user_app_state IS 'Row Level Security is enabled to protect user data.';
+-- 6. Create RLS policies
+-- These policies ensure that users can only see and manage their own data.
+-- Drop existing policies first to avoid errors on re-running the script.
+DROP POLICY IF EXISTS "Users can manage their own rooms" ON rooms;
+CREATE POLICY "Users can manage their own rooms" ON rooms
+    FOR ALL USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage their own tenants" ON tenants;
+CREATE POLICY "Users can manage their own tenants" ON tenants
+    FOR ALL USING (auth.uid() = user_id);
 
--- 3. Create Security Policies
--- These policies define the rules for who can access or modify data.
+DROP POLICY IF EXISTS "Users can manage their own payments" ON payments;
+CREATE POLICY "Users can manage their own payments" ON payments
+    FOR ALL USING (auth.uid() = user_id);
 
--- 3.1. Policy for SELECT (Read)
--- Allows a user to select (read) ONLY their own row.
--- The `auth.uid()` function returns the ID of the currently logged-in user.
-DROP POLICY IF EXISTS "Allow individual user read access" ON public.user_app_state;
-CREATE POLICY "Allow individual user read access"
-ON public.user_app_state FOR SELECT
-USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can manage their own electricity readings" ON electricity_readings;
+CREATE POLICY "Users can manage their own electricity readings" ON electricity_readings
+    FOR ALL USING (auth.uid() = user_id);
 
--- 3.2. Policy for INSERT (Create)
--- Allows a user to insert (create) a new row for themselves.
-DROP POLICY IF EXISTS "Allow individual user insert access" ON public.user_app_state;
-CREATE POLICY "Allow individual user insert access"
-ON public.user_app_state FOR INSERT
-WITH CHECK (auth.uid() = user_id);
-
--- 3.3. Policy for UPDATE (Modify)
--- Allows a user to update ONLY their own row.
-DROP POLICY IF EXISTS "Allow individual user update access" ON public.user_app_state;
-CREATE POLICY "Allow individual user update access"
-ON public.user_app_state FOR UPDATE
-USING (auth.uid() = user_id);
-
-
--- 4. Automatically update the `updated_at` timestamp
--- This function and trigger will automatically update the `updated_at` column
--- whenever a user's state is modified.
-
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS on_user_app_state_update ON public.user_app_state;
-CREATE TRIGGER on_user_app_state_update
-BEFORE UPDATE ON public.user_app_state
-FOR EACH ROW
-EXECUTE PROCEDURE public.handle_updated_at();
-
--- End of script. You can now run this in your Supabase SQL Editor.
+-- Note: The logic for handling user-specific defaults (like electricityRatePerUnit)
+-- can be managed on the client-side or by creating a separate 'user_settings' table
+-- if more complex settings are required in the future.
+-- For now, the application will continue to manage this within its state.
