@@ -64,7 +64,7 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
       });
       toast({ title: "Success", description: "Room updated successfully." });
     } else {
-      const newRoom = { ...roomData, id: Date.now().toString() };
+      const newRoom = { ...roomData, id: Date.now().toString(), createdAt: new Date().toISOString() };
       setAppState(prev => ({ ...prev, rooms: [...prev.rooms, newRoom] }));
       toast({ title: "Success", description: "New room added." });
     }

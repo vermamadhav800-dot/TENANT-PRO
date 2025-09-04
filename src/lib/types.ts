@@ -4,10 +4,11 @@ export interface Room {
   number: string;
   capacity: number;
   rent: number;
+  createdAt: string;
 }
 
 export interface Tenant {
-  id: string;
+  id:string;
   name: string;
   phone: string;
   email: string;
@@ -17,6 +18,7 @@ export interface Tenant {
   aadhaar: string;
   aadhaarCardUrl?: string;
   profilePhotoUrl?: string;
+  createdAt: string;
 }
 
 export interface Payment {

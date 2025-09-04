@@ -66,7 +66,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     const tenantActivities = tenants.map(t => ({
       id: `tenant-${t.id}`,
       type: 'New Tenant' as const,
-      date: t.dueDate, // Assume join date is first due date for now
+      date: t.createdAt,
       Icon: UserPlus,
       content: (
         <p>
@@ -94,7 +94,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     const roomActivities = rooms.map(r => ({
       id: `room-${r.id}`,
       type: 'New Room' as const,
-      date: new Date(Number(r.id)).toISOString(), // Assumes ID is a timestamp
+      date: r.createdAt,
       Icon: Home,
       content: (
         <p>

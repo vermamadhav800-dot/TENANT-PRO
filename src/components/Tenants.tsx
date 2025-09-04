@@ -113,7 +113,7 @@ const TenantFormModal = ({
     const unitNo = formData.get('unitNo') as string;
     
     setAppState(prev => {
-        const tenantData: Omit<Tenant, 'id'> = {
+        const tenantData: Omit<Tenant, 'id' | 'createdAt'> = {
             name: formData.get('name') as string,
             phone: formData.get('phone') as string,
             email: formData.get('email') as string,
@@ -131,7 +131,7 @@ const TenantFormModal = ({
         if (tenant) { // Editing existing tenant
             updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t);
         } else { // Adding new tenant
-            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString() }];
+            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString(), createdAt: new Date().toISOString() }];
         }
 
         let tenantsWithNewRent = recalculateRentForRoom(unitNo, updatedTenants);
