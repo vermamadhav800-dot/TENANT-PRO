@@ -68,6 +68,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
   const thisMonthCollection = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
   
   const totalPending = tenants.filter(tenant => {
+    if (!tenant.dueDate) return false;
     const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(dueDate, new Date()) < 0;
@@ -150,7 +151,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(payment.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(-payment.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>

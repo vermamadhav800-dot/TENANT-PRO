@@ -33,6 +33,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
   const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentAmount, 0);
 
   const pendingPayments = tenants.filter(tenant => {
+    if (!tenant.dueDate) return false;
     const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(dueDate, new Date()) < 0;

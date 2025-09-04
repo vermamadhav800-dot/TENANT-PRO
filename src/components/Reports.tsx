@@ -26,6 +26,7 @@ export default function Reports({ appState }: ReportsProps) {
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
   const pendingTenants = tenants.filter(tenant => {
+    if (!tenant.dueDate) return false;
     const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(dueDate, new Date()) < 0;
