@@ -1,7 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
 
+// This hook is kept for potential future use, but is no longer central to state management
+// since Supabase is now the source of truth.
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === 'undefined') {

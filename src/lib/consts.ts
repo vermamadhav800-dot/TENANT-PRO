@@ -11,8 +11,8 @@ export const INITIAL_APP_STATE: AppState = {
   },
 };
 
+// This is no longer the source of truth for the user.
 export const MOCK_USER_INITIAL: User = {
-  name: 'Madhav Verma',
-  email: 'vermamadhav800@gmail.com',
-  password: 'jaibabalal123',
+  name: 'Test User',
+  email: 'test@example.com',
 };

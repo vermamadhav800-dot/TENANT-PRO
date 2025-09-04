@@ -8,34 +8,51 @@ import MainApp from "@/components/MainApp";
 import { useLocalStorage } from "@/lib/hooks";
 import { MOCK_USER_INITIAL } from '@/lib/consts';
 import type { User } from '@/lib/types';
+import { supabase } from "@/lib/supabase";
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useLocalStorage("estateflow_isLoggedIn", false);
-  const [user, setUser] = useLocalStorage<User>("estateflow_user", MOCK_USER_INITIAL);
+  const [isClientLoading, setIsClientLoading] = useState(true);
+  const [isSupabaseLoading, setIsSupabaseLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      setIsClientLoading(false);
     }, 2000); // Keep startup screen for 2 seconds
-    return () => clearTimeout(timer);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        setIsSupabaseLoading(false);
+      }
+    );
+
+    // Check for initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsSupabaseLoading(false);
+    });
+
+    return () => {
+      clearTimeout(timer);
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
+  
+  const isLoading = isClientLoading || isSupabaseLoading;
 
   return (
     <>
       {isLoading && <StartupScreen />}
       
-      {!isLoading && !isLoggedIn && <Auth onLoginSuccess={handleLoginSuccess} user={user} />}
+      {!isLoading && !session && <Auth />}
 
-      {!isLoading && isLoggedIn && <MainApp onLogout={handleLogout} user={user} setUser={setUser} />}
+      {!isLoading && session && <MainApp session={session} onLogout={handleLogout} />}
     </>
   );
 }

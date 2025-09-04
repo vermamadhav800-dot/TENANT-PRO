@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +15,7 @@ import {
   Menu,
   Moon,
   Sun,
+  LoaderCircle,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -25,7 +26,6 @@ import Electricity from "@/components/Electricity";
 import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
 import { Button } from "@/components/ui/button";
-import { useLocalStorage } from "@/lib/hooks";
 import { INITIAL_APP_STATE } from "@/lib/consts";
 import {
   Sidebar,
@@ -41,13 +41,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
-import type { User } from '@/lib/types';
+import type { User, AppState } from '@/lib/types';
+import type { Session } from '@supabase/supabase-js';
+import { getAppState, saveAppState } from '@/lib/supabase';
+import { useToast } from "@/hooks/use-toast";
 
 interface MainAppProps {
   onLogout: () => void;
-  user: User;
-  setUser: (user: User) => void;
+  session: Session;
 }
 
 const TABS = [
@@ -65,14 +66,12 @@ function AppContent({
   setAppState,
   setActiveTab,
   user,
-  setUser
 }: {
   activeTab: string;
-  appState: any;
-  setAppState: any;
+  appState: AppState;
+  setAppState: (state: AppState) => void;
   setActiveTab: any;
   user: User;
-  setUser: (user: User) => void;
 }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
@@ -93,7 +92,7 @@ function AppContent({
       case "reports":
         return <Reports {...props} />;
       case "settings":
-        return <AppSettings {...props} user={user} setUser={setUser} />;
+        return <AppSettings {...props} user={user} />;
       default:
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
@@ -119,12 +118,46 @@ function AppContent({
   );
 }
 
-export default function MainApp({ onLogout, user, setUser }: MainAppProps) {
-  const [appState, setAppState] = useLocalStorage(
-    "estateflow_appState",
-    INITIAL_APP_STATE
-  );
+export default function MainApp({ onLogout, session }: MainAppProps) {
+  const [appState, setAppState] = useState<AppState | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { toast } = useToast();
+  
+  const user = {
+    name: session.user.user_metadata.full_name || session.user.email || 'User',
+    email: session.user.email || '',
+  }
+
+  // Fetch initial state
+  useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const state = await getAppState(session.user.id);
+        setAppState(state || INITIAL_APP_STATE);
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not load your data.' });
+        setAppState(INITIAL_APP_STATE);
+      }
+    };
+    fetchState();
+  }, [session.user.id, toast]);
+  
+  // Persist state changes to Supabase
+  const handleSetAppState = (newState: AppState) => {
+    setAppState(newState);
+    saveAppState(session.user.id, newState).catch(error => {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to save changes.' });
+    });
+  }
+
+  if (!appState) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading your data...</p>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -167,8 +200,8 @@ export default function MainApp({ onLogout, user, setUser }: MainAppProps) {
               <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={session.user.user_metadata.avatar_url} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   <div className="overflow-hidden">
                     <p className="text-sm font-medium truncate">{user.name}</p>
@@ -185,10 +218,9 @@ export default function MainApp({ onLogout, user, setUser }: MainAppProps) {
         <AppContent
           activeTab={activeTab}
           appState={appState}
-          setAppState={setAppState}
+          setAppState={handleSetAppState}
           setActiveTab={setActiveTab}
           user={user}
-          setUser={setUser}
         />
       </div>
     </SidebarProvider>

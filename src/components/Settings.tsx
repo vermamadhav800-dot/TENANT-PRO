@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Download, Trash2, Database, Shield, Lock, KeyRound, User as UserIcon, Zap, Save } from 'lucide-react';
+import { Download, Trash2, Database, Shield, Lock, KeyRound, User as UserIcon, Zap, Save, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { AppState, User } from '@/lib/types';
@@ -12,25 +12,25 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/lib/supabase';
 
 interface SettingsProps {
   appState: AppState;
   setAppState: Dispatch<SetStateAction<AppState>>;
   user: User;
-  setUser: Dispatch<SetStateAction<User>>;
 }
 
-export default function Settings({ appState, setAppState, user, setUser }: SettingsProps) {
+export default function Settings({ appState, setAppState, user }: SettingsProps) {
   const { toast } = useToast();
   
   // State for password change
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   
   // State for user profile
   const [userName, setUserName] = useState(user.name);
-  const [userEmail, setUserEmail] = useState(user.email);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   
   // State for defaults
   const [defaultRate, setDefaultRate] = useState(appState.defaults?.electricityRatePerUnit || 8);
@@ -59,12 +59,8 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
     toast({ title: "Success", description: "All application data has been cleared." });
   };
   
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentPassword !== user.password) {
-        toast({ variant: "destructive", title: "Error", description: "Current password does not match." });
-        return;
-    }
     if (newPassword !== confirmPassword) {
         toast({ variant: "destructive", title: "Error", description: "New passwords do not match." });
         return;
@@ -74,17 +70,32 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
         return;
     }
     
-    setUser({ ...user, password: newPassword });
-    toast({ title: "Success", description: "Password updated successfully." });
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    setIsUpdatingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setIsUpdatingPassword(false);
+    
+    if (error) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } else {
+      toast({ title: "Success", description: "Password updated successfully." });
+      setNewPassword('');
+      setConfirmPassword('');
+    }
   }
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUser({ ...user, name: userName, email: userEmail });
-    toast({ title: "Success", description: "Profile updated successfully." });
+    setIsUpdatingProfile(true);
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: userName }
+    })
+    setIsUpdatingProfile(false);
+
+    if (error) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } else {
+      toast({ title: "Success", description: "Profile updated successfully. Changes will be visible on next login." });
+    }
   };
   
   const handleDefaultsUpdate = (e: React.FormEvent) => {
@@ -119,9 +130,13 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
                 </div>
                 <div>
                     <Label htmlFor="userEmail">Email Address</Label>
-                    <Input id="userEmail" type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} required />
+                    <Input id="userEmail" type="email" value={user.email} disabled />
+                     <p className="text-xs text-muted-foreground mt-1">Email cannot be changed.</p>
                 </div>
-                <Button type="submit" className="w-full"><Save className="mr-2 h-4 w-4" /> Save Profile</Button>
+                <Button type="submit" className="w-full" disabled={isUpdatingProfile}>
+                  {isUpdatingProfile ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save Profile
+                </Button>
             </form>
           </CardContent>
         </Card>
@@ -134,13 +149,6 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
           </CardHeader>
           <CardContent>
             <form onSubmit={handleChangePassword} className="space-y-4">
-                 <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input id="currentPassword" type="password" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required className="pl-10"/>
-                    </div>
-                </div>
                 <div>
                     <Label htmlFor="newPassword">New Password</Label>
                     <div className="relative">
@@ -155,7 +163,10 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
                         <Input id="confirmPassword" type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="pl-10"/>
                     </div>
                 </div>
-                <Button type="submit" className="w-full">Change Password</Button>
+                <Button type="submit" className="w-full" disabled={isUpdatingPassword}>
+                  {isUpdatingPassword ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Change Password
+                </Button>
             </form>
           </CardContent>
         </Card>
@@ -172,7 +183,7 @@ export default function Settings({ appState, setAppState, user, setUser }: Setti
                 <form onSubmit={handleDefaultsUpdate} className="space-y-4">
                     <div>
                         <Label htmlFor="defaultRate">Default Electricity Rate (per unit)</Label>
-                        <Input id="defaultRate" type="number" step="0.01" value={defaultRate} onChange={(e) => setDefaultRate(e.target.value)} required />
+                        <Input id="defaultRate" type="number" step="0.01" value={defaultRate} onChange={(e) => setDefaultRate(Number(e.target.value))} required />
                     </div>
                     <Button type="submit" className="w-full"><Save className="mr-2 h-4 w-4" /> Save Defaults</Button>
                 </form>

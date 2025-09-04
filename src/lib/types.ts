@@ -55,5 +55,5 @@ export interface AppState {
 export interface User {
   name: string;
   email: string;
-  password?: string;
+  password?: string; // This will be handled by Supabase Auth now
 }

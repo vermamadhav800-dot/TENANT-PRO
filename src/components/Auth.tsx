@@ -7,36 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import type { User } from '@/lib/types';
+import { supabase } from "@/lib/supabase";
 
-interface AuthProps {
-  onLoginSuccess: () => void;
-  user: User;
-}
-
-export default function Auth({ onLoginSuccess, user }: AuthProps) {
+export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (email === user.email && password === user.password) {
-        onLoginSuccess();
-      } else {
+    try {
+      if (isSignUp) {
+        // Sign Up
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
         toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
+          title: "Check your email!",
+          description: "We've sent a confirmation link to your email address.",
         });
-        setIsLoading(false);
+      } else {
+        // Sign In
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
       }
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description: error.error_description || error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -46,11 +53,11 @@ export default function Auth({ onLoginSuccess, user }: AuthProps) {
           <div className="w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="text-white h-10 w-10" />
           </div>
-          <CardTitle className="text-3xl font-headline">Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your EstateFlow Dashboard</CardDescription>
+          <CardTitle className="text-3xl font-headline">{isSignUp ? 'Create an Account' : 'Welcome Back'}</CardTitle>
+          <CardDescription>{isSignUp ? 'Get started with EstateFlow' : 'Sign in to access your Dashboard'}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleAuthAction} className="space-y-6">
             <div className="space-y-2">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -88,13 +95,21 @@ export default function Auth({ onLoginSuccess, user }: AuthProps) {
               {isLoading ? (
                 <>
                   <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-                  Signing In...
+                  {isSignUp ? 'Signing Up...' : 'Signing In...'}
                 </>
               ) : (
-                "Sign In"
+                isSignUp ? 'Sign Up' : 'Sign In'
               )}
             </Button>
           </form>
+           <div className="text-center mt-4">
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-primary hover:underline"
+              >
+                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              </button>
+            </div>
         </CardContent>
       </Card>
     </div>
