@@ -50,12 +50,14 @@ const TenantFormModal = ({
   tenant,
   setAppState,
   availableUnits,
+  rooms,
 }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   tenant: Tenant | null;
   setAppState: Dispatch<SetStateAction<AppState>>;
-  availableUnits: string[];
+  availableUnits: { roomNumber: string; capacity: number; occupants: number }[];
+  rooms: AppState['rooms'];
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
@@ -76,6 +78,7 @@ const TenantFormModal = ({
     const formData = new FormData(e.currentTarget);
     const aadhaar = formData.get('aadhaar') as string;
     const dueDateRaw = formData.get('dueDate') as string;
+    const unitNo = formData.get('unitNo') as string;
 
     if (!/^\d{12}$/.test(aadhaar)) {
       toast({
@@ -86,12 +89,15 @@ const TenantFormModal = ({
       return;
     }
     
+    const room = rooms.find(r => r.number === unitNo);
+    const rentAmount = room ? room.rent : Number(formData.get('rentAmount'));
+    
     const tenantData: Omit<Tenant, 'id'> = {
       name: formData.get('name') as string,
       phone: formData.get('phone') as string,
       email: formData.get('email') as string,
-      unitNo: formData.get('unitNo') as string,
-      rentAmount: Number(formData.get('rentAmount')),
+      unitNo: unitNo,
+      rentAmount: rentAmount,
       dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
       aadhaar,
       profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
@@ -142,12 +148,16 @@ const TenantFormModal = ({
               <Select name="unitNo" defaultValue={tenant?.unitNo} required>
                 <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
                 <SelectContent>
-                  {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo}</SelectItem>}
-                  {availableUnits.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
+                  {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo} (Current)</SelectItem>}
+                  {availableUnits.map(unit => <SelectItem key={unit.roomNumber} value={unit.roomNumber}>{unit.roomNumber} ({unit.occupants}/{unit.capacity})</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div><Label htmlFor="rentAmount">Rent Amount (₹)</Label><Input id="rentAmount" name="rentAmount" type="number" defaultValue={tenant?.rentAmount} required /></div>
+             <div>
+              <Label htmlFor="rentAmount">Rent Amount (₹)</Label>
+              <Input id="rentAmount" name="rentAmount" type="number" defaultValue={tenant?.rentAmount} required disabled/>
+              <p className="text-xs text-muted-foreground mt-1">Rent is set per room. Change it in the Rooms tab.</p>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={defaultDueDate} required /></div>
@@ -206,8 +216,18 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
   const availableUnits = useMemo(() => {
-    const occupiedUnits = new Set(tenants.map(t => t.unitNo));
-    return rooms.map(r => r.number).filter(n => !occupiedUnits.has(n));
+    const occupantsCount = tenants.reduce((acc, tenant) => {
+      acc[tenant.unitNo] = (acc[tenant.unitNo] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return rooms
+      .map(room => ({
+        roomNumber: room.number,
+        capacity: room.capacity,
+        occupants: occupantsCount[room.number] || 0,
+      }))
+      .filter(room => room.occupants < room.capacity);
   }, [tenants, rooms]);
   
   const getRentStatus = (tenant: Tenant): { label: string; color: "success" | "destructive" | "warning" } => {
@@ -324,7 +344,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
         </CardContent>
       </Card>
       
-      {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} />}
+      {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} />}
       {isDeleteModalOpen && selectedTenant && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
     </div>
   );
