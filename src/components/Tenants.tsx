@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Edit, MoreVertical, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -25,7 +25,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
@@ -35,7 +34,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from "@/hooks/use-toast";
 import type { AppState, Tenant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, format } from 'date-fns';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
 
 interface TenantsProps {
   appState: AppState;
@@ -73,6 +75,7 @@ const TenantFormModal = ({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const aadhaar = formData.get('aadhaar') as string;
+    const dueDateRaw = formData.get('dueDate') as string;
 
     if (!/^\d{12}$/.test(aadhaar)) {
       toast({
@@ -89,7 +92,7 @@ const TenantFormModal = ({
       email: formData.get('email') as string,
       unitNo: formData.get('unitNo') as string,
       rentAmount: Number(formData.get('rentAmount')),
-      dueDate: formData.get('dueDate') as string,
+      dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
       aadhaar,
       profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
       aadhaarCardUrl: tenant?.aadhaarCardUrl, // Logic for upload needs implementation
@@ -111,44 +114,52 @@ const TenantFormModal = ({
     setIsOpen(false);
   };
 
+  const defaultDueDate = tenant?.dueDate ? format(new Date(tenant.dueDate), 'yyyy-MM-dd') : '';
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{tenant ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
+          <DialogTitle className="text-2xl">{tenant ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-           <div className="flex flex-col items-center gap-2">
-            <Avatar className="w-24 h-24">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto p-1 pr-4">
+           <div className="flex flex-col items-center gap-2 pt-2">
+            <Avatar className="w-24 h-24 ring-2 ring-offset-2 ring-primary ring-offset-background">
               <AvatarImage src={profilePhotoPreview || undefined} alt="Profile Preview" />
               <AvatarFallback>{tenant?.name.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
-            <Input id="profilePhoto" type="file" accept="image/*" onChange={handlePhotoChange} className="text-sm" />
-            <Label htmlFor="profilePhoto" className="text-xs text-muted-foreground">Profile Photo</Label>
+            <Input id="profilePhoto" type="file" accept="image/*" onChange={handlePhotoChange} className="text-sm w-auto" />
+            <Label htmlFor="profilePhoto" className="text-xs text-muted-foreground">Upload Profile Photo</Label>
           </div>
-          <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" defaultValue={tenant?.name} required /></div>
-          <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" defaultValue={tenant?.name} required /></div>
+            <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
+          </div>
           <div><Label htmlFor="email">Email Address</Label><Input id="email" name="email" defaultValue={tenant?.email} type="email" required /></div>
-          <div>
-            <Label htmlFor="unitNo">Unit Number</Label>
-            <Select name="unitNo" defaultValue={tenant?.unitNo} required>
-              <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
-              <SelectContent>
-                {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo}</SelectItem>}
-                {availableUnits.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="unitNo">Unit Number</Label>
+              <Select name="unitNo" defaultValue={tenant?.unitNo} required>
+                <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
+                <SelectContent>
+                  {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo}</SelectItem>}
+                  {availableUnits.map(unit => <SelectItem key={unit} value={unit}>{unit}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label htmlFor="rentAmount">Rent Amount (₹)</Label><Input id="rentAmount" name="rentAmount" type="number" defaultValue={tenant?.rentAmount} required /></div>
           </div>
-          <div><Label htmlFor="rentAmount">Rent Amount (₹)</Label><Input id="rentAmount" name="rentAmount" type="number" defaultValue={tenant?.rentAmount} required /></div>
-          <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={tenant?.dueDate} required /></div>
-          <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={defaultDueDate} required /></div>
+            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+          </div>
           <div>
             <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
             <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" />
-            {tenant?.aadhaarCardUrl && <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline">View Uploaded Aadhaar</a>}
+            {tenant?.aadhaarCardUrl && <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
           </div>
-          <DialogFooter>
-            <Button type="submit">{tenant ? 'Save Changes' : 'Add Tenant'}</Button>
+          <DialogFooter className="pt-4">
+            <Button type="submit" className="w-full btn-gradient-glow">{tenant ? 'Save Changes' : 'Add Tenant'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -163,7 +174,6 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
         setAppState(prev => ({
             ...prev,
             tenants: prev.tenants.filter(t => t.id !== tenant.id),
-            // Optionally remove associated payments
             payments: prev.payments.filter(p => p.tenantId !== tenant.id),
         }));
         toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
@@ -172,14 +182,14 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Delete Tenant</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete tenant "{tenant.name}"? This action cannot be undone.
+                        Are you sure you want to delete tenant "{tenant.name}"? This will also remove all associated payment records. This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
+                <DialogFooter className="pt-2">
                     <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                     <Button variant="destructive" onClick={handleDelete}>Delete</Button>
                 </DialogFooter>
@@ -214,7 +224,6 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     const daysDiff = differenceInDays(dueDate, today);
 
     if (daysDiff < 0) return { label: 'Due', color: 'destructive' };
-    if (daysDiff <= 7) return { label: 'Upcoming', color: 'warning' };
     
     return { label: 'Upcoming', color: 'warning' };
   };
@@ -222,85 +231,98 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold font-headline">Tenant Management</h2>
-        <Button onClick={() => { setSelectedTenant(null); setIsModalOpen(true); }}>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold font-headline">Tenant Management</h2>
+          <p className="text-muted-foreground">A complete list of all tenants in your properties.</p>
+        </div>
+        <Button onClick={() => { setSelectedTenant(null); setIsModalOpen(true); }} className="btn-gradient-glow">
           <Plus className="mr-2 h-4 w-4" /> Add Tenant
         </Button>
       </div>
 
-      <div className="border rounded-lg w-full">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Unit No.</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Rent</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Aadhaar</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tenants.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
-                  No tenants found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              tenants.map(tenant => {
-                const status = getRentStatus(tenant);
-                return (
-                  <TableRow key={tenant.id}>
-                    <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
-                                <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {tenant.name}
-                        </div>
-                    </TableCell>
-                    <TableCell>{tenant.unitNo}</TableCell>
-                    <TableCell>
-                        <div>{tenant.phone}</div>
-                        <div className="text-sm text-muted-foreground">{tenant.email}</div>
-                    </TableCell>
-                    <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
-                    <TableCell>{tenant.dueDate ? new Date(tenant.dueDate).toLocaleDateString() : 'N/A'}</TableCell>
-                    <TableCell>XXXX-XXXX-{tenant.aadhaar.slice(-4)}</TableCell>
-                    <TableCell>
-                      <Badge variant={status.color === 'success' ? 'default' : status.color}>
-                          {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+      <Card className="glass-card">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Name</TableHead>
+                  <TableHead>Unit No.</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Rent</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Aadhaar</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right w-[50px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tenants.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-48 text-center text-muted-foreground">
+                      <Users className="mx-auto h-12 w-12 mb-4" />
+                      <h3 className="text-lg font-semibold">No tenants found.</h3>
+                      <p>Add your first tenant to see them listed here.</p>
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                ) : (
+                  tenants.map(tenant => {
+                    const status = getRentStatus(tenant);
+                    return (
+                      <TableRow key={tenant.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10 border">
+                                    <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                    <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-semibold">{tenant.name}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell>{tenant.unitNo}</TableCell>
+                        <TableCell>
+                            <div>{tenant.phone}</div>
+                            <div className="text-sm text-muted-foreground">{tenant.email}</div>
+                        </TableCell>
+                        <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
+                        <TableCell>{tenant.dueDate ? format(new Date(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
+                        <TableCell className="font-mono">XXXX-XXXX-{tenant.aadhaar?.slice(-4) || 'XXXX'}</TableCell>
+                        <TableCell>
+                          <Badge variant={status.color} className={cn(
+                            status.color === 'success' && 'bg-green-500/20 text-green-400 border-green-500/30',
+                            status.color === 'destructive' && 'bg-red-500/20 text-red-400 border-red-500/30',
+                            status.color === 'warning' && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                          )}>
+                              {status.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
+                                <Edit className="mr-2 h-4 w-4" /> Edit Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-500 focus:text-red-500">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete Tenant
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
       
       {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} />}
       {isDeleteModalOpen && selectedTenant && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}

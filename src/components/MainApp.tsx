@@ -11,9 +11,9 @@ import {
   Settings,
   LogOut,
   Building2,
-  Signal,
-  SignalHigh,
-  SignalLow,
+  Menu,
+  Moon,
+  Sun,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -26,6 +26,20 @@ import AppSettings from "@/components/Settings";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/lib/hooks";
 import { INITIAL_APP_STATE, MOCK_USER } from "@/lib/consts";
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 interface MainAppProps {
@@ -39,77 +53,134 @@ const TABS = [
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "electricity", label: "Electricity", icon: Zap },
   { id: "reports", label: "Reports", icon: BarChart },
-  { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export default function MainApp({ onLogout }: MainAppProps) {
-  const [appState, setAppState] = useLocalStorage("estateflow_appState", INITIAL_APP_STATE);
-  const [activeTab, setActiveTab] = useState("tenants");
-  const [isOnline, setIsOnline] = useState(true);
+function AppContent({
+  activeTab,
+  appState,
+  setAppState,
+  setActiveTab,
+}: {
+  activeTab: string;
+  appState: any;
+  setAppState: any;
+  setActiveTab: any;
+}) {
+  const { isMobile } = useSidebar();
+  const { setTheme, theme } = useTheme();
 
   const renderTabContent = () => {
     const props = { appState, setAppState };
     switch (activeTab) {
-      case "dashboard": return <Dashboard {...props} setActiveTab={setActiveTab} />;
-      case "tenants": return <Tenants {...props} />;
-      case "rooms": return <Rooms {...props} />;
-      case "payments": return <Payments {...props} />;
-      case "electricity": return <Electricity {...props} />;
-      case "reports": return <Reports {...props} />;
-      case "settings": return <AppSettings {...props} />;
-      default: return <Tenants {...props} />;
+      case "dashboard":
+        return <Dashboard {...props} setActiveTab={setActiveTab} />;
+      case "tenants":
+        return <Tenants {...props} />;
+      case "rooms":
+        return <Rooms {...props} />;
+      case "payments":
+        return <Payments {...props} />;
+      case "electricity":
+        return <Electricity {...props} />;
+      case "reports":
+        return <Reports {...props} />;
+      case "settings":
+        return <AppSettings {...props} />;
+      default:
+        return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full bg-gradient-to-r from-primary to-sky-400 text-primary-foreground shadow-lg">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <AppLogo className="h-10 w-10" iconClassName="h-6 w-6" />
-              <h1 className="text-2xl font-bold font-headline text-white">EstateFlow</h1>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="hidden md:flex items-center space-x-2 text-sm text-white/90">
-                 {isOnline ? <SignalHigh className="w-4 h-4 text-green-300" /> : <SignalLow className="w-4 h-4 text-red-300" />}
-                 <span>{isOnline ? "Online" : "Offline"}</span>
-              </div>
-              <div className="hidden sm:block text-white text-right">
-                <div className="text-sm">Welcome back,</div>
-                <div className="font-semibold">{MOCK_USER.name}</div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={onLogout} className="text-white hover:bg-white/20">
-                <LogOut className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
+    <div className="flex-1 flex flex-col bg-muted/40">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        {isMobile && <SidebarTrigger />}
+        <h1 className="text-2xl font-semibold">{TABS.find(t => t.id === activeTab)?.label || 'Settings'}</h1>
+        <div className="ml-auto flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </div>
       </header>
-
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-8 border-b">
-          <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center space-x-2 whitespace-nowrap border-b-2 py-3 px-1 text-sm sm:text-base font-medium transition-colors",
-                  activeTab === tab.id
-                    ? "border-accent text-accent-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
-                )}
-              >
-                <tab.icon className="h-5 w-5" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
+      <main className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="animate-fade-in">{renderTabContent()}</div>
       </main>
     </div>
+  );
+}
+
+export default function MainApp({ onLogout }: MainAppProps) {
+  const [appState, setAppState] = useLocalStorage(
+    "estateflow_appState",
+    INITIAL_APP_STATE
+  );
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <Sidebar collapsible="icon">
+          <SidebarHeader>
+            <div className="flex items-center gap-2.5 p-2">
+              <AppLogo className="w-8 h-8" iconClassName="w-5 h-5" />
+              <span className="text-lg font-semibold">EstateFlow</span>
+            </div>
+          </SidebarHeader>
+          <SidebarContent className="p-2">
+            <SidebarMenu>
+              {TABS.map((tab) => (
+                <SidebarMenuItem key={tab.id}>
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab(tab.id)}
+                    isActive={activeTab === tab.id}
+                    tooltip={{ children: tab.label }}
+                  >
+                    <tab.icon />
+                    <span>{tab.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            <SidebarMenu>
+               <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab("settings")}
+                    isActive={activeTab === "settings"}
+                    tooltip={{ children: "Settings" }}
+                  >
+                    <Settings />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              <SidebarMenuItem>
+                <div className="flex items-center gap-3 p-2">
+                   <Avatar className="h-9 w-9">
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${MOCK_USER.email}`} alt={MOCK_USER.name} />
+                      <AvatarFallback>{MOCK_USER.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-medium truncate">{MOCK_USER.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{MOCK_USER.email}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="ml-auto" onClick={onLogout} aria-label="Log out">
+                    <LogOut className="w-5 h-5"/>
+                  </Button>
+                </div>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+        <AppContent
+          activeTab={activeTab}
+          appState={appState}
+          setAppState={setAppState}
+          setActiveTab={setActiveTab}
+        />
+      </div>
+    </SidebarProvider>
   );
 }

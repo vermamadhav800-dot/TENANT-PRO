@@ -8,53 +8,87 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 96%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 197 71% 73%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --background: 240 10% 99%; /* Almost white */
+    --foreground: 240 10% 3.9%;
+    
+    --muted: 240 5% 96.1%;
+    --muted-foreground: 240 4% 46.1%;
+
+    --popover: 240 10% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --card: 240 10% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+
+    --primary: 210 90% 55%; /* Brighter, more vibrant blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96.1%;
+    --secondary-foreground: 240 10% 3.9%;
+
     --accent: 160 51% 60%;
-    --accent-foreground: 0 0% 9%;
+    --accent-foreground: 240 10% 3.9%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 197 71% 73%;
-    --chart-1: 197 71% 73%;
-    --chart-2: 160 51% 60%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 210 90% 55%;
+
     --radius: 0.75rem;
+
+    --sidebar: 240 5% 96%;
+    --sidebar-foreground: 240 10% 3.9%;
+    --sidebar-border: 240 6% 88%;
+    --sidebar-accent: 210 90% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 210 90% 55%;
+
+    --chart-1: 210 90% 55%;
+    --chart-2: 160 51% 60%;
+    --chart-3: 30 90% 60%;
+    --chart-4: 280 80% 65%;
+    --chart-5: 0 84% 60%;
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 197 71% 73%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --background: 240 10% 4%; /* Near black */
+    --foreground: 0 0% 98%;
+
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 5% 65%;
+
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 98%;
+
+    --card: 240, 4%, 10%; /* Slightly lighter than background */
+    --card-foreground: 0 0% 98%;
+
+    --border: 240 4% 15%;
+    --input: 240 4% 15%;
+
+    --primary: 210 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 4% 12%;
+    --secondary-foreground: 0 0% 98%;
+
     --accent: 160 51% 60%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 197 71% 73%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --ring: 210 90% 55%;
+    
+    --sidebar: 240 10% 4%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 15%;
+    --sidebar-accent: 210 90% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 210 90% 55%;
   }
 }
  
@@ -67,25 +101,12 @@ body {
   }
 }
 
-.gradient-primary {
-  @apply bg-gradient-to-br from-primary to-sky-400;
-}
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border bg-card/50 shadow-lg backdrop-blur-xl;
+  }
 
-.gradient-success {
-  @apply bg-gradient-to-br from-green-400 to-emerald-500;
-}
-
-.gradient-warning {
-  @apply bg-gradient-to-br from-yellow-400 to-amber-500;
-}
-
-.gradient-danger {
-  @apply bg-gradient-to-br from-red-400 to-red-600;
-}
-
-.card-hover {
-  @apply transition-all duration-300 ease-in-out;
-}
-.card-hover:hover {
-  @apply -translate-y-1 shadow-2xl;
+  .btn-gradient-glow {
+    @apply bg-gradient-to-r from-primary to-sky-400 text-white transition-all duration-300 hover:shadow-[0_0_20px_theme(colors.sky.500)] focus:ring-4 focus:ring-sky-500/50;
+  }
 }

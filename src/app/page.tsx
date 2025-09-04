@@ -5,6 +5,7 @@ import StartupScreen from "@/components/StartupScreen";
 import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import { useLocalStorage } from "@/lib/hooks";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -13,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 2000); // Keep startup screen for 2 seconds
     return () => clearTimeout(timer);
   }, []);
 
@@ -25,13 +26,13 @@ export default function Home() {
     setIsLoggedIn(false);
   };
 
-  if (isLoading) {
-    return <StartupScreen />;
-  }
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      {isLoading && <StartupScreen />}
+      
+      {!isLoading && !isLoggedIn && <Auth onLoginSuccess={handleLoginSuccess} />}
 
-  if (!isLoggedIn) {
-    return <Auth onLoginSuccess={handleLoginSuccess} />;
-  }
-
-  return <MainApp onLogout={handleLogout} />;
+      {!isLoading && isLoggedIn && <MainApp onLogout={handleLogout} />}
+    </ThemeProvider>
+  );
 }
