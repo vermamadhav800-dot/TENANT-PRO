@@ -7,7 +7,7 @@ import StatCard from './StatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { AppState, Tenant, Payment, Room } from '@/lib/types';
-import { differenceInDays, parseISO, formatDistanceToNow } from 'date-fns';
+import { differenceInDays, parseISO, formatDistanceToNow, isValid } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo } from 'react';
 
@@ -104,6 +104,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     }));
 
     return [...tenantActivities, ...paymentActivities, ...roomActivities]
+      .filter(activity => isValid(new Date(activity.date)))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5); // Limit to latest 5 activities
   }, [tenants, payments, rooms]);
