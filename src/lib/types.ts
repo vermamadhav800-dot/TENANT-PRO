@@ -45,6 +45,9 @@ export interface AppState {
   tenants: Tenant[];
   payments: Payment[];
   electricity: ElectricityReading[];
+  defaults?: {
+    electricityRatePerUnit?: number;
+  };
 }
 
 export interface User {

@@ -22,7 +22,7 @@ interface ElectricityProps {
 }
 
 export default function Electricity({ appState, setAppState }: ElectricityProps) {
-  const { electricity, rooms } = appState;
+  const { electricity, rooms, defaults } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [readingToDelete, setReadingToDelete] = useState<ElectricityReading | null>(null);
@@ -88,7 +88,7 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
               <div><Label htmlFor="roomId">Room</Label><Select name="roomId" required><SelectTrigger><SelectValue placeholder="Select a room" /></SelectTrigger><SelectContent>{rooms.map(r => <SelectItem key={r.id} value={r.id}>{r.number}</SelectItem>)}</SelectContent></Select></div>
               <div><Label htmlFor="previousReading">Previous Reading</Label><Input id="previousReading" name="previousReading" type="number" step="0.01" required /></div>
               <div><Label htmlFor="currentReading">Current Reading</Label><Input id="currentReading" name="currentReading" type="number" step="0.01" required /></div>
-              <div><Label htmlFor="ratePerUnit">Rate per Unit</Label><Input id="ratePerUnit" name="ratePerUnit" type="number" step="0.01" defaultValue="8" required /></div>
+              <div><Label htmlFor="ratePerUnit">Rate per Unit</Label><Input id="ratePerUnit" name="ratePerUnit" type="number" step="0.01" defaultValue={defaults?.electricityRatePerUnit || 8} required /></div>
               <div><Label htmlFor="date">Reading Date</Label><Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required /></div>
               <DialogFooter><Button type="submit">Add Reading</Button></DialogFooter>
             </form>
