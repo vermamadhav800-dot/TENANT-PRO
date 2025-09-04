@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, Wallet, Calendar, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -13,31 +12,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
-import type { AppState, Expense } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
-interface ExpensesProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-export default function Expenses({ appState, setAppState }: ExpensesProps) {
+export default function Expenses({ appState, setAppState }) {
   const { expenses = [] } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
   const { toast } = useToast();
 
-  const handleAddExpense = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAddExpense = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    const newExpense: Expense = {
+    const newExpense = {
       id: Date.now().toString(),
-      description: formData.get('description') as string,
-      category: formData.get('category') as 'Maintenance' | 'Repairs' | 'Utilities' | 'Taxes' | 'Other',
+      description: formData.get('description'),
+      category: formData.get('category'),
       amount: Number(formData.get('amount')),
-      date: new Date(formData.get('date') as string).toISOString(),
+      date: new Date(formData.get('date')).toISOString(),
     };
     
     setAppState(prev => ({ ...prev, expenses: [...(prev.expenses || []), newExpense] }));
@@ -45,7 +38,7 @@ export default function Expenses({ appState, setAppState }: ExpensesProps) {
     setIsAddModalOpen(false);
   };
 
-  const confirmDeleteExpense = (expense: Expense) => {
+  const confirmDeleteExpense = (expense) => {
     setExpenseToDelete(expense);
     setIsDeleteAlertOpen(true);
   };

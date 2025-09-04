@@ -7,13 +7,12 @@ import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import { useLocalStorage } from "@/lib/hooks";
 import { MOCK_USER_INITIAL, INITIAL_APP_STATE } from '@/lib/consts';
-import type { User, AppState } from '@/lib/types';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [appState, setAppState] = useLocalStorage<AppState>('appState', INITIAL_APP_STATE);
-  const [user, setUser] = useLocalStorage<User>('user', MOCK_USER_INITIAL);
+  const [appState, setAppState] = useLocalStorage('appState', INITIAL_APP_STATE);
+  const [user, setUser] = useLocalStorage('user', MOCK_USER_INITIAL);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -29,7 +28,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = (credentials: Omit<User, 'name'>) => {
+  const handleLogin = (credentials) => {
     // This is a mock login. In a real app, you'd validate against a server.
     if (credentials.username === MOCK_USER_INITIAL.username && credentials.password === MOCK_USER_INITIAL.password) {
       setIsAuthenticated(true);

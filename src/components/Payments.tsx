@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -13,27 +12,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
-import type { AppState, Payment } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { differenceInDays, parseISO } from 'date-fns';
 
 
-interface PaymentsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-export default function Payments({ appState, setAppState }: PaymentsProps) {
+export default function Payments({ appState, setAppState }) {
   const { payments, tenants, rooms, electricity } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
+  const [paymentToDelete, setPaymentToDelete] = useState(null);
   const { toast } = useToast();
 
-  const handleAddPayment = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAddPayment = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const tenantId = formData.get('tenantId') as string;
+    const tenantId = formData.get('tenantId');
     const tenant = tenants.find(t => t.id === tenantId);
     
     if (!tenant) {
@@ -41,12 +34,12 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
       return;
     }
     
-    const newPayment: Payment = {
+    const newPayment = {
       id: Date.now().toString(),
       tenantId,
       amount: Number(formData.get('amount')),
-      date: new Date(formData.get('date') as string).toISOString(),
-      method: formData.get('method') as 'Cash' | 'UPI' | 'Bank Transfer',
+      date: new Date(formData.get('date')).toISOString(),
+      method: formData.get('method'),
     };
     
     setAppState(prev => ({ ...prev, payments: [...prev.payments, newPayment] }));
@@ -54,7 +47,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
     setIsAddModalOpen(false);
   };
   
-  const confirmDeletePayment = (payment: Payment) => {
+  const confirmDeletePayment = (payment) => {
     setPaymentToDelete(payment);
     setIsDeleteAlertOpen(true);
   };

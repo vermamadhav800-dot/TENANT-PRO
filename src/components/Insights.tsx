@@ -1,23 +1,16 @@
 
 "use client";
 
-import type { Dispatch, SetStateAction } from 'react';
 import { useMemo } from 'react';
 import { TrendingUp, TrendingDown, Scale, PieChart as PieChartIcon, Bell, ShieldCheck, Trophy, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { AppState } from '@/lib/types';
-import { getInsights, InsightAlert } from '@/lib/insights';
+import { getInsights } from '@/lib/insights';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Line, ComposedChart, PieChart, Pie, Cell } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 
 
-interface InsightsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-const ALERT_CONFIG: Record<InsightAlert['type'], { icon: React.ElementType, color: string }> = {
+const ALERT_CONFIG = {
     'Lease Ending Soon': { icon: Bell, color: 'text-yellow-500' },
     'High Vacancy Rate': { icon: AlertTriangle, color: 'text-red-500' },
     'Top Performing Room': { icon: Trophy, color: 'text-green-500' },
@@ -27,7 +20,7 @@ const ALERT_CONFIG: Record<InsightAlert['type'], { icon: React.ElementType, colo
 
 const PIE_CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
-export default function Insights({ appState }: InsightsProps) {
+export default function Insights({ appState }) {
   const insights = useMemo(() => getInsights(appState), [appState]);
 
   if (!insights) {

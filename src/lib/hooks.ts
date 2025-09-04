@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 
 // This hook is kept for potential future use, but is no longer central to state management
 // since Supabase is now the source of truth.
-export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
+export function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
     if (typeof window === 'undefined') {
       return initialValue;
     }
@@ -32,7 +32,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   }, [key]);
 
-  const setValue = (value: T | ((val: T) => T)) => {
+  const setValue = (value) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
@@ -44,5 +44,5 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   };
 
-  return [storedValue, setValue] as const;
+  return [storedValue, setValue];
 }

@@ -1,12 +1,7 @@
 import { Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type AppLogoProps = {
-  className?: string;
-  iconClassName?: string;
-};
-
-export default function AppLogo({ className, iconClassName }: AppLogoProps) {
+export default function AppLogo({ className, iconClassName }) {
   return (
     <div
       className={cn(

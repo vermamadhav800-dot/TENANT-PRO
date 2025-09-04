@@ -44,14 +44,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import type { User, AppState } from '@/lib/types';
-
-interface MainAppProps {
-  appState: AppState;
-  setAppState: (state: AppState) => void;
-  user: User;
-  onLogout: () => void;
-}
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -70,12 +62,6 @@ function AppContent({
   setAppState,
   setActiveTab,
   user,
-}: {
-  activeTab: string;
-  appState: AppState;
-  setAppState: (state: AppState) => void;
-  setActiveTab: any;
-  user: User;
 }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
@@ -126,7 +112,7 @@ function AppContent({
   );
 }
 
-export default function MainApp({ appState, setAppState, onLogout, user }: MainAppProps) {
+export default function MainApp({ appState, setAppState, onLogout, user }) {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   if (!appState) {

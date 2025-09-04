@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,17 +32,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
-import type { AppState, Tenant, Room } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-
-interface TenantsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
 
 const TenantFormModal = ({
   isOpen,
@@ -53,22 +46,14 @@ const TenantFormModal = ({
   availableUnits,
   rooms,
   tenants
-}: {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  tenant: Tenant | null;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-  availableUnits: { roomNumber: string; capacity: number; occupants: number }[];
-  rooms: AppState['rooms'];
-  tenants: AppState['tenants'];
 }) => {
   const { toast } = useToast();
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
-  const [aadhaarCardPreview, setAadhaarCardPreview] = useState<string | null | undefined>(tenant?.aadhaarCardUrl);
-  const [selectedUnit, setSelectedUnit] = useState<string | undefined>(tenant?.unitNo);
-  const [calculatedRent, setCalculatedRent] = useState<number>(0);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant?.profilePhotoUrl || null);
+  const [aadhaarCardPreview, setAadhaarCardPreview] = useState(tenant?.aadhaarCardUrl);
+  const [selectedUnit, setSelectedUnit] = useState(tenant?.unitNo);
+  const [calculatedRent, setCalculatedRent] = useState(0);
 
-  const recalculateRentForRoom = (unitNo: string, allTenants: Tenant[]) => {
+  const recalculateRentForRoom = (unitNo, allTenants) => {
       const room = rooms.find(r => r.number === unitNo);
       if (!room) return allTenants;
 
@@ -95,37 +80,37 @@ const TenantFormModal = ({
   }, [selectedUnit, tenant, tenants, rooms]);
 
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setPreview: (value: string) => void) => {
+  const handleFileChange = (e, setPreview) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result as string);
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const dueDateRaw = formData.get('dueDate') as string;
-    const unitNo = formData.get('unitNo') as string;
+    const dueDateRaw = formData.get('dueDate');
+    const unitNo = formData.get('unitNo');
     
     setAppState(prev => {
-        const tenantData: Omit<Tenant, 'id' | 'createdAt'> = {
-            name: formData.get('name') as string,
-            phone: formData.get('phone') as string,
-            username: formData.get('username') as string,
+        const tenantData = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            username: formData.get('username'),
             unitNo: unitNo,
             rentAmount: 0, // Will be calculated
             dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
-            aadhaar: formData.get('aadhaar') as string,
+            aadhaar: formData.get('aadhaar'),
             profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
             aadhaarCardUrl: aadhaarCardPreview,
         };
 
-        let updatedTenants: Tenant[];
+        let updatedTenants;
         const originalUnitNo = tenant?.unitNo;
 
         if (tenant) { // Editing existing tenant
@@ -204,7 +189,7 @@ const TenantFormModal = ({
   );
 };
 
-const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { tenant: Tenant, isOpen: boolean, setIsOpen: (isOpen: boolean) => void, setAppState: Dispatch<SetStateAction<AppState>> }) => {
+const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }) => {
     const { toast } = useToast();
 
     const handleDelete = () => {
@@ -254,7 +239,7 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
     );
 };
 
-const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }: { tenant: Tenant | null, room: Room | null, isOpen: boolean, setIsOpen: (isOpen: boolean) => void }) => {
+const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
   if (!tenant || !room) return null;
 
   return (
@@ -287,18 +272,18 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }: { tenant: Tenan
 };
 
 
-export default function Tenants({ appState, setAppState }: TenantsProps) {
+export default function Tenants({ appState, setAppState }) {
   const { tenants, rooms, payments, electricity } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [selectedTenant, setSelectedTenant] = useState(null);
 
   const availableUnits = useMemo(() => {
     const occupantsCount = tenants.reduce((acc, tenant) => {
       acc[tenant.unitNo] = (acc[tenant.unitNo] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     return rooms
       .map(room => ({
@@ -310,7 +295,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
   }, [tenants, rooms]);
 
   const tenantsByRoom = useMemo(() => {
-    const grouped: Record<string, Tenant[]> = {};
+    const grouped = {};
     tenants.forEach(tenant => {
       if (!grouped[tenant.unitNo]) {
         grouped[tenant.unitNo] = [];
@@ -322,7 +307,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     );
   }, [tenants]);
   
-  const getRentStatus = (tenant: Tenant): { label: string; color: "success" | "destructive" | "warning" } => {
+  const getRentStatus = (tenant) => {
     if (!tenant.dueDate) {
         return { label: 'Upcoming', color: 'warning' };
     }
@@ -356,12 +341,12 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     return { label: 'Upcoming', color: 'warning' };
   };
 
-  const handleViewDetails = (tenant: Tenant) => {
+  const handleViewDetails = (tenant) => {
     setSelectedTenant(tenant);
     setIsDetailsModalOpen(true);
   };
   
-  const handleDeleteTenant = (tenant: Tenant) => {
+  const handleDeleteTenant = (tenant) => {
     setSelectedTenant(tenant);
     setIsDeleteModalOpen(true);
   };

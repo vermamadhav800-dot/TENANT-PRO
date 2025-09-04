@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Plus, DoorOpen, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,27 +9,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { AppState, Room, Tenant } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
-interface RoomsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-export default function Rooms({ appState, setAppState }: RoomsProps) {
+export default function Rooms({ appState, setAppState }) {
   const { rooms, tenants } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [roomToDelete, setRoomToDelete] = useState(null);
   const { toast } = useToast();
 
-  const openModal = (room: Room | null) => {
+  const openModal = (room) => {
     setEditingRoom(room);
     setIsModalOpen(true);
   };
 
-  const recalculateRentForRoom = (unitNo: string, allTenants: Tenant[], newRent: number) => {
+  const recalculateRentForRoom = (unitNo, allTenants, newRent) => {
       const tenantsInRoom = allTenants.filter(t => t.unitNo === unitNo);
       if (tenantsInRoom.length === 0) return allTenants;
       
@@ -41,11 +34,11 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
       );
   };
 
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const roomData = {
-      number: formData.get('number') as string,
+      number: formData.get('number'),
       capacity: Number(formData.get('capacity')),
       rent: Number(formData.get('rent')),
     };
@@ -72,7 +65,7 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
     setEditingRoom(null);
   };
 
-  const confirmDeleteRoom = (room: Room) => {
+  const confirmDeleteRoom = (room) => {
     if (tenants.some(t => t.unitNo === room.number)) {
       toast({ variant: "destructive", title: "Error", description: "Cannot delete room with tenants. Please reassign tenants first." });
       return;

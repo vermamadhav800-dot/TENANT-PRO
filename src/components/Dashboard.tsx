@@ -2,22 +2,15 @@
 
 "use client";
 
-import type { Dispatch, SetStateAction } from 'react';
 import { Users, DoorOpen, IndianRupee, Wallet, PiggyBank, UserPlus, DoorClosed, CreditCard, Home, Briefcase, FileText, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import StatCard from './StatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import type { AppState, Tenant, Payment, Room } from '@/lib/types';
 import { differenceInDays, parseISO, formatDistanceToNow, isValid } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo } from 'react';
 
-interface DashboardProps {
-  appState: AppState;
-  setActiveTab: Dispatch<SetStateAction<string>>;
-}
-
-export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
+export default function Dashboard({ appState, setActiveTab }) {
   const { tenants, rooms, payments, electricity, expenses = [] } = appState;
 
   const totalTenants = tenants.length;
@@ -46,7 +39,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
   const recentActivities = useMemo(() => {
     const tenantActivities = tenants.map(t => ({
       id: `tenant-${t.id}`,
-      type: 'New Tenant' as const,
+      type: 'New Tenant',
       date: t.createdAt,
       Icon: UserPlus,
       content: (
@@ -60,7 +53,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
       const tenant = tenants.find(t => t.id === p.tenantId);
       return {
         id: `payment-${p.id}`,
-        type: 'Payment' as const,
+        type: 'Payment',
         date: p.date,
         Icon: IndianRupee,
         content: (
@@ -74,7 +67,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     
     const expenseActivities = expenses.map(e => ({
         id: `expense-${e.id}`,
-        type: 'Expense' as const,
+        type: 'Expense',
         date: e.date,
         Icon: Wallet,
         content: (

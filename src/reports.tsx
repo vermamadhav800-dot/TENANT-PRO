@@ -1,25 +1,18 @@
 
 "use client";
 
-import type { Dispatch, SetStateAction } from 'react';
 import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import type { AppState, Tenant } from '@/lib/types';
 import { differenceInDays, parseISO } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
-interface ReportsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-export default function Reports({ appState }: ReportsProps) {
+export default function Reports({ appState }) {
   const { tenants, payments, rooms, electricity } = appState;
 
   const thisMonth = new Date().getMonth();
@@ -33,10 +26,10 @@ export default function Reports({ appState }: ReportsProps) {
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
   const tenantPaymentData = tenants.map(tenant => {
-    if (!tenant.dueDate) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' as const, isDue: false };
+    if (!tenant.dueDate) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming', isDue: false };
 
     const room = rooms.find(r => r.number === tenant.unitNo);
-    if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' as const, isDue: false };
+    if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming', isDue: false };
 
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(new Date(), dueDate) >= 0;
@@ -55,7 +48,7 @@ export default function Reports({ appState }: ReportsProps) {
 
     const pendingAmount = totalDue - paidAmount;
     
-    let status: 'paid' | 'pending' | 'overdue' | 'upcoming' = 'upcoming';
+    let status = 'upcoming';
     if(isDue) {
       if (paidAmount >= totalDue) {
         status = 'paid';

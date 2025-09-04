@@ -9,33 +9,8 @@ import {
   isAfter,
   isBefore
 } from 'date-fns';
-import type { AppState, Tenant, Payment, Expense, Room } from './types';
 
-export interface MonthlyTrend {
-  month: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
-}
-
-export interface ExpenseBreakdown {
-  name: string;
-  value: number;
-}
-
-export interface InsightAlert {
-  type: 'Lease Ending Soon' | 'High Vacancy Rate' | 'Top Performing Room' | 'Consistent Payer' | 'Overdue Payment';
-  message: string;
-  level: 'info' | 'warning' | 'success' | 'danger';
-}
-
-export interface InsightsData {
-  monthlyTrends: MonthlyTrend[];
-  expenseBreakdown: ExpenseBreakdown[];
-  alerts: InsightAlert[];
-}
-
-export function getInsights(appState: AppState): InsightsData {
+export function getInsights(appState) {
   const { payments, expenses, tenants, rooms, electricity } = appState;
   
   // 1. Monthly Financial Trends for the last 12 months
@@ -74,7 +49,7 @@ export function getInsights(appState: AppState): InsightsData {
   const expenseCategories = (expenses || []).reduce((acc, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
 
   const expenseBreakdown = Object.entries(expenseCategories).map(([name, value]) => ({
     name,
@@ -83,7 +58,7 @@ export function getInsights(appState: AppState): InsightsData {
 
 
   // 3. Alerts and Opportunities
-  const alerts: InsightAlert[] = [];
+  const alerts = [];
   const today = new Date();
   today.setHours(0,0,0,0);
   
@@ -172,7 +147,7 @@ export function getInsights(appState: AppState): InsightsData {
   });
 
   // Sort alerts by level: danger, warning, success, info
-  const alertOrder: Record<InsightAlert['level'], number> = { 'danger': 1, 'warning': 2, 'success': 3, 'info': 4 };
+  const alertOrder = { 'danger': 1, 'warning': 2, 'success': 3, 'info': 4 };
   const sortedAlerts = alerts.sort((a, b) => alertOrder[a.level] - alertOrder[b.level]);
 
   return {

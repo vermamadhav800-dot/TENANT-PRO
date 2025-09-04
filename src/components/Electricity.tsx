@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Trash2, Zap, FileText, Calculator, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -13,22 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
-import type { AppState, ElectricityReading } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
-interface ElectricityProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-}
-
-export default function Electricity({ appState, setAppState }: ElectricityProps) {
+export default function Electricity({ appState, setAppState }) {
   const { electricity, rooms, defaults } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [readingToDelete, setReadingToDelete] = useState<ElectricityReading | null>(null);
+  const [readingToDelete, setReadingToDelete] = useState(null);
   const { toast } = useToast();
 
-  const handleAddReading = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAddReading = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const currentReading = Number(formData.get('currentReading'));
@@ -41,15 +34,15 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
       return;
     }
 
-    const newReading: ElectricityReading = {
+    const newReading = {
       id: Date.now().toString(),
-      roomId: formData.get('roomId') as string,
+      roomId: formData.get('roomId'),
       previousReading,
       currentReading,
       unitsConsumed,
       ratePerUnit,
       totalAmount: unitsConsumed * ratePerUnit,
-      date: new Date(formData.get('date') as string).toISOString(),
+      date: new Date(formData.get('date')).toISOString(),
     };
     
     setAppState(prev => ({ ...prev, electricity: [...prev.electricity, newReading] }));
@@ -57,7 +50,7 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
     setIsAddModalOpen(false);
   };
 
-  const confirmDeleteReading = (reading: ElectricityReading) => {
+  const confirmDeleteReading = (reading) => {
     setReadingToDelete(reading);
     setIsDeleteAlertOpen(true);
   };

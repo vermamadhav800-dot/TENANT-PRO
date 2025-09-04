@@ -1,8 +1,6 @@
 
 
-import type { AppState, User } from '@/lib/types';
-
-export const INITIAL_APP_STATE: AppState = {
+export const INITIAL_APP_STATE = {
   rooms: [],
   tenants: [],
   payments: [],
@@ -13,7 +11,7 @@ export const INITIAL_APP_STATE: AppState = {
   },
 };
 
-export const MOCK_USER_INITIAL: User = {
+export const MOCK_USER_INITIAL = {
   name: 'jaibabalal',
   username: 'jaibabalal',
   password: 'jaibabalal123',

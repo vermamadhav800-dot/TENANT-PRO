@@ -1,16 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
 
-interface StatCardProps {
-  title: string;
-  value: string;
-  icon: LucideIcon;
-  description?: string;
-  color?: "primary" | "success" | "warning" | "danger";
-}
-
-export default function StatCard({ title, value, icon: Icon, description, color = "primary" }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, description, color = "primary" }) {
   const colorClasses = {
     primary: "from-blue-400 to-sky-500",
     success: "from-green-400 to-emerald-500",

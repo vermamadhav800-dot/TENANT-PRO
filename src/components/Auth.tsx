@@ -6,19 +6,14 @@ import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle } from "lu
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import type { User } from '@/lib/types';
 
-interface AuthProps {
-  onLogin: (credentials: Omit<User, 'name'>) => void;
-}
-
-export default function Auth({ onLogin }: AuthProps) {
+export default function Auth({ onLogin }) {
   const [username, setUsername] = useState("jaibabalal");
   const [password, setPassword] = useState("jaibabalal123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAuthAction = (e: React.FormEvent) => {
+  const handleAuthAction = (e) => {
     e.preventDefault();
     setIsLoading(true);
     // Simulate API call

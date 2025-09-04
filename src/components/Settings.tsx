@@ -2,24 +2,16 @@
 "use client";
 
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Download, Trash2, Database, Shield, Lock, KeyRound, User as UserIcon, Zap, Save, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { AppState, User } from '@/lib/types';
 import { INITIAL_APP_STATE, MOCK_USER_INITIAL } from '@/lib/consts';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-interface SettingsProps {
-  appState: AppState;
-  setAppState: Dispatch<SetStateAction<AppState>>;
-  user: User;
-}
-
-export default function Settings({ appState, setAppState, user }: SettingsProps) {
+export default function Settings({ appState, setAppState, user }) {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState(user);
 
@@ -60,7 +52,7 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
     toast({ title: "Success", description: "All application data has been cleared." });
   };
   
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = async (e) => {
     e.preventDefault();
     if (currentPassword !== currentUser.password) {
         toast({ variant: "destructive", title: "Error", description: "Current password is incorrect." });
@@ -87,7 +79,7 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
     }, 1000);
   }
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
     // Simulate API call
@@ -98,7 +90,7 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
     }, 1000);
   };
   
-  const handleDefaultsUpdate = (e: React.FormEvent) => {
+  const handleDefaultsUpdate = (e) => {
     e.preventDefault();
     setAppState(prev => ({
         ...prev,
