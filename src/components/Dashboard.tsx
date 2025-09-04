@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Users, DoorOpen, IndianRupee, Clock, UserPlus, DoorClosed, CreditCard, Home, Briefcase, FileText } from 'lucide-react';
+import { Users, DoorOpen, IndianRupee, Wallet, PiggyBank, UserPlus, DoorClosed, CreditCard, Home, Briefcase, FileText, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import StatCard from './StatCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import type { AppState, Tenant, Payment, Room } from '@/lib/types';
 import { differenceInDays, parseISO, formatDistanceToNow, isValid } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +18,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
-  const { tenants, rooms, payments, electricity } = appState;
+  const { tenants, rooms, payments, electricity, expenses } = appState;
 
   const totalTenants = tenants.length;
   const totalRooms = rooms.length;
@@ -33,34 +34,14 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
   });
 
   const monthlyRevenue = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
-
-  const pendingPayments = tenants.reduce((totalPending, tenant) => {
-    if (!tenant.dueDate) return totalPending;
-    
-    const room = rooms.find(r => r.number === tenant.unitNo);
-    if (!room) return totalPending;
-
-    const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(new Date(), dueDate) >= 0;
-
-    if (!isDue) return totalPending;
-
-    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = electricity
-      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-      .reduce((sum, e) => sum + e.totalAmount, 0);
-    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-
-    const totalDue = tenant.rentAmount + electricityShare;
-
-    const paidThisMonth = payments
-      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
-      .reduce((sum, p) => sum + p.amount, 0);
-
-    const pendingAmount = totalDue - paidThisMonth;
-    
-    return totalPending + (pendingAmount > 0 ? pendingAmount : 0);
-  }, 0);
+  
+  const thisMonthExpenses = expenses.filter(e => {
+    const expenseDate = new Date(e.date);
+    return expenseDate.getMonth() === thisMonth && expenseDate.getFullYear() === thisYear;
+  });
+  const monthlyExpenses = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+  
+  const netProfit = monthlyRevenue - monthlyExpenses;
   
   const recentActivities = useMemo(() => {
     const tenantActivities = tenants.map(t => ({
@@ -91,55 +72,71 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
       };
     });
     
-    const roomActivities = rooms.map(r => ({
-      id: `room-${r.id}`,
-      type: 'New Room' as const,
-      date: r.createdAt,
-      Icon: Home,
-      content: (
-        <p>
-          New room <strong>{r.number}</strong> was added with capacity for <strong>{r.capacity}</strong>.
-        </p>
-      ),
+    const expenseActivities = expenses.map(e => ({
+        id: `expense-${e.id}`,
+        type: 'Expense' as const,
+        date: e.date,
+        Icon: Wallet,
+        content: (
+            <p>
+                Recorded an expense of <strong>{e.amount.toLocaleString()}</strong> for <strong>{e.description}</strong>.
+            </p>
+        )
     }));
 
-    return [...tenantActivities, ...paymentActivities, ...roomActivities]
+    return [...tenantActivities, ...paymentActivities, ...expenseActivities]
       .filter(activity => isValid(new Date(activity.date)))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5); // Limit to latest 5 activities
-  }, [tenants, payments, rooms]);
+  }, [tenants, payments, expenses]);
   
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <Card className="bg-gradient-to-tr from-primary to-sky-400 text-primary-foreground">
+        <CardHeader>
+          <CardTitle>This Month's Financial Summary</CardTitle>
+          <CardDescription className="text-primary-foreground/80">A quick overview of your finances for the current month.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-lg"><TrendingUp className="h-6 w-6"/></div>
+            <div>
+              <p className="text-sm">Revenue</p>
+              <p className="text-2xl font-bold">{monthlyRevenue.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-lg"><TrendingDown className="h-6 w-6"/></div>
+            <div>
+              <p className="text-sm">Expenses</p>
+              <p className="text-2xl font-bold">{monthlyExpenses.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-lg"><Scale className="h-6 w-6"/></div>
+            <div>
+              <p className="text-sm">Net Profit</p>
+              <p className="text-2xl font-bold">{netProfit.toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <StatCard
           title="Total Tenants"
           value={totalTenants.toString()}
           icon={Users}
-          description="Active tenants"
+          description="Active tenants across all rooms"
           color="primary"
         />
         <StatCard
-          title="Occupied Rooms"
-          value={`${occupiedRoomsCount}/${totalRooms}`}
+          title="Room Occupancy"
+          value={`${occupiedRoomsCount}/${totalRooms} Rooms`}
           icon={DoorOpen}
-          description={`${occupancyRate}% occupancy`}
+          description={`${occupancyRate}% occupancy rate`}
           color="success"
-        />
-        <StatCard
-          title="Monthly Revenue"
-          value={`${monthlyRevenue.toLocaleString()}`}
-          icon={IndianRupee}
-          description="Collected this month"
-          color="warning"
-        />
-        <StatCard
-          title="Pending Payments"
-          value={`${pendingPayments > 0 ? pendingPayments.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`}
-          icon={Clock}
-          description="Due for this month"
-          color="danger"
         />
       </div>
 
@@ -147,18 +144,22 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button size="lg" onClick={() => setActiveTab('tenants')}>
             <UserPlus className="mr-2 h-5 w-5" />
-            Add New Tenant
+            Add Tenant
           </Button>
           <Button size="lg" onClick={() => setActiveTab('rooms')} variant="secondary">
             <DoorClosed className="mr-2 h-5 w-5" />
-            Add New Room
+            Add Room
           </Button>
           <Button size="lg" onClick={() => setActiveTab('payments')} variant="secondary">
             <CreditCard className="mr-2 h-5 w-5" />
             Record Payment
+          </Button>
+          <Button size="lg" onClick={() => setActiveTab('expenses')} variant="secondary">
+            <Wallet className="mr-2 h-5 w-5" />
+            Add Expense
           </Button>
         </CardContent>
       </Card>

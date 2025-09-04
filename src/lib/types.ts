@@ -1,4 +1,5 @@
 
+
 export interface Room {
   id: string;
   number: string;
@@ -42,11 +43,20 @@ export interface ElectricityReading {
   notes?: string;
 }
 
+export interface Expense {
+  id: string;
+  description: string;
+  category: 'Maintenance' | 'Repairs' | 'Utilities' | 'Taxes' | 'Other';
+  amount: number;
+  date: string;
+}
+
 export interface AppState {
   rooms: Room[];
   tenants: Tenant[];
   payments: Payment[];
   electricity: ElectricityReading[];
+  expenses: Expense[];
   defaults?: {
     electricityRatePerUnit?: number;
   };

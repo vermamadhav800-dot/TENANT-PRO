@@ -16,7 +16,7 @@ import {
   Moon,
   Sun,
   LoaderCircle,
-  Sparkles,
+  Wallet,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -26,6 +26,7 @@ import Payments from "@/components/Payments";
 import Electricity from "@/components/Electricity";
 import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
+import Expenses from "@/components/Expenses";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -56,6 +57,7 @@ const TABS = [
   { id: "rooms", label: "Rooms", icon: DoorOpen },
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "electricity", label: "Electricity", icon: Zap },
+  { id: "expenses", label: "Expenses", icon: Wallet },
   { id: "reports", label: "Reports", icon: BarChart },
 ];
 
@@ -88,6 +90,8 @@ function AppContent({
         return <Payments {...props} />;
       case "electricity":
         return <Electricity {...props} />;
+      case "expenses":
+        return <Expenses {...props} />;
       case "reports":
         return <Reports {...props} />;
       case "settings":

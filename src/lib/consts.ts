@@ -1,4 +1,5 @@
 
+
 import type { AppState, User } from '@/lib/types';
 
 export const INITIAL_APP_STATE: AppState = {
@@ -6,6 +7,7 @@ export const INITIAL_APP_STATE: AppState = {
   tenants: [],
   payments: [],
   electricity: [],
+  expenses: [],
   defaults: {
     electricityRatePerUnit: 8,
   },
