@@ -145,57 +145,63 @@ export default function Reports({ appState }: ReportsProps) {
       
       <Card>
         <CardHeader>
-            <CardTitle>Detailed Payment Status</CardTitle>
-            <CardContent className="p-0 pt-4">
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Tenant</TableHead>
-                            <TableHead>Room</TableHead>
-                            <TableHead>Total Due</TableHead>
-                            <TableHead>Amount Paid</TableHead>
-                            <TableHead>Pending</TableHead>
-                            <TableHead>Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
-                             const CurrentStatusIcon = statusConfig[status].icon;
-                             return(
-                                <TableRow key={tenant.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="w-9 h-9 border">
-                                            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
-                                            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-medium">{tenant.name}</p>
-                                            <p className="text-sm text-muted-foreground">{tenant.username}</p>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>{tenant.unitNo}</TableCell>
-                                <TableCell>{totalDue.toFixed(2)}</TableCell>
-                                <TableCell className="text-green-600">{paidAmount.toFixed(2)}</TableCell>
-                                <TableCell className="font-semibold text-red-600">{pendingAmount.toFixed(2)}</TableCell>
-                                <TableCell>
-                                    <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
-                                        <CurrentStatusIcon className="h-4 w-4"/>
-                                        <span>{statusConfig[status].label}</span>
-                                    </div>
-                                </TableCell>
-                                </TableRow>
-                             )
-                        })}
-                    </TableBody>
-                </Table>
-            </CardContent>
+            <CardTitle>Rent Roll: Detailed Payment Status</CardTitle>
         </CardHeader>
+        <CardContent className="p-0 pt-4">
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Tenant</TableHead>
+                        <TableHead>Room</TableHead>
+                        <TableHead>Total Due</TableHead>
+                        <TableHead>Amount Paid</TableHead>
+                        <TableHead>Pending</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {tenantPaymentData.length > 0 ? tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
+                         const CurrentStatusIcon = statusConfig[status].icon;
+                         return(
+                            <TableRow key={tenant.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="w-9 h-9 border">
+                                        <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                        <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-medium">{tenant.name}</p>
+                                        <p className="text-sm text-muted-foreground">{tenant.username}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>{tenant.unitNo}</TableCell>
+                            <TableCell>{totalDue.toFixed(2)}</TableCell>
+                            <TableCell className="text-green-600 font-medium">{paidAmount.toFixed(2)}</TableCell>
+                            <TableCell className="font-semibold text-red-600">{pendingAmount.toFixed(2)}</TableCell>
+                            <TableCell>
+                                <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
+                                    <CurrentStatusIcon className="h-4 w-4"/>
+                                    <span>{statusConfig[status].label}</span>
+                                </div>
+                            </TableCell>
+                            </TableRow>
+                         )
+                    }) : (
+                        <TableRow>
+                            <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                                No tenant data to display.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Detailed Analysis</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Monthly Collection Analysis</CardTitle></CardHeader>
         <CardContent className="h-[250px] w-full">
             <ChartContainer config={{
                 collected: { label: 'Collected', color: 'hsl(var(--chart-2))' },
@@ -203,7 +209,7 @@ export default function Reports({ appState }: ReportsProps) {
             }} className="w-full h-full">
                 <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} />
+                    <YAxis tickFormatter={(value) => value.toLocaleString()} tickLine={false} axisLine={false} />
                     <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                     <Legend />
                     <Bar dataKey="collected" fill="var(--color-collected)" radius={4} />
@@ -215,3 +221,5 @@ export default function Reports({ appState }: ReportsProps) {
     </div>
   );
 }
+
+    
