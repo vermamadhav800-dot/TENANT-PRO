@@ -1,3 +1,4 @@
+
 export interface Room {
   id: string;
   number: string;
@@ -44,4 +45,10 @@ export interface AppState {
   tenants: Tenant[];
   payments: Payment[];
   electricity: ElectricityReading[];
+}
+
+export interface User {
+  name: string;
+  email: string;
+  password?: string;
 }

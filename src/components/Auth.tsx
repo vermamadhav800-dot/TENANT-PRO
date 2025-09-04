@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,14 +6,15 @@ import { Building2, Mail, Lock, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MOCK_USER } from "@/lib/consts";
 import { useToast } from "@/hooks/use-toast";
+import type { User } from '@/lib/types';
 
 interface AuthProps {
   onLoginSuccess: () => void;
+  user: User;
 }
 
-export default function Auth({ onLoginSuccess }: AuthProps) {
+export default function Auth({ onLoginSuccess, user }: AuthProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +26,7 @@ export default function Auth({ onLoginSuccess }: AuthProps) {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (email === MOCK_USER.email && password === MOCK_USER.password) {
+      if (email === user.email && password === user.password) {
         onLoginSuccess();
       } else {
         toast({

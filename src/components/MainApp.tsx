@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -25,7 +26,7 @@ import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/lib/hooks";
-import { INITIAL_APP_STATE, MOCK_USER } from "@/lib/consts";
+import { INITIAL_APP_STATE } from "@/lib/consts";
 import {
   Sidebar,
   SidebarProvider,
@@ -41,9 +42,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import type { User } from '@/lib/types';
 
 interface MainAppProps {
   onLogout: () => void;
+  user: User;
+  setUser: (user: User) => void;
 }
 
 const TABS = [
@@ -60,11 +64,15 @@ function AppContent({
   appState,
   setAppState,
   setActiveTab,
+  user,
+  setUser
 }: {
   activeTab: string;
   appState: any;
   setAppState: any;
   setActiveTab: any;
+  user: User;
+  setUser: (user: User) => void;
 }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
@@ -85,7 +93,7 @@ function AppContent({
       case "reports":
         return <Reports {...props} />;
       case "settings":
-        return <AppSettings {...props} />;
+        return <AppSettings {...props} user={user} setUser={setUser} />;
       default:
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
@@ -111,7 +119,7 @@ function AppContent({
   );
 }
 
-export default function MainApp({ onLogout }: MainAppProps) {
+export default function MainApp({ onLogout, user, setUser }: MainAppProps) {
   const [appState, setAppState] = useLocalStorage(
     "estateflow_appState",
     INITIAL_APP_STATE
@@ -159,12 +167,12 @@ export default function MainApp({ onLogout }: MainAppProps) {
               <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${MOCK_USER.email}`} alt={MOCK_USER.name} />
-                      <AvatarFallback>{MOCK_USER.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   <div className="overflow-hidden">
-                    <p className="text-sm font-medium truncate">{MOCK_USER.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{MOCK_USER.email}</p>
+                    <p className="text-sm font-medium truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <Button variant="ghost" size="icon" className="ml-auto" onClick={onLogout} aria-label="Log out">
                     <LogOut className="w-5 h-5"/>
@@ -179,6 +187,8 @@ export default function MainApp({ onLogout }: MainAppProps) {
           appState={appState}
           setAppState={setAppState}
           setActiveTab={setActiveTab}
+          user={user}
+          setUser={setUser}
         />
       </div>
     </SidebarProvider>
