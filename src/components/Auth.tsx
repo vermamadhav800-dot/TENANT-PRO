@@ -13,8 +13,8 @@ interface AuthProps {
 }
 
 export default function Auth({ onLogin }: AuthProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("jaibabalal@example.com");
+  const [password, setPassword] = useState("jaibabalal123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 

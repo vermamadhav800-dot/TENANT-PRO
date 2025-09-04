@@ -13,6 +13,6 @@ export const INITIAL_APP_STATE: AppState = {
 
 export const MOCK_USER_INITIAL: User = {
   name: 'jaibabalal',
-  email: 'jaibabalal',
+  email: 'jaibabalal@example.com',
   password: 'jaibabalal123',
 };
