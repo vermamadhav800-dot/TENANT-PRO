@@ -1,8 +1,8 @@
+
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import Image from 'next/image';
 import { Plus, Trash2, Edit, MoreVertical, Users, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,6 +51,7 @@ const TenantFormModal = ({
   setAppState,
   availableUnits,
   rooms,
+  tenants
 }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -58,10 +59,44 @@ const TenantFormModal = ({
   setAppState: Dispatch<SetStateAction<AppState>>;
   availableUnits: { roomNumber: string; capacity: number; occupants: number }[];
   rooms: AppState['rooms'];
+  tenants: AppState['tenants'];
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
   const [selectedUnit, setSelectedUnit] = useState<string | undefined>(tenant?.unitNo);
+  const [calculatedRent, setCalculatedRent] = useState<number>(0);
+
+  const recalculateRentForRoom = (unitNo: string, allTenants: Tenant[]) => {
+      const room = rooms.find(r => r.number === unitNo);
+      if (!room) return allTenants;
+
+      const tenantsInRoom = allTenants.filter(t => t.unitNo === unitNo);
+      const newRentAmount = tenantsInRoom.length > 0 ? room.rent / tenantsInRoom.length : 0;
+      
+      return allTenants.map(t => 
+        t.unitNo === unitNo ? { ...t, rentAmount: newRentAmount } : t
+      );
+  };
+  
+  useEffect(() => {
+    if (selectedUnit) {
+      const room = rooms.find(r => r.number === selectedUnit);
+      if (room) {
+        // How many tenants are *currently* in the selected room?
+        const currentOccupants = tenants.filter(t => t.unitNo === selectedUnit);
+        
+        // If we're editing a tenant who is already in this room, the occupant count is correct.
+        // If we're adding a new tenant OR moving a tenant to this room, the new count will be +1.
+        const isNewTenantOrMovingIn = !tenant || tenant.unitNo !== selectedUnit;
+        const newOccupantCount = currentOccupants.length + (isNewTenantOrMovingIn ? 1 : 0);
+        
+        setCalculatedRent(newOccupantCount > 0 ? room.rent / newOccupantCount : room.rent);
+      }
+    } else {
+      setCalculatedRent(0);
+    }
+  }, [selectedUnit, tenant, tenants, rooms]);
+
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,39 +125,45 @@ const TenantFormModal = ({
       return;
     }
     
-    const room = rooms.find(r => r.number === unitNo);
-    const rentAmount = room ? room.rent : (tenant?.rentAmount || 0);
-    
-    const tenantData: Omit<Tenant, 'id'> = {
-      name: formData.get('name') as string,
-      phone: formData.get('phone') as string,
-      email: formData.get('email') as string,
-      unitNo: unitNo,
-      rentAmount: rentAmount,
-      dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
-      aadhaar,
-      profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
-      aadhaarCardUrl: tenant?.aadhaarCardUrl, // Logic for upload needs implementation
-    };
+    setAppState(prev => {
+        const tenantData: Omit<Tenant, 'id'> = {
+            name: formData.get('name') as string,
+            phone: formData.get('phone') as string,
+            email: formData.get('email') as string,
+            unitNo: unitNo,
+            rentAmount: 0, // Will be calculated
+            dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
+            aadhaar,
+            profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
+            aadhaarCardUrl: tenant?.aadhaarCardUrl, // Logic for upload needs implementation
+        };
 
-    if (tenant) {
-      setAppState(prev => ({
-        ...prev,
-        tenants: prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t)
-      }));
-      toast({ title: "Success", description: "Tenant updated successfully." });
-    } else {
-      setAppState(prev => ({
-        ...prev,
-        tenants: [...prev.tenants, { ...tenantData, id: Date.now().toString() }]
-      }));
-      toast({ title: "Success", description: "New tenant added." });
-    }
+        let updatedTenants: Tenant[];
+        const originalUnitNo = tenant?.unitNo;
+
+        if (tenant) { // Editing existing tenant
+            updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t);
+        } else { // Adding new tenant
+            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString() }];
+        }
+
+        // Recalculate rent for the new room
+        let tenantsWithNewRent = recalculateRentForRoom(unitNo, updatedTenants);
+        
+        // If tenant moved rooms, recalculate for the old room as well
+        if (originalUnitNo && originalUnitNo !== unitNo) {
+            tenantsWithNewRent = recalculateRentForRoom(originalUnitNo, tenantsWithNewRent);
+        }
+
+        toast({ title: "Success", description: tenant ? "Tenant updated successfully." : "New tenant added." });
+        
+        return { ...prev, tenants: tenantsWithNewRent };
+    });
+
     setIsOpen(false);
   };
 
   const defaultDueDate = tenant?.dueDate ? format(parseISO(tenant.dueDate), 'yyyy-MM-dd') : '';
-  const selectedRoom = rooms.find(r => r.number === selectedUnit);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -150,15 +191,15 @@ const TenantFormModal = ({
               <Select name="unitNo" defaultValue={tenant?.unitNo} required onValueChange={setSelectedUnit}>
                 <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
                 <SelectContent>
-                  {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo} (Current)</SelectItem>}
+                  {tenant && !availableUnits.some(u => u.roomNumber === tenant.unitNo) && <SelectItem value={tenant.unitNo}>{tenant.unitNo} (Current)</SelectItem>}
                   {availableUnits.map(unit => <SelectItem key={unit.roomNumber} value={unit.roomNumber}>{unit.roomNumber} ({unit.occupants}/{unit.capacity})</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
              <div>
-              <Label htmlFor="rentAmount">Rent Amount (₹)</Label>
-              <Input id="rentAmount" name="rentAmount" type="number" value={selectedRoom?.rent || tenant?.rentAmount || 0} required readOnly disabled/>
-              <p className="text-xs text-muted-foreground mt-1">Rent is set per room. Change it in the Rooms tab.</p>
+              <Label htmlFor="rentAmount">Per-Person Rent (₹)</Label>
+              <Input id="rentAmount" name="rentAmount" type="number" value={calculatedRent.toFixed(2)} required readOnly disabled/>
+              <p className="text-xs text-muted-foreground mt-1">Rent is auto-divided among tenants.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,12 +224,30 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
     const { toast } = useToast();
 
     const handleDelete = () => {
-        setAppState(prev => ({
-            ...prev,
-            tenants: prev.tenants.filter(t => t.id !== tenant.id),
-            payments: prev.payments.filter(p => p.tenantId !== tenant.id),
-        }));
-        toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
+        setAppState(prev => {
+            const { rooms } = prev;
+            const roomToUpdate = rooms.find(r => r.number === tenant.unitNo);
+
+            let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
+            const updatedPayments = prev.payments.filter(p => p.tenantId !== tenant.id);
+
+            // Recalculate rent for remaining tenants in the same room
+            if (roomToUpdate) {
+                const tenantsInRoom = updatedTenants.filter(t => t.unitNo === roomToUpdate.number);
+                const newRentAmount = tenantsInRoom.length > 0 ? roomToUpdate.rent / tenantsInRoom.length : 0;
+                updatedTenants = updatedTenants.map(t => 
+                    t.unitNo === roomToUpdate.number ? { ...t, rentAmount: newRentAmount } : t
+                );
+            }
+
+            toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
+            
+            return {
+                ...prev,
+                tenants: updatedTenants,
+                payments: updatedPayments,
+            };
+        });
         setIsOpen(false);
     };
 
@@ -198,7 +257,7 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                 <DialogHeader>
                     <DialogTitle>Delete Tenant</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete tenant "{tenant.name}"? This will also remove all associated payment records. This action cannot be undone.
+                        Are you sure you want to delete tenant "{tenant.name}"? This will also remove all associated payment records and recalculate rent for any remaining tenants in the room. This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="pt-2">
@@ -247,7 +306,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
   
   const getRentStatus = (tenant: Tenant): { label: string; color: "success" | "destructive" | "warning" } => {
     if (!tenant.dueDate) {
-      return { label: 'Upcoming', color: 'warning' };
+        return { label: 'Upcoming', color: 'warning' };
     }
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -258,7 +317,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     
     const daysDiff = differenceInDays(dueDate, today);
 
-    if (daysDiff < 0) return { label: 'Due', color: 'destructive' };
+    if (daysDiff < 0) return { label: 'Overdue', color: 'destructive' };
     
     return { label: 'Upcoming', color: 'warning' };
   };
@@ -325,7 +384,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                               <div>{tenant.phone}</div>
                               <div className="text-sm text-muted-foreground">{tenant.email}</div>
                           </TableCell>
-                          <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
+                           <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
                           <TableCell>{tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
                           <TableCell className="font-mono">XXXX-XXXX-{tenant.aadhaar?.slice(-4) || 'XXXX'}</TableCell>
                           <TableCell>
@@ -367,8 +426,9 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
       </div>
       )}
       
-      {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} />}
+      {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} />}
       {isDeleteModalOpen && selectedTenant && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
     </div>
   );
 }
+

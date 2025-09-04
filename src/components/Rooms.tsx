@@ -1,14 +1,15 @@
+
 "use client";
 
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Plus, DoorOpen, Users, IndianRupee, Trash2, Edit } from 'lucide-react';
+import { Plus, DoorOpen, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { AppState, Room } from '@/lib/types';
+import type { AppState, Room, Tenant } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
 interface RoomsProps {
@@ -27,6 +28,17 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
 setIsModalOpen(true);
   };
 
+  const recalculateRentForRoom = (unitNo: string, allTenants: Tenant[], newRent: number) => {
+      const tenantsInRoom = allTenants.filter(t => t.unitNo === unitNo);
+      if (tenantsInRoom.length === 0) return allTenants;
+      
+      const newRentAmount = newRent / tenantsInRoom.length;
+      
+      return allTenants.map(t => 
+        t.unitNo === unitNo ? { ...t, rentAmount: newRentAmount } : t
+      );
+  };
+
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -38,10 +50,16 @@ setIsModalOpen(true);
 
     if (editingRoom) {
       const updatedRoom = { ...editingRoom, ...roomData };
-      setAppState(prev => ({
-        ...prev,
-        rooms: prev.rooms.map(r => r.id === editingRoom.id ? updatedRoom : r)
-      }));
+      setAppState(prev => {
+        const updatedRooms = prev.rooms.map(r => r.id === editingRoom.id ? updatedRoom : r);
+        const updatedTenants = recalculateRentForRoom(editingRoom.number, prev.tenants, updatedRoom.rent);
+        
+        return {
+          ...prev,
+          rooms: updatedRooms,
+          tenants: updatedTenants,
+        }
+      });
       toast({ title: "Success", description: "Room updated successfully." });
     } else {
       const newRoom = { ...roomData, id: Date.now().toString() };
