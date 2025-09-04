@@ -7,7 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // A helper function to get user-specific app state
-export const getAppState = async (userId: string): Promise<AppState> => {
+export const getAppState = async (userId: string): Promise<AppState | null> => {
   const { data, error } = await supabase
     .from('user_app_state')
     .select('state')
@@ -15,7 +15,7 @@ export const getAppState = async (userId: string): Promise<AppState> => {
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116: 'No rows found'
-    console.error('Error fetching app state:', error);
+    console.error('Error fetching app state:', error.message, 'Details:', error);
     throw error;
   }
   
