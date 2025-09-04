@@ -106,10 +106,9 @@ const TenantFormModal = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormEvent>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const aadhaar = formData.get('aadhaar') as string;
     const dueDateRaw = formData.get('dueDate') as string;
     const unitNo = formData.get('unitNo') as string;
     
@@ -121,7 +120,7 @@ const TenantFormModal = ({
             unitNo: unitNo,
             rentAmount: 0, // Will be calculated
             dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
-            aadhaar,
+            aadhaar: formData.get('aadhaar') as string,
             profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
             aadhaarCardUrl: aadhaarCardPreview,
         };
@@ -211,18 +210,24 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
 
     const handleDelete = () => {
         setAppState(prev => {
-            const { rooms } = prev;
+            const { rooms, electricity } = prev;
             const roomToUpdate = rooms.find(r => r.number === tenant.unitNo);
 
             let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
             const updatedPayments = prev.payments.filter(p => p.tenantId !== tenant.id);
-
+            
+            // Note: This logic assumes electricity bills are not tenant-specific but room-specific.
+            // Deleting a tenant does not delete electricity readings for the room.
+            // Rent recalculation for remaining tenants will handle the financial adjustment.
+            
             if (roomToUpdate) {
                 const tenantsInRoom = updatedTenants.filter(t => t.unitNo === roomToUpdate.number);
-                const newRentAmount = tenantsInRoom.length > 0 ? roomToUpdate.rent / tenantsInRoom.length : 0;
-                updatedTenants = updatedTenants.map(t => 
-                    t.unitNo === roomToUpdate.number ? { ...t, rentAmount: newRentAmount } : t
-                );
+                if (tenantsInRoom.length > 0) {
+                    const newRentAmount = roomToUpdate.rent / tenantsInRoom.length;
+                    updatedTenants = updatedTenants.map(t => 
+                        t.unitNo === roomToUpdate.number ? { ...t, rentAmount: newRentAmount } : t
+                    );
+                }
             }
 
             toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
@@ -360,6 +365,11 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     setSelectedTenant(tenant);
     setIsDetailsModalOpen(true);
   };
+  
+  const handleDeleteTenant = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsDeleteModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -450,7 +460,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                                 <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
                                   <Edit className="mr-2 h-4 w-4" /> Edit Tenant
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-500 focus:text-red-500">
+                                <DropdownMenuItem onClick={() => handleDeleteTenant(tenant)} className="text-red-500 focus:text-red-500">
                                   <Trash2 className="mr-2 h-4 w-4" /> Delete Tenant
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
