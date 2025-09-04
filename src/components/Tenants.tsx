@@ -225,9 +225,9 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                     );
                 }
             }
-
-            toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
             
+            toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
+
             return {
                 ...prev,
                 tenants: updatedTenants,
