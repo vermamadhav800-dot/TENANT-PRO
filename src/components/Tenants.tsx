@@ -106,21 +106,12 @@ const TenantFormModal = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormEvent>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const aadhaar = formData.get('aadhaar') as string;
     const dueDateRaw = formData.get('dueDate') as string;
     const unitNo = formData.get('unitNo') as string;
-
-    if (!/^\d{12}$/.test(aadhaar)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Aadhaar Number",
-        description: "Aadhaar number must be 12 digits.",
-      });
-      return;
-    }
     
     setAppState(prev => {
         const tenantData: Omit<Tenant, 'id'> = {
@@ -199,7 +190,7 @@ const TenantFormModal = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={defaultDueDate} required /></div>
-            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\\d{12}" title="Aadhaar must be 12 digits" /></div>
+            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
           </div>
           <div>
             <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
