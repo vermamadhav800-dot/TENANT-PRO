@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Edit, MoreVertical } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,

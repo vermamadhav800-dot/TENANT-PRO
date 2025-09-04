@@ -151,7 +151,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(-payment.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(payment.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
