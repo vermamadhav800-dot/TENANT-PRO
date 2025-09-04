@@ -2,12 +2,14 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Users, DoorOpen, IndianRupee, Clock, UserPlus, DoorClosed, CreditCard } from 'lucide-react';
+import { Users, DoorOpen, IndianRupee, Clock, UserPlus, DoorClosed, CreditCard, Home, Briefcase, FileText } from 'lucide-react';
 import StatCard from './StatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import type { AppState } from '@/lib/types';
-import { differenceInDays, parseISO } from 'date-fns';
+import type { AppState, Tenant, Payment, Room } from '@/lib/types';
+import { differenceInDays, parseISO, formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMemo } from 'react';
 
 interface DashboardProps {
   appState: AppState;
@@ -43,7 +45,6 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
     if (!isDue) return totalPending;
 
-    // Calculate tenant's share of electricity bill for the month
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
     const roomElectricityBill = electricity
       .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
@@ -60,6 +61,52 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     
     return totalPending + (pendingAmount > 0 ? pendingAmount : 0);
   }, 0);
+  
+  const recentActivities = useMemo(() => {
+    const tenantActivities = tenants.map(t => ({
+      id: `tenant-${t.id}`,
+      type: 'New Tenant' as const,
+      date: t.dueDate, // Assume join date is first due date for now
+      Icon: UserPlus,
+      content: (
+        <p>
+          New tenant <strong>{t.name}</strong> moved into Room <strong>{t.unitNo}</strong>.
+        </p>
+      ),
+    }));
+
+    const paymentActivities = payments.map(p => {
+      const tenant = tenants.find(t => t.id === p.tenantId);
+      return {
+        id: `payment-${p.id}`,
+        type: 'Payment' as const,
+        date: p.date,
+        Icon: IndianRupee,
+        content: (
+          <p>
+            Received a payment of <strong>{p.amount.toLocaleString()}</strong> from{' '}
+            <strong>{tenant?.name || 'Unknown'}</strong>.
+          </p>
+        ),
+      };
+    });
+    
+    const roomActivities = rooms.map(r => ({
+      id: `room-${r.id}`,
+      type: 'New Room' as const,
+      date: new Date(Number(r.id)).toISOString(), // Assumes ID is a timestamp
+      Icon: Home,
+      content: (
+        <p>
+          New room <strong>{r.number}</strong> was added with capacity for <strong>{r.capacity}</strong>.
+        </p>
+      ),
+    }));
+
+    return [...tenantActivities, ...paymentActivities, ...roomActivities]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5); // Limit to latest 5 activities
+  }, [tenants, payments, rooms]);
   
 
   return (
@@ -120,14 +167,31 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            <Clock className="mx-auto h-12 w-12 mb-2" />
-            <p>No recent activity to display.</p>
-            <p className="text-sm">Activity feed coming soon!</p>
-          </div>
+          {recentActivities.length > 0 ? (
+            <ul className="space-y-4">
+              {recentActivities.map(activity => (
+                <li key={activity.id} className="flex items-start gap-4">
+                  <div className="bg-muted p-2 rounded-full">
+                    <activity.Icon className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-grow">
+                    <div className="text-sm">{activity.content}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              <Briefcase className="mx-auto h-12 w-12 mb-2" />
+              <p>No recent activity to display.</p>
+              <p className="text-sm">Add a tenant, room, or payment to see updates here.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
