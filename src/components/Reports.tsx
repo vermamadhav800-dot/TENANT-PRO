@@ -2,7 +2,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { BarChart, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX } from 'lucide-react';
+import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,7 +11,8 @@ import type { AppState, Tenant } from '@/lib/types';
 import { differenceInDays, parseISO } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface ReportsProps {
   appState: AppState;
@@ -78,6 +79,10 @@ export default function Reports({ appState }: ReportsProps) {
   const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
   const paidTenantsCount = tenantPaymentData.filter(d => d?.isDue && d.status === 'paid').length;
   const pendingTenantsCount = tenantPaymentData.filter(d => d?.isDue && (d.status === 'pending' || d.status === 'overdue')).length;
+
+  const chartData = [
+    { name: "This Month", collected: totalCollected, pending: totalPending }
+  ];
 
   const handleExport = () => {
     const dataToExport = {
@@ -191,10 +196,20 @@ export default function Reports({ appState }: ReportsProps) {
 
       <Card>
         <CardHeader><CardTitle>Detailed Analysis</CardTitle></CardHeader>
-        <CardContent className="text-center text-muted-foreground py-16">
-          <BarChart className="mx-auto h-16 w-16 mb-4" />
-          <p className="text-lg">Advanced charting and analytics are coming soon!</p>
-          <p>This section will feature visual reports on revenue trends, occupancy rates over time, and more.</p>
+        <CardContent className="h-[250px] w-full">
+            <ChartContainer config={{
+                collected: { label: 'Collected', color: 'hsl(var(--chart-2))' },
+                pending: { label: 'Pending', color: 'hsl(var(--chart-5))' },
+            }} className="w-full h-full">
+                <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                    <Legend />
+                    <Bar dataKey="collected" fill="var(--color-collected)" radius={4} />
+                    <Bar dataKey="pending" fill="var(--color-pending)" radius={4} />
+                </BarChart>
+            </ChartContainer>
         </CardContent>
       </Card>
     </div>
