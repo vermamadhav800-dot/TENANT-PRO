@@ -5,7 +5,6 @@ import StartupScreen from "@/components/StartupScreen";
 import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import { useLocalStorage } from "@/lib/hooks";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,12 +26,12 @@ export default function Home() {
   };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <>
       {isLoading && <StartupScreen />}
       
       {!isLoading && !isLoggedIn && <Auth onLoginSuccess={handleLoginSuccess} />}
 
       {!isLoading && isLoggedIn && <MainApp onLogout={handleLogout} />}
-    </ThemeProvider>
+    </>
   );
 }
