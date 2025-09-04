@@ -197,5 +197,3 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     </div>
   );
 }
-
-    
