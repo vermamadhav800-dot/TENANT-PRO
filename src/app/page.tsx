@@ -6,53 +6,58 @@ import StartupScreen from "@/components/StartupScreen";
 import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import { useLocalStorage } from "@/lib/hooks";
-import { MOCK_USER_INITIAL } from '@/lib/consts';
-import type { User } from '@/lib/types';
-import { supabase } from "@/lib/supabase";
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { MOCK_USER_INITIAL, INITIAL_APP_STATE } from '@/lib/consts';
+import type { User, AppState } from '@/lib/types';
 
 export default function Home() {
-  const [isClientLoading, setIsClientLoading] = useState(true);
-  const [isSupabaseLoading, setIsSupabaseLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [appState, setAppState] = useLocalStorage<AppState>('appState', INITIAL_APP_STATE);
+  const [user, setUser] = useLocalStorage<User>('user', MOCK_USER_INITIAL);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsClientLoading(false);
+      setIsLoading(false);
     }, 2000); // Keep startup screen for 2 seconds
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event: AuthChangeEvent, session: Session | null) => {
-        setSession(session);
-        setIsSupabaseLoading(false);
-      }
-    );
+    // Simple check if user is "logged in"
+    const loggedIn = window.localStorage.getItem('isAuthenticated');
+    if (loggedIn === 'true') {
+        setIsAuthenticated(true);
+    }
 
-    // Check for initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsSupabaseLoading(false);
-    });
-
-    return () => {
-      clearTimeout(timer);
-      authListener.subscription.unsubscribe();
-    };
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogin = (credentials: Omit<User, 'name'>) => {
+    // This is a mock login. In a real app, you'd validate against a server.
+    if (credentials.email === user.email && credentials.password === user.password) {
+      setIsAuthenticated(true);
+       window.localStorage.setItem('isAuthenticated', 'true');
+    } else {
+      alert("Invalid credentials!");
+    }
   };
-  
-  const isLoading = isClientLoading || isSupabaseLoading;
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    window.localStorage.removeItem('isAuthenticated');
+  };
 
   return (
     <>
-      {isLoading && <StartupScreen />}
-      
-      {!isLoading && !session && <Auth />}
-
-      {!isLoading && session && <MainApp session={session} onLogout={handleLogout} />}
+      {isLoading ? (
+        <StartupScreen />
+      ) : isAuthenticated ? (
+        <MainApp 
+          appState={appState}
+          setAppState={setAppState}
+          user={user} 
+          onLogout={handleLogout} 
+        />
+      ) : (
+        <Auth onLogin={handleLogin} />
+      )}
     </>
   );
 }

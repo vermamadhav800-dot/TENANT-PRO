@@ -6,32 +6,26 @@ import { Building2, Mail, Lock, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import type { User } from '@/lib/types';
 
-export default function Auth() {
+interface AuthProps {
+  onLogin: (credentials: Omit<User, 'name'>) => void;
+}
+
+export default function Auth({ onLogin }: AuthProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
-  const handleAuthAction = async (e: React.FormEvent) => {
+  const handleAuthAction = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Failed",
-        description: error.error_description || error.message,
-      });
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
+      onLogin({ email, password });
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (

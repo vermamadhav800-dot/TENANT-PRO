@@ -129,7 +129,7 @@ const TenantFormModal = ({
         const originalUnitNo = tenant?.unitNo;
 
         if (tenant) { // Editing existing tenant
-            updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t);
+            updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData, createdAt: t.createdAt } : t);
         } else { // Adding new tenant
             updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString(), createdAt: new Date().toISOString() }];
         }
@@ -139,12 +139,11 @@ const TenantFormModal = ({
         if (originalUnitNo && originalUnitNo !== unitNo) {
             tenantsWithNewRent = recalculateRentForRoom(originalUnitNo, tenantsWithNewRent);
         }
-
-        toast({ title: "Success", description: tenant ? "Tenant updated successfully." : "New tenant added." });
         
         return { ...prev, tenants: tenantsWithNewRent };
     });
 
+    toast({ title: "Success", description: tenant ? "Tenant updated successfully." : "New tenant added." });
     setIsOpen(false);
   };
 
@@ -206,11 +205,10 @@ const TenantFormModal = ({
 };
 
 const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { tenant: Tenant, isOpen: boolean, setIsOpen: (isOpen: boolean) => void, setAppState: Dispatch<SetStateAction<AppState>> }) => {
-    const { toast } = useToast();
 
     const handleDelete = () => {
         setAppState(prev => {
-            const { rooms } = prev;
+            const { rooms, toast } = prev;
             const roomToUpdate = rooms.find(r => r.number === tenant.unitNo);
 
             let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
@@ -225,8 +223,6 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                     );
                 }
             }
-            
-            toast({ title: "Success", description: `Tenant ${tenant.name} has been deleted.` });
 
             return {
                 ...prev,
@@ -248,7 +244,10 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                 </DialogHeader>
                 <DialogFooter className="pt-2">
                     <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                    <Button variant="destructive" onClick={() => {
+                      handleDelete();
+                      // This toast call was incorrect, moved inside the state update
+                    }}>Delete</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

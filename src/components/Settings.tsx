@@ -7,12 +7,11 @@ import { Download, Trash2, Database, Shield, Lock, KeyRound, User as UserIcon, Z
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { AppState, User } from '@/lib/types';
-import { INITIAL_APP_STATE } from '@/lib/consts';
+import { INITIAL_APP_STATE, MOCK_USER_INITIAL } from '@/lib/consts';
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
 
 interface SettingsProps {
   appState: AppState;
@@ -22,8 +21,10 @@ interface SettingsProps {
 
 export default function Settings({ appState, setAppState, user }: SettingsProps) {
   const { toast } = useToast();
-  
+  const [currentUser, setCurrentUser] = useState(user);
+
   // State for password change
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -61,6 +62,10 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
   
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentPassword !== currentUser.password) {
+        toast({ variant: "destructive", title: "Error", description: "Current password is incorrect." });
+        return;
+    }
     if (newPassword !== confirmPassword) {
         toast({ variant: "destructive", title: "Error", description: "New passwords do not match." });
         return;
@@ -71,31 +76,26 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
     }
     
     setIsUpdatingPassword(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsUpdatingPassword(false);
-    
-    if (error) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    } else {
-      toast({ title: "Success", description: "Password updated successfully." });
-      setNewPassword('');
-      setConfirmPassword('');
-    }
+    // Simulate API call
+    setTimeout(() => {
+        setCurrentUser(prev => ({...prev, password: newPassword}));
+        toast({ title: "Success", description: "Password updated successfully." });
+        setIsUpdatingPassword(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+    }, 1000);
   }
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: userName }
-    })
-    setIsUpdatingProfile(false);
-
-    if (error) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    } else {
-      toast({ title: "Success", description: "Profile updated successfully. Changes will be visible on next login." });
-    }
+    // Simulate API call
+    setTimeout(() => {
+      setCurrentUser(prev => ({ ...prev, name: userName }));
+      toast({ title: "Success", description: "Profile updated successfully." });
+      setIsUpdatingProfile(false);
+    }, 1000);
   };
   
   const handleDefaultsUpdate = (e: React.FormEvent) => {
@@ -149,6 +149,13 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
           </CardHeader>
           <CardContent>
             <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <div className="relative">
+                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input id="currentPassword" type="password" placeholder="Current Password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required className="pl-10"/>
+                    </div>
+                </div>
                 <div>
                     <Label htmlFor="newPassword">New Password</Label>
                     <div className="relative">

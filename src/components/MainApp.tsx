@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +26,6 @@ import Electricity from "@/components/Electricity";
 import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
 import { Button } from "@/components/ui/button";
-import { INITIAL_APP_STATE } from "@/lib/consts";
 import {
   Sidebar,
   SidebarProvider,
@@ -42,13 +41,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import type { User, AppState } from '@/lib/types';
-import type { Session } from '@supabase/supabase-js';
-import { getAppState, saveAppState } from '@/lib/supabase';
-import { useToast } from "@/hooks/use-toast";
 
 interface MainAppProps {
+  appState: AppState;
+  setAppState: (state: AppState) => void;
+  user: User;
   onLogout: () => void;
-  session: Session;
 }
 
 const TABS = [
@@ -118,37 +116,8 @@ function AppContent({
   );
 }
 
-export default function MainApp({ onLogout, session }: MainAppProps) {
-  const [appState, setAppState] = useState<AppState | null>(null);
+export default function MainApp({ appState, setAppState, onLogout, user }: MainAppProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { toast } = useToast();
-  
-  const user = {
-    name: session.user.user_metadata.full_name || session.user.email || 'User',
-    email: session.user.email || '',
-  }
-
-  // Fetch initial state
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        const state = await getAppState(session.user.id);
-        setAppState(state || INITIAL_APP_STATE);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not load your data.' });
-        setAppState(INITIAL_APP_STATE);
-      }
-    };
-    fetchState();
-  }, [session.user.id, toast]);
-  
-  // Persist state changes to Supabase
-  const handleSetAppState = (newState: AppState) => {
-    setAppState(newState);
-    saveAppState(session.user.id, newState).catch(error => {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to save changes.' });
-    });
-  }
 
   if (!appState) {
     return (
@@ -200,7 +169,7 @@ export default function MainApp({ onLogout, session }: MainAppProps) {
               <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={session.user.user_metadata.avatar_url} alt={user.name} />
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
                       <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   <div className="overflow-hidden">
@@ -218,7 +187,7 @@ export default function MainApp({ onLogout, session }: MainAppProps) {
         <AppContent
           activeTab={activeTab}
           appState={appState}
-          setAppState={handleSetAppState}
+          setAppState={setAppState}
           setActiveTab={setActiveTab}
           user={user}
         />
