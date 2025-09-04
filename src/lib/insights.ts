@@ -6,7 +6,8 @@ import {
   eachMonthOfInterval, 
   differenceInDays, 
   parseISO,
-  isAfter
+  isAfter,
+  isBefore
 } from 'date-fns';
 import type { AppState, Tenant, Payment, Expense, Room } from './types';
 
@@ -23,9 +24,9 @@ export interface ExpenseBreakdown {
 }
 
 export interface InsightAlert {
-  type: 'Lease Ending Soon' | 'High Vacancy Rate' | 'Top Performing Room' | 'Consistent Payer';
+  type: 'Lease Ending Soon' | 'High Vacancy Rate' | 'Top Performing Room' | 'Consistent Payer' | 'Overdue Payment';
   message: string;
-  level: 'info' | 'warning' | 'success';
+  level: 'info' | 'warning' | 'success' | 'danger';
 }
 
 export interface InsightsData {
@@ -35,7 +36,7 @@ export interface InsightsData {
 }
 
 export function getInsights(appState: AppState): InsightsData {
-  const { payments, expenses, tenants, rooms } = appState;
+  const { payments, expenses, tenants, rooms, electricity } = appState;
   
   // 1. Monthly Financial Trends for the last 12 months
   const now = new Date();
@@ -83,21 +84,49 @@ export function getInsights(appState: AppState): InsightsData {
 
   // 3. Alerts and Opportunities
   const alerts: InsightAlert[] = [];
+  const today = new Date();
+  today.setHours(0,0,0,0);
   
-  // Lease Ending Soon Alert
   tenants.forEach(tenant => {
-    if (tenant.dueDate) {
-      const dueDate = parseISO(tenant.dueDate);
-      const daysUntilDue = differenceInDays(dueDate, now);
-      // This logic is simplistic. A real app would have a lease end date.
-      // We'll simulate by checking if the next due date is within 30 days.
-      if (daysUntilDue > 0 && daysUntilDue <= 30) {
-        alerts.push({
-          type: 'Lease Ending Soon',
-          message: `${tenant.name}'s rent is due in ${daysUntilDue} days. Consider discussing renewal.`,
-          level: 'warning',
-        });
-      }
+    if (!tenant.dueDate) return;
+
+    const dueDate = parseISO(tenant.dueDate);
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    
+    // Lease Ending/Rent Due Soon Alert
+    const daysUntilDue = differenceInDays(dueDate, today);
+    if (daysUntilDue > 0 && daysUntilDue <= 30) {
+      alerts.push({
+        type: 'Lease Ending Soon',
+        message: `${tenant.name}'s rent is due in ${daysUntilDue} days.`,
+        level: 'warning',
+      });
+    }
+
+    // Overdue Payment Alert
+    const room = rooms.find(r => r.number === tenant.unitNo);
+    if (!room) return;
+
+    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
+    const roomElectricityBill = (electricity || [])
+      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+      .reduce((sum, e) => sum + e.totalAmount, 0);
+    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+    
+    const totalDue = tenant.rentAmount + electricityShare;
+    
+    const paidThisMonth = payments
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    if (isBefore(dueDate, today) && paidThisMonth < totalDue) {
+       const daysOverdue = differenceInDays(today, dueDate);
+       alerts.push({
+        type: 'Overdue Payment',
+        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${(totalDue - paidThisMonth).toFixed(2)}.`,
+        level: 'danger',
+      });
     }
   });
 
@@ -142,10 +171,13 @@ export function getInsights(appState: AppState): InsightsData {
       }
   });
 
+  // Sort alerts by level: danger, warning, success, info
+  const alertOrder: Record<InsightAlert['level'], number> = { 'danger': 1, 'warning': 2, 'success': 3, 'info': 4 };
+  const sortedAlerts = alerts.sort((a, b) => alertOrder[a.level] - alertOrder[b.level]);
 
   return {
     monthlyTrends,
     expenseBreakdown,
-    alerts: alerts.slice(0, 5), // Limit to 5 most relevant alerts
+    alerts: sortedAlerts.slice(0, 5), // Limit to 5 most relevant alerts
   };
 }

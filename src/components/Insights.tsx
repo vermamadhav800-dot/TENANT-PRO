@@ -22,6 +22,7 @@ const ALERT_CONFIG: Record<InsightAlert['type'], { icon: React.ElementType, colo
     'High Vacancy Rate': { icon: AlertTriangle, color: 'text-red-500' },
     'Top Performing Room': { icon: Trophy, color: 'text-green-500' },
     'Consistent Payer': { icon: ShieldCheck, color: 'text-blue-500' },
+    'Overdue Payment': { icon: AlertTriangle, color: 'text-red-600 font-bold' },
 };
 
 const PIE_CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -118,8 +119,8 @@ export default function Insights({ appState }: InsightsProps) {
                         outerRadius={100}
                         paddingAngle={2}
                     >
-                      {expenseBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
+                      {expenseBreakdown.map((entry) => (
+                          <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[expenseBreakdown.findIndex(e => e.name === entry.name) % PIE_CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Legend />
@@ -146,7 +147,7 @@ export default function Insights({ appState }: InsightsProps) {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-grow">
-                        <p className="font-semibold">{alert.type}</p>
+                        <p className={cn("font-semibold", alert.level === 'danger' && 'text-red-600')}>{alert.type}</p>
                         <p className="text-sm text-muted-foreground">{alert.message}</p>
                       </div>
                     </li>
