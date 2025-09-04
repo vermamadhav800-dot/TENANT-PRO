@@ -268,7 +268,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                         <div>{tenant.phone}</div>
                         <div className="text-sm text-muted-foreground">{tenant.email}</div>
                     </TableCell>
-                    <TableCell>₹{tenant.rentAmount.toLocaleString()}</TableCell>
+                    <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
                     <TableCell>{tenant.dueDate ? new Date(tenant.dueDate).toLocaleDateString() : 'N/A'}</TableCell>
                     <TableCell>XXXX-XXXX-{tenant.aadhaar.slice(-4)}</TableCell>
                     <TableCell>
