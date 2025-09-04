@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
@@ -13,7 +14,7 @@ interface ReportsProps {
 }
 
 export default function Reports({ appState }: ReportsProps) {
-  const { tenants, payments } = appState;
+  const { tenants, payments, rooms, electricity } = appState;
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
@@ -25,30 +26,42 @@ export default function Reports({ appState }: ReportsProps) {
 
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
-  const pendingTenantsData = tenants.map(tenant => {
-    if (!tenant.dueDate) return { tenant, pendingAmount: 0, hasPaid: false };
-    
+  const tenantPaymentData = tenants.map(tenant => {
+    if (!tenant.dueDate) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
+
+    const room = rooms.find(r => r.number === tenant.unitNo);
+    if (!room) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
+
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(new Date(), dueDate) >= 0;
 
-    if (!isDue) return { tenant, pendingAmount: 0, hasPaid: false };
+    if (!isDue) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
 
+    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
+    const roomElectricityBill = electricity
+      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+      .reduce((sum, e) => sum + e.totalAmount, 0);
+    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+
+    const totalDue = tenant.rentAmount + electricityShare;
+    
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
 
-    const pendingAmount = tenant.rentAmount - paidThisMonth;
+    const pendingAmount = totalDue - paidThisMonth;
     
     return {
       tenant,
       pendingAmount: pendingAmount > 0 ? pendingAmount : 0,
-      hasPaid: paidThisMonth >= tenant.rentAmount
+      hasPaid: paidThisMonth >= totalDue,
+      isDue: true,
     };
-  }).filter(Boolean);
-
-  const totalPending = pendingTenantsData.reduce((sum, data) => sum + data.pendingAmount, 0);
-  const paidTenantsCount = pendingTenantsData.filter(d => d.hasPaid).length;
-  const pendingTenantsCount = tenants.length - paidTenantsCount;
+  });
+  
+  const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
+  const paidTenantsCount = tenantPaymentData.filter(d => d?.isDue && d.hasPaid).length;
+  const pendingTenantsCount = tenantPaymentData.filter(d => d?.isDue && !d.hasPaid).length;
 
   const handleExport = () => {
     const dataToExport = {
@@ -60,6 +73,8 @@ export default function Reports({ appState }: ReportsProps) {
       },
       tenants,
       payments,
+      electricity,
+      rooms,
     };
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -98,7 +113,7 @@ export default function Reports({ appState }: ReportsProps) {
             <div className="p-4 bg-gray-50 rounded-lg">
                 <X className="mx-auto h-8 w-8 text-red-500 mb-2" />
                 <p className="text-2xl font-bold">{pendingTenantsCount}</p>
-                <p className="text-sm text-muted-foreground">Tenants Pending</p>
+                <p className="text-muted-foreground text-sm">Tenants Pending</p>
             </div>
         </CardContent>
       </Card>

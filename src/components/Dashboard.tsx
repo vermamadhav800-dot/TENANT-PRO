@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
@@ -14,7 +15,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
-  const { tenants, rooms, payments } = appState;
+  const { tenants, rooms, payments, electricity } = appState;
 
   const totalTenants = tenants.length;
   const totalRooms = rooms.length;
@@ -33,17 +34,29 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
   const pendingPayments = tenants.reduce((totalPending, tenant) => {
     if (!tenant.dueDate) return totalPending;
+    
+    const room = rooms.find(r => r.number === tenant.unitNo);
+    if (!room) return totalPending;
 
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(new Date(), dueDate) >= 0;
 
     if (!isDue) return totalPending;
 
+    // Calculate tenant's share of electricity bill for the month
+    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
+    const roomElectricityBill = electricity
+      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+      .reduce((sum, e) => sum + e.totalAmount, 0);
+    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+
+    const totalDue = tenant.rentAmount + electricityShare;
+
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
 
-    const pendingAmount = tenant.rentAmount - paidThisMonth;
+    const pendingAmount = totalDue - paidThisMonth;
     
     return totalPending + (pendingAmount > 0 ? pendingAmount : 0);
   }, 0);
@@ -117,3 +130,4 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
     </div>
   );
 }
+

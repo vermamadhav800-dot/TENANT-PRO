@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -32,7 +33,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from "@/hooks/use-toast";
-import type { AppState, Tenant } from '@/lib/types';
+import type { AppState, Tenant, Room } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,6 +64,7 @@ const TenantFormModal = ({
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
+  const [aadhaarCardPreview, setAadhaarCardPreview] = useState<string | null>(tenant?.aadhaarCardUrl || null);
   const [selectedUnit, setSelectedUnit] = useState<string | undefined>(tenant?.unitNo);
   const [calculatedRent, setCalculatedRent] = useState<number>(0);
 
@@ -82,14 +84,9 @@ const TenantFormModal = ({
     if (selectedUnit) {
       const room = rooms.find(r => r.number === selectedUnit);
       if (room) {
-        // How many tenants are *currently* in the selected room?
         const currentOccupants = tenants.filter(t => t.unitNo === selectedUnit);
-        
-        // If we're editing a tenant who is already in this room, the occupant count is correct.
-        // If we're adding a new tenant OR moving a tenant to this room, the new count will be +1.
         const isNewTenantOrMovingIn = !tenant || tenant.unitNo !== selectedUnit;
         const newOccupantCount = currentOccupants.length + (isNewTenantOrMovingIn ? 1 : 0);
-        
         setCalculatedRent(newOccupantCount > 0 ? room.rent / newOccupantCount : room.rent);
       }
     } else {
@@ -98,12 +95,12 @@ const TenantFormModal = ({
   }, [selectedUnit, tenant, tenants, rooms]);
 
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setPreview: (value: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePhotoPreview(reader.result as string);
+        setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -135,7 +132,7 @@ const TenantFormModal = ({
             dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
             aadhaar,
             profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
-            aadhaarCardUrl: tenant?.aadhaarCardUrl, // Logic for upload needs implementation
+            aadhaarCardUrl: aadhaarCardPreview,
         };
 
         let updatedTenants: Tenant[];
@@ -147,10 +144,8 @@ const TenantFormModal = ({
             updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString() }];
         }
 
-        // Recalculate rent for the new room
         let tenantsWithNewRent = recalculateRentForRoom(unitNo, updatedTenants);
         
-        // If tenant moved rooms, recalculate for the old room as well
         if (originalUnitNo && originalUnitNo !== unitNo) {
             tenantsWithNewRent = recalculateRentForRoom(originalUnitNo, tenantsWithNewRent);
         }
@@ -177,7 +172,7 @@ const TenantFormModal = ({
               <AvatarImage src={profilePhotoPreview || undefined} alt="Profile Preview" />
               <AvatarFallback>{tenant?.name.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
-            <Input id="profilePhoto" type="file" accept="image/*" onChange={handlePhotoChange} className="text-sm w-auto" />
+            <Input id="profilePhoto" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setProfilePhotoPreview)} className="text-sm w-auto" />
             <Label htmlFor="profilePhoto" className="text-xs text-muted-foreground">Upload Profile Photo</Label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -204,12 +199,12 @@ const TenantFormModal = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="dueDate">Rent Due Date</Label><Input id="dueDate" name="dueDate" type="date" defaultValue={defaultDueDate} required /></div>
-            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+            <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\\d{12}" title="Aadhaar must be 12 digits" /></div>
           </div>
           <div>
             <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
-            <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" />
-            {tenant?.aadhaarCardUrl && <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
+            <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setAadhaarCardPreview)} />
+            {aadhaarCardPreview && <a href={aadhaarCardPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
           </div>
           <DialogFooter className="pt-4">
             <Button type="submit" className="w-full btn-gradient-glow">{tenant ? 'Save Changes' : 'Add Tenant'}</Button>
@@ -231,7 +226,6 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
             let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
             const updatedPayments = prev.payments.filter(p => p.tenantId !== tenant.id);
 
-            // Recalculate rent for remaining tenants in the same room
             if (roomToUpdate) {
                 const tenantsInRoom = updatedTenants.filter(t => t.unitNo === roomToUpdate.number);
                 const newRentAmount = tenantsInRoom.length > 0 ? roomToUpdate.rent / tenantsInRoom.length : 0;
@@ -269,11 +263,44 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
     );
 };
 
+const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }: { tenant: Tenant | null, room: Room | null, isOpen: boolean, setIsOpen: (isOpen: boolean) => void }) => {
+  if (!tenant || !room) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl text-center">{tenant.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <Avatar className="w-24 h-24 mx-auto ring-2 ring-offset-2 ring-primary ring-offset-background">
+            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="grid grid-cols-1 gap-2 text-sm">
+            <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-muted-foreground" /><span>{tenant.email}</span></div>
+            <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground" /><span>{tenant.phone}</span></div>
+            <div className="flex items-center gap-2"><Home className="w-4 h-4 text-muted-foreground" /><span>Room {tenant.unitNo}</span></div>
+            <div className="flex items-center gap-2"><IndianRupee className="w-4 h-4 text-muted-foreground" /><span>Rent: {tenant.rentAmount.toFixed(2)} / month</span></div>
+            <div className="flex items-center gap-2"><FileText className="w-4 h-4 text-muted-foreground" /><span>Aadhaar: XXXX-XXXX-{tenant.aadhaar.slice(-4)}</span></div>
+          </div>
+          {tenant.aadhaarCardUrl && (
+            <Button asChild className="w-full">
+              <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer">View Aadhaar Card</a>
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 export default function Tenants({ appState, setAppState }: TenantsProps) {
-  const { tenants, rooms, payments } = appState;
+  const { tenants, rooms, payments, electricity } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
   const availableUnits = useMemo(() => {
@@ -311,18 +338,36 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     const today = new Date();
     today.setHours(0,0,0,0);
     const dueDate = parseISO(tenant.dueDate);
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    
+    const room = rooms.find(r => r.number === tenant.unitNo);
+    if (!room) return { label: 'Upcoming', color: 'warning' };
+
+    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
+    const roomElectricityBill = electricity
+      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+      .reduce((sum, e) => sum + e.totalAmount, 0);
+    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+    
+    const totalDue = tenant.rentAmount + electricityShare;
 
     const paidThisMonth = payments
-      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === today.getMonth())
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
 
-    if (paidThisMonth >= tenant.rentAmount) return { label: 'Paid', color: 'success' };
+    if (paidThisMonth >= totalDue) return { label: 'Paid', color: 'success' };
     
     const daysDiff = differenceInDays(dueDate, today);
 
     if (daysDiff < 0) return { label: 'Overdue', color: 'destructive' };
     
     return { label: 'Upcoming', color: 'warning' };
+  };
+
+  const handleViewDetails = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsDetailsModalOpen(true);
   };
 
   return (
@@ -408,8 +453,11 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(tenant)}>
+                                  <ViewIcon className="mr-2 h-4 w-4" /> View Details
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
-                                  <Edit className="mr-2 h-4 w-4" /> Edit Details
+                                  <Edit className="mr-2 h-4 w-4" /> Edit Tenant
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-500 focus:text-red-500">
                                   <Trash2 className="mr-2 h-4 w-4" /> Delete Tenant
@@ -431,6 +479,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
       
       {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} />}
       {isDeleteModalOpen && selectedTenant && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
+      {isDetailsModalOpen && selectedTenant && <TenantDetailsModal isOpen={isDetailsModalOpen} setIsOpen={setIsDetailsModalOpen} tenant={selectedTenant} room={rooms.find(r => r.number === selectedTenant.unitNo) || null} />}
     </div>
   );
 }
