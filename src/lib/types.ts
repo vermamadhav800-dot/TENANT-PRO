@@ -17,8 +17,8 @@ export interface Tenant {
   rentAmount: number;
   dueDate: string;
   aadhaar: string;
-  aadhaarCardUrl?: string;
-  profilePhotoUrl?: string;
+  aadhaarCardUrl?: string | null;
+  profilePhotoUrl?: string | null;
   createdAt: string;
 }
 

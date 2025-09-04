@@ -64,7 +64,7 @@ const TenantFormModal = ({
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
-  const [aadhaarCardPreview, setAadhaarCardPreview] = useState<string | null>(tenant?.aadhaarCardUrl || null);
+  const [aadhaarCardPreview, setAadhaarCardPreview] = useState<string | null | undefined>(tenant?.aadhaarCardUrl);
   const [selectedUnit, setSelectedUnit] = useState<string | undefined>(tenant?.unitNo);
   const [calculatedRent, setCalculatedRent] = useState<number>(0);
 
@@ -265,7 +265,7 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }: { tenant: Tenan
         </DialogHeader>
         <div className="space-y-4 py-4">
           <Avatar className="w-24 h-24 mx-auto ring-2 ring-offset-2 ring-primary ring-offset-background">
-            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+            <AvatarImage src={tenant.profilePhotoUrl || undefined} alt={tenant.name} data-ai-hint="person face" />
             <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="grid grid-cols-1 gap-2 text-sm">
@@ -418,7 +418,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                           <TableCell className="font-medium">
                               <div className="flex items-center gap-3">
                                   <Avatar className="w-10 h-10 border">
-                                      <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                      <AvatarImage src={tenant.profilePhotoUrl || undefined} alt={tenant.name} data-ai-hint="person face" />
                                       <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
                                   </Avatar>
                                   <span className="font-semibold">{tenant.name}</span>

@@ -156,5 +156,3 @@ export default function Expenses({ appState, setAppState }: ExpensesProps) {
     </div>
   );
 }
-
-    

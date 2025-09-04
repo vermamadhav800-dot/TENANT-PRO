@@ -221,5 +221,3 @@ export default function Reports({ appState }: ReportsProps) {
     </div>
   );
 }
-
-    
