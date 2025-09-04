@@ -31,7 +31,7 @@ export default function Home() {
 
   const handleLogin = (credentials: Omit<User, 'name'>) => {
     // This is a mock login. In a real app, you'd validate against a server.
-    if (credentials.email === MOCK_USER_INITIAL.email && credentials.password === MOCK_USER_INITIAL.password) {
+    if (credentials.username === MOCK_USER_INITIAL.username && credentials.password === MOCK_USER_INITIAL.password) {
       setIsAuthenticated(true);
        window.localStorage.setItem('isAuthenticated', 'true');
     } else {

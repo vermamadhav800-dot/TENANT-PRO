@@ -116,7 +116,7 @@ const TenantFormModal = ({
         const tenantData: Omit<Tenant, 'id' | 'createdAt'> = {
             name: formData.get('name') as string,
             phone: formData.get('phone') as string,
-            email: formData.get('email') as string,
+            username: formData.get('username') as string,
             unitNo: unitNo,
             rentAmount: 0, // Will be calculated
             dueDate: dueDateRaw ? new Date(dueDateRaw).toISOString() : '',
@@ -168,7 +168,7 @@ const TenantFormModal = ({
             <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" defaultValue={tenant?.name} required /></div>
             <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
           </div>
-          <div><Label htmlFor="email">Email Address</Label><Input id="email" name="email" defaultValue={tenant?.email} type="email" required /></div>
+          <div><Label htmlFor="username">Username</Label><Input id="username" name="username" defaultValue={tenant?.username} type="text" required /></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="unitNo">Unit Number</Label>
@@ -205,10 +205,11 @@ const TenantFormModal = ({
 };
 
 const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { tenant: Tenant, isOpen: boolean, setIsOpen: (isOpen: boolean) => void, setAppState: Dispatch<SetStateAction<AppState>> }) => {
+    const { toast } = useToast();
 
     const handleDelete = () => {
         setAppState(prev => {
-            const { rooms, toast } = prev;
+            const { rooms } = prev;
             const roomToUpdate = rooms.find(r => r.number === tenant.unitNo);
 
             let updatedTenants = prev.tenants.filter(t => t.id !== tenant.id);
@@ -223,6 +224,8 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                     );
                 }
             }
+            
+            toast({ title: "Success", description: "Tenant and associated data deleted." });
 
             return {
                 ...prev,
@@ -244,10 +247,7 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }: { 
                 </DialogHeader>
                 <DialogFooter className="pt-2">
                     <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={() => {
-                      handleDelete();
-                      // This toast call was incorrect, moved inside the state update
-                    }}>Delete</Button>
+                    <Button variant="destructive" onClick={handleDelete}>Delete</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -269,7 +269,7 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }: { tenant: Tenan
             <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-muted-foreground" /><span>{tenant.email}</span></div>
+            <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-muted-foreground" /><span>{tenant.username}</span></div>
             <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground" /><span>{tenant.phone}</span></div>
             <div className="flex items-center gap-2"><Home className="w-4 h-4 text-muted-foreground" /><span>Room {tenant.unitNo}</span></div>
             <div className="flex items-center gap-2"><IndianRupee className="w-4 h-4 text-muted-foreground" /><span>Rent: {tenant.rentAmount.toFixed(2)} / month</span></div>
@@ -426,7 +426,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                           </TableCell>
                           <TableCell>
                               <div>{tenant.phone}</div>
-                              <div className="text-sm text-muted-foreground">{tenant.email}</div>
+                              <div className="text-sm text-muted-foreground">{tenant.username}</div>
                           </TableCell>
                            <TableCell>{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
                           <TableCell>{tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>

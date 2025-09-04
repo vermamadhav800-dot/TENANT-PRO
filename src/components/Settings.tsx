@@ -129,9 +129,9 @@ export default function Settings({ appState, setAppState, user }: SettingsProps)
                     <Input id="userName" type="text" value={userName} onChange={(e) => setUserName(e.target.value)} required />
                 </div>
                 <div>
-                    <Label htmlFor="userEmail">Email Address</Label>
-                    <Input id="userEmail" type="email" value={user.email} disabled />
-                     <p className="text-xs text-muted-foreground mt-1">Email cannot be changed.</p>
+                    <Label htmlFor="userUsername">Username</Label>
+                    <Input id="userUsername" type="text" value={user.username} disabled />
+                     <p className="text-xs text-muted-foreground mt-1">Username cannot be changed.</p>
                 </div>
                 <Button type="submit" className="w-full" disabled={isUpdatingProfile}>
                   {isUpdatingProfile ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

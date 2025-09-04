@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Mail, Lock, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,7 +13,7 @@ interface AuthProps {
 }
 
 export default function Auth({ onLogin }: AuthProps) {
-  const [email, setEmail] = useState("jaibabalal@example.com");
+  const [username, setUsername] = useState("jaibabalal");
   const [password, setPassword] = useState("jaibabalal123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function Auth({ onLogin }: AuthProps) {
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
-      onLogin({ email, password });
+      onLogin({ username, password });
       setIsLoading(false);
     }, 1000);
   };
@@ -42,12 +42,12 @@ export default function Auth({ onLogin }: AuthProps) {
           <form onSubmit={handleAuthAction} className="space-y-6">
             <div className="space-y-2">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-10 py-6"
                   required
                 />

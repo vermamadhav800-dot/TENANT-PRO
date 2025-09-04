@@ -169,12 +169,12 @@ export default function MainApp({ appState, setAppState, onLogout, user }: MainA
               <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
                       <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   <div className="overflow-hidden">
                     <p className="text-sm font-medium truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.username}</p>
                   </div>
                   <Button variant="ghost" size="icon" className="ml-auto" onClick={onLogout} aria-label="Log out">
                     <LogOut className="w-5 h-5"/>

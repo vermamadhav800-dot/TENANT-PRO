@@ -11,7 +11,7 @@ export interface Tenant {
   id:string;
   name: string;
   phone: string;
-  email: string;
+  username: string;
   unitNo: string;
   rentAmount: number;
   dueDate: string;
@@ -54,6 +54,6 @@ export interface AppState {
 
 export interface User {
   name: string;
-  email: string;
+  username: string;
   password?: string; // This will be handled by Supabase Auth now
 }
