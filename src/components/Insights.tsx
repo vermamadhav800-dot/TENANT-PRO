@@ -119,7 +119,7 @@ export default function Insights({ appState }: InsightsProps) {
                         paddingAngle={2}
                     >
                       {expenseBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
+                          <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Legend />
