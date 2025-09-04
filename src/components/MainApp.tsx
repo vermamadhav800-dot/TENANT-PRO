@@ -17,6 +17,7 @@ import {
   Sun,
   LoaderCircle,
   Wallet,
+  TrendingUp,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -27,6 +28,7 @@ import Electricity from "@/components/Electricity";
 import Reports from "@/components/Reports";
 import AppSettings from "@/components/Settings";
 import Expenses from "@/components/Expenses";
+import Insights from "@/components/Insights";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -53,6 +55,7 @@ interface MainAppProps {
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "insights", label: "Insights", icon: TrendingUp },
   { id: "tenants", label: "Tenants", icon: Users },
   { id: "rooms", label: "Rooms", icon: DoorOpen },
   { id: "payments", label: "Payments", icon: CreditCard },
@@ -82,6 +85,8 @@ function AppContent({
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
+      case "insights":
+        return <Insights {...props} />;
       case "tenants":
         return <Tenants {...props} />;
       case "rooms":
