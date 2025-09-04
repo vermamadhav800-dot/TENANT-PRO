@@ -2,11 +2,16 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { BarChart, IndianRupee, Users, Check, X, Download } from 'lucide-react';
+import { BarChart, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { AppState } from '@/lib/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import type { AppState, Tenant } from '@/lib/types';
 import { differenceInDays, parseISO } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+
 
 interface ReportsProps {
   appState: AppState;
@@ -27,15 +32,13 @@ export default function Reports({ appState }: ReportsProps) {
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
   const tenantPaymentData = tenants.map(tenant => {
-    if (!tenant.dueDate) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
+    if (!tenant.dueDate) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' as const, isDue: false };
 
     const room = rooms.find(r => r.number === tenant.unitNo);
-    if (!room) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
+    if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' as const, isDue: false };
 
     const dueDate = parseISO(tenant.dueDate);
     const isDue = differenceInDays(new Date(), dueDate) >= 0;
-
-    if (!isDue) return { tenant, pendingAmount: 0, hasPaid: false, isDue: false };
 
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
     const roomElectricityBill = electricity
@@ -45,23 +48,36 @@ export default function Reports({ appState }: ReportsProps) {
 
     const totalDue = tenant.rentAmount + electricityShare;
     
-    const paidThisMonth = payments
+    const paidAmount = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
 
-    const pendingAmount = totalDue - paidThisMonth;
+    const pendingAmount = totalDue - paidAmount;
     
+    let status: 'paid' | 'pending' | 'overdue' | 'upcoming' = 'upcoming';
+    if(isDue) {
+      if (paidAmount >= totalDue) {
+        status = 'paid';
+      } else if (pendingAmount > 0 && differenceInDays(new Date(), dueDate) > 0) {
+        status = 'overdue';
+      } else {
+        status = 'pending';
+      }
+    }
+
     return {
       tenant,
+      totalDue,
+      paidAmount,
       pendingAmount: pendingAmount > 0 ? pendingAmount : 0,
-      hasPaid: paidThisMonth >= totalDue,
-      isDue: true,
+      status,
+      isDue,
     };
   });
   
   const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
-  const paidTenantsCount = tenantPaymentData.filter(d => d?.isDue && d.hasPaid).length;
-  const pendingTenantsCount = tenantPaymentData.filter(d => d?.isDue && !d.hasPaid).length;
+  const paidTenantsCount = tenantPaymentData.filter(d => d?.isDue && d.status === 'paid').length;
+  const pendingTenantsCount = tenantPaymentData.filter(d => d?.isDue && (d.status === 'pending' || d.status === 'overdue')).length;
 
   const handleExport = () => {
     const dataToExport = {
@@ -71,6 +87,7 @@ export default function Reports({ appState }: ReportsProps) {
         paidTenants: paidTenantsCount,
         pendingTenants: pendingTenantsCount,
       },
+      detailedStatus: tenantPaymentData,
       tenants,
       payments,
       electricity,
@@ -85,6 +102,13 @@ export default function Reports({ appState }: ReportsProps) {
     URL.revokeObjectURL(url);
   };
 
+  const statusConfig = {
+      paid: { icon: CircleCheck, color: "text-green-500", label: "Paid" },
+      pending: { icon: CircleAlert, color: "text-yellow-500", label: "Pending" },
+      overdue: { icon: CircleX, color: "text-red-500", label: "Overdue" },
+      upcoming: { icon: CircleAlert, color: "text-gray-500", label: "Upcoming" },
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -96,28 +120,75 @@ export default function Reports({ appState }: ReportsProps) {
         <CardHeader><CardTitle>This Month's Summary</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="p-4 bg-gray-50 rounded-lg">
-                <IndianRupee className="mx-auto h-8 w-8 text-green-500 mb-2" />
                 <p className="text-2xl font-bold">{totalCollected.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Total Collected</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
-                <IndianRupee className="mx-auto h-8 w-8 text-yellow-500 mb-2" />
                 <p className="text-2xl font-bold">{totalPending > 0 ? totalPending.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
                 <p className="text-sm text-muted-foreground">Total Pending</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
-                <Check className="mx-auto h-8 w-8 text-blue-500 mb-2" />
                 <p className="text-2xl font-bold">{paidTenantsCount}</p>
                 <p className="text-sm text-muted-foreground">Tenants Paid</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
-                <X className="mx-auto h-8 w-8 text-red-500 mb-2" />
                 <p className="text-2xl font-bold">{pendingTenantsCount}</p>
                 <p className="text-muted-foreground text-sm">Tenants Pending</p>
             </div>
         </CardContent>
       </Card>
       
+      <Card>
+        <CardHeader>
+            <CardTitle>Detailed Payment Status</CardTitle>
+            <CardContent className="p-0 pt-4">
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Tenant</TableHead>
+                            <TableHead>Room</TableHead>
+                            <TableHead>Total Due</TableHead>
+                            <TableHead>Amount Paid</TableHead>
+                            <TableHead>Pending</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
+                             const CurrentStatusIcon = statusConfig[status].icon;
+                             return(
+                                <TableRow key={tenant.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="w-9 h-9 border">
+                                            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium">{tenant.name}</p>
+                                            <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>{tenant.unitNo}</TableCell>
+                                <TableCell>{totalDue.toFixed(2)}</TableCell>
+                                <TableCell className="text-green-600">{paidAmount.toFixed(2)}</TableCell>
+                                <TableCell className="font-semibold text-red-600">{pendingAmount.toFixed(2)}</TableCell>
+                                <TableCell>
+                                    <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
+                                        <CurrentStatusIcon className="h-4 w-4"/>
+                                        <span>{statusConfig[status].label}</span>
+                                    </div>
+                                </TableCell>
+                                </TableRow>
+                             )
+                        })}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </CardHeader>
+      </Card>
+
       <Card>
         <CardHeader><CardTitle>Detailed Analysis</CardTitle></CardHeader>
         <CardContent className="text-center text-muted-foreground py-16">
