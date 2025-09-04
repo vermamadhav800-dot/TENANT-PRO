@@ -5,7 +5,6 @@
  * Google's generative models into the application. The API key is
  * read from the `GEMINI_API_KEY` environment variable.
  */
-'use server';
 
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';

@@ -17,7 +17,7 @@ import {Label} from '@/components/ui/label';
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {Progress} from '@/components/ui/progress';
 import {suggestRent} from '@/ai/flows/rent-optimizer-flow';
-import type {RentAdvisorInput, RentAdvisorOutput} from '@/ai/flows/rent-optimizer-flow';
+import type {RentAdvisorInput, RentAdvisorOutput} from '@/ai/schemas/rent-optimizer-schemas';
 import type {AppState} from '@/lib/types';
 import {useToast} from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
