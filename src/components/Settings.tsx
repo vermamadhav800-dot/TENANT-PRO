@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import type { AppState } from '@/lib/types';
 import { INITIAL_APP_STATE } from '@/lib/consts';
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface SettingsProps {
   appState: AppState;
@@ -35,10 +37,8 @@ export default function Settings({ appState, setAppState }: SettingsProps) {
   };
 
   const handleClearData = () => {
-    if (window.confirm('ARE YOU ABSOLUTELY SURE? This will delete all rooms, tenants, and payments. This action cannot be undone.')) {
-      setAppState(INITIAL_APP_STATE);
-      toast({ title: "Success", description: "All application data has been cleared." });
-    }
+    setAppState(INITIAL_APP_STATE);
+    toast({ title: "Success", description: "All application data has been cleared." });
   };
 
   return (
@@ -55,9 +55,25 @@ export default function Settings({ appState, setAppState }: SettingsProps) {
             <Button onClick={handleExportData} className="w-full">
               <Download className="mr-2 h-4 w-4" /> Export All Data
             </Button>
-            <Button onClick={handleClearData} variant="destructive" className="w-full">
-              <Trash2 className="mr-2 h-4 w-4" /> Clear All Data
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear All Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will delete all rooms, tenants, and payments. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearData}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
 

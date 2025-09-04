@@ -7,7 +7,7 @@ import { Plus, DoorOpen, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { AppState, Room, Tenant } from '@/lib/types';
@@ -22,7 +22,6 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
   const { rooms, tenants } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
   const { toast } = useToast();
 
@@ -79,7 +78,6 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
       return;
     }
     setRoomToDelete(room);
-    setIsDeleteAlertOpen(true);
   };
 
   const handleDeleteRoom = () => {
@@ -90,7 +88,6 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
       rooms: prev.rooms.filter(r => r.id !== roomToDelete.id)
     }));
     toast({ title: "Success", description: "Room deleted." });
-    setIsDeleteAlertOpen(false);
     setRoomToDelete(null);
   };
 
@@ -135,7 +132,25 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
                 </CardContent>
                 <CardFooter className="grid grid-cols-2 gap-2 pt-4">
                   <Button variant="outline" onClick={() => openModal(room)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-                  <Button variant="destructive" onClick={() => confirmDeleteRoom(room)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+                  <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                      <Button variant="destructive" onClick={() => confirmDeleteRoom(room)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+                    </AlertDialogTrigger>
+                    {roomToDelete && !tenants.some(t => t.unitNo === roomToDelete.number) && (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete room {roomToDelete?.number}.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setRoomToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteRoom}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                    )}
+                  </AlertDialog>
                 </CardFooter>
               </Card>
             );
@@ -161,21 +176,6 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
           </form>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete room {roomToDelete?.number}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRoomToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteRoom}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
