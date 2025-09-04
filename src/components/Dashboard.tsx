@@ -67,7 +67,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
         />
         <StatCard
           title="Pending Payments"
-          value={`₹${pendingPayments > 0 ? pendingPayments.toLocaleString() : 0}`}
+          value={`₹${pendingPayments > 0 ? pendingPayments.toLocaleString() : '0'}`}
           icon={Clock}
           description="Due for this month"
           color="danger"
