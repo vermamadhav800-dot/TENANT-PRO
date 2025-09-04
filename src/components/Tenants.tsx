@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Edit, MoreVertical, Users } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { AppState, Tenant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { differenceInDays, parseISO, format } from 'date-fns';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 
@@ -61,6 +61,7 @@ const TenantFormModal = ({
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(tenant?.profilePhotoUrl || null);
+  const [selectedUnit, setSelectedUnit] = useState<string | undefined>(tenant?.unitNo);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,7 +91,7 @@ const TenantFormModal = ({
     }
     
     const room = rooms.find(r => r.number === unitNo);
-    const rentAmount = room ? room.rent : Number(formData.get('rentAmount'));
+    const rentAmount = room ? room.rent : (tenant?.rentAmount || 0);
     
     const tenantData: Omit<Tenant, 'id'> = {
       name: formData.get('name') as string,
@@ -120,7 +121,8 @@ const TenantFormModal = ({
     setIsOpen(false);
   };
 
-  const defaultDueDate = tenant?.dueDate ? format(new Date(tenant.dueDate), 'yyyy-MM-dd') : '';
+  const defaultDueDate = tenant?.dueDate ? format(parseISO(tenant.dueDate), 'yyyy-MM-dd') : '';
+  const selectedRoom = rooms.find(r => r.number === selectedUnit);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -145,7 +147,7 @@ const TenantFormModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="unitNo">Unit Number</Label>
-              <Select name="unitNo" defaultValue={tenant?.unitNo} required>
+              <Select name="unitNo" defaultValue={tenant?.unitNo} required onValueChange={setSelectedUnit}>
                 <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
                 <SelectContent>
                   {tenant && <SelectItem value={tenant.unitNo}>{tenant.unitNo} (Current)</SelectItem>}
@@ -155,7 +157,7 @@ const TenantFormModal = ({
             </div>
              <div>
               <Label htmlFor="rentAmount">Rent Amount (₹)</Label>
-              <Input id="rentAmount" name="rentAmount" type="number" defaultValue={tenant?.rentAmount} required disabled/>
+              <Input id="rentAmount" name="rentAmount" type="number" value={selectedRoom?.rent || tenant?.rentAmount || 0} required readOnly disabled/>
               <p className="text-xs text-muted-foreground mt-1">Rent is set per room. Change it in the Rooms tab.</p>
             </div>
           </div>
@@ -229,6 +231,19 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
       }))
       .filter(room => room.occupants < room.capacity);
   }, [tenants, rooms]);
+
+  const tenantsByRoom = useMemo(() => {
+    const grouped: Record<string, Tenant[]> = {};
+    tenants.forEach(tenant => {
+      if (!grouped[tenant.unitNo]) {
+        grouped[tenant.unitNo] = [];
+      }
+      grouped[tenant.unitNo].push(tenant);
+    });
+    return Object.fromEntries(
+        Object.entries(grouped).sort(([roomA], [roomB]) => roomA.localeCompare(roomB, undefined, { numeric: true }))
+    );
+  }, [tenants]);
   
   const getRentStatus = (tenant: Tenant): { label: string; color: "success" | "destructive" | "warning" } => {
     if (!tenant.dueDate) {
@@ -260,89 +275,97 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
         </Button>
       </div>
 
-      <Card className="glass-card">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[250px]">Name</TableHead>
-                  <TableHead>Unit No.</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Rent</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Aadhaar</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right w-[50px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenants.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center text-muted-foreground">
-                      <Users className="mx-auto h-12 w-12 mb-4" />
-                      <h3 className="text-lg font-semibold">No tenants found.</h3>
-                      <p>Add your first tenant to see them listed here.</p>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  tenants.map(tenant => {
-                    const status = getRentStatus(tenant);
-                    return (
-                      <TableRow key={tenant.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="w-10 h-10 border">
-                                    <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
-                                    <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span className="font-semibold">{tenant.name}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell>{tenant.unitNo}</TableCell>
-                        <TableCell>
-                            <div>{tenant.phone}</div>
-                            <div className="text-sm text-muted-foreground">{tenant.email}</div>
-                        </TableCell>
-                        <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
-                        <TableCell>{tenant.dueDate ? format(new Date(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
-                        <TableCell className="font-mono">XXXX-XXXX-{tenant.aadhaar?.slice(-4) || 'XXXX'}</TableCell>
-                        <TableCell>
-                          <Badge variant={status.color} className={cn(
-                            status.color === 'success' && 'bg-green-500/20 text-green-400 border-green-500/30',
-                            status.color === 'destructive' && 'bg-red-500/20 text-red-400 border-red-500/30',
-                            status.color === 'warning' && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-                          )}>
-                              {status.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
-                                <Edit className="mr-2 h-4 w-4" /> Edit Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-500 focus:text-red-500">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete Tenant
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+       {tenants.length === 0 ? (
+        <Card className="glass-card text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+            <Users className="mx-auto h-16 w-16 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No Tenants Found</h3>
+            <p className="mb-4">Get started by adding your first tenant.</p>
+            <Button onClick={() => { setSelectedTenant(null); setIsModalOpen(true); }}>Add Your First Tenant</Button>
+        </Card>
+      ) : (
+      <div className="space-y-8">
+        {Object.entries(tenantsByRoom).map(([roomNumber, roomTenants]) => (
+          <Card key={roomNumber} className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="text-primary"/>
+                Room {roomNumber}
+                <Badge variant="secondary">{roomTenants.length} Tenant(s)</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[250px]">Name</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Rent</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Aadhaar</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right w-[50px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {roomTenants.map(tenant => {
+                      const status = getRentStatus(tenant);
+                      return (
+                        <TableRow key={tenant.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                              <div className="flex items-center gap-3">
+                                  <Avatar className="w-10 h-10 border">
+                                      <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                      <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-semibold">{tenant.name}</span>
+                              </div>
+                          </TableCell>
+                          <TableCell>
+                              <div>{tenant.phone}</div>
+                              <div className="text-sm text-muted-foreground">{tenant.email}</div>
+                          </TableCell>
+                          <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</TableCell>
+                          <TableCell>{tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
+                          <TableCell className="font-mono">XXXX-XXXX-{tenant.aadhaar?.slice(-4) || 'XXXX'}</TableCell>
+                          <TableCell>
+                            <Badge variant={status.color} className={cn(
+                              status.color === 'success' && 'bg-green-500/20 text-green-400 border-green-500/30',
+                              status.color === 'destructive' && 'bg-red-500/20 text-red-400 border-red-500/30',
+                              status.color === 'warning' && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                            )}>
+                                {status.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsModalOpen(true); }}>
+                                  <Edit className="mr-2 h-4 w-4" /> Edit Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedTenant(tenant); setIsDeleteModalOpen(true); }} className="text-red-500 focus:text-red-500">
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete Tenant
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      )}
       
       {isModalOpen && <TenantFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} />}
       {isDeleteModalOpen && selectedTenant && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
