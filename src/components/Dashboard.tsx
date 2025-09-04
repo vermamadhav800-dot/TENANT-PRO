@@ -18,7 +18,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
-  const { tenants, rooms, payments, electricity, expenses } = appState;
+  const { tenants, rooms, payments, electricity, expenses = [] } = appState;
 
   const totalTenants = tenants.length;
   const totalRooms = rooms.length;
