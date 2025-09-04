@@ -78,7 +78,7 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
               <div><Label htmlFor="roomId">Room</Label><Select name="roomId" required><SelectTrigger><SelectValue placeholder="Select a room" /></SelectTrigger><SelectContent>{rooms.map(r => <SelectItem key={r.id} value={r.id}>{r.number}</SelectItem>)}</SelectContent></Select></div>
               <div><Label htmlFor="previousReading">Previous Reading</Label><Input id="previousReading" name="previousReading" type="number" step="0.01" required /></div>
               <div><Label htmlFor="currentReading">Current Reading</Label><Input id="currentReading" name="currentReading" type="number" step="0.01" required /></div>
-              <div><Label htmlFor="ratePerUnit">Rate per Unit (₹)</Label><Input id="ratePerUnit" name="ratePerUnit" type="number" step="0.01" defaultValue="8" required /></div>
+              <div><Label htmlFor="ratePerUnit">Rate per Unit</Label><Input id="ratePerUnit" name="ratePerUnit" type="number" step="0.01" defaultValue="8" required /></div>
               <div><Label htmlFor="date">Reading Date</Label><Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required /></div>
               <DialogFooter><Button type="submit">Add Reading</Button></DialogFooter>
             </form>
@@ -88,9 +88,9 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Units (Month)" value={totalUnits.toFixed(2)} icon={Zap} color="primary" />
-        <StatCard title="Total Bill (Month)" value={`₹${totalBill.toLocaleString()}`} icon={FileText} color="warning" />
-        <StatCard title="Average Rate" value={`₹${avgRate.toFixed(2)}`} icon={Calculator} color="success" />
-        <StatCard title="Avg. Bill/Room" value={`₹${avgPerRoom.toFixed(2)}`} icon={Home} color="danger" />
+        <StatCard title="Total Bill (Month)" value={`${totalBill.toLocaleString()}`} icon={FileText} color="warning" />
+        <StatCard title="Average Rate" value={`${avgRate.toFixed(2)}`} icon={Calculator} color="success" />
+        <StatCard title="Avg. Bill/Room" value={`${avgPerRoom.toFixed(2)}`} icon={Home} color="danger" />
       </div>
 
       <Card>
@@ -110,8 +110,8 @@ export default function Electricity({ appState, setAppState }: ElectricityProps)
                       <TableCell>{reading.previousReading}</TableCell>
                       <TableCell>{reading.currentReading}</TableCell>
                       <TableCell className="font-semibold text-blue-600">{reading.unitsConsumed.toFixed(2)}</TableCell>
-                      <TableCell>₹{reading.ratePerUnit.toFixed(2)}</TableCell>
-                      <TableCell className="font-semibold text-green-600">₹{reading.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell>{reading.ratePerUnit.toFixed(2)}</TableCell>
+                      <TableCell className="font-semibold text-green-600">{reading.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>{new Date(reading.date).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDeleteReading(reading.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                     </TableRow>

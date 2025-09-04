@@ -23,6 +23,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
+  
   const thisMonthPayments = payments.filter(p => {
     const paymentDate = new Date(p.date);
     return paymentDate.getMonth() === thisMonth && paymentDate.getFullYear() === thisYear;
@@ -30,15 +31,22 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
   const monthlyRevenue = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
-  const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentAmount, 0);
+  const pendingPayments = tenants.reduce((totalPending, tenant) => {
+    if (!tenant.dueDate) return totalPending;
 
-  const pendingPayments = tenants.filter(tenant => {
-    if (!tenant.dueDate) return false;
-    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
     const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(dueDate, new Date()) < 0;
-    return isDue && !hasPaid;
-  }).reduce((sum, t) => sum + t.rentAmount, 0);
+    const isDue = differenceInDays(new Date(), dueDate) >= 0;
+
+    if (!isDue) return totalPending;
+
+    const paidThisMonth = payments
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const pendingAmount = tenant.rentAmount - paidThisMonth;
+    
+    return totalPending + (pendingAmount > 0 ? pendingAmount : 0);
+  }, 0);
   
 
   return (
@@ -60,14 +68,14 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
         />
         <StatCard
           title="Monthly Revenue"
-          value={`₹${monthlyRevenue.toLocaleString()}`}
+          value={`${monthlyRevenue.toLocaleString()}`}
           icon={IndianRupee}
           description="Collected this month"
           color="warning"
         />
         <StatCard
           title="Pending Payments"
-          value={`₹${pendingPayments > 0 ? pendingPayments.toLocaleString() : '0'}`}
+          value={`${pendingPayments > 0 ? pendingPayments.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`}
           icon={Clock}
           description="Due for this month"
           color="danger"

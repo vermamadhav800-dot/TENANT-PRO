@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Plus, Trash2, IndianRupee, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
     };
     
     setAppState(prev => ({ ...prev, payments: [...prev.payments, newPayment] }));
-    toast({ title: "Success", description: `Payment of ₹${newPayment.amount} recorded for ${tenant.name}.` });
+    toast({ title: "Success", description: `Payment of ${newPayment.amount} recorded for ${tenant.name}.` });
     setIsAddModalOpen(false);
   };
 
@@ -61,19 +61,29 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
   
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
+  
   const thisMonthPayments = payments.filter(p => {
     const paymentDate = new Date(p.date);
     return paymentDate.getMonth() === thisMonth && paymentDate.getFullYear() === thisYear;
   });
   const thisMonthCollection = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
   
-  const totalPending = tenants.filter(tenant => {
-    if (!tenant.dueDate) return false;
-    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
+  const totalPending = tenants.reduce((totalPending, tenant) => {
+    if (!tenant.dueDate) return totalPending;
+
     const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(dueDate, new Date()) < 0;
-    return isDue && !hasPaid;
-  }).reduce((sum, t) => sum + t.rentAmount, 0);
+    const isDue = differenceInDays(new Date(), dueDate) >= 0;
+
+    if (!isDue) return totalPending;
+
+    const paidThisMonth = payments
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const pendingAmount = tenant.rentAmount - paidThisMonth;
+    
+    return totalPending + (pendingAmount > 0 ? pendingAmount : 0);
+  }, 0);
 
 
   return (
@@ -96,7 +106,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label htmlFor="amount">Amount (₹)</Label><Input id="amount" name="amount" type="number" required /></div>
+              <div><Label htmlFor="amount">Amount</Label><Input id="amount" name="amount" type="number" required /></div>
               <div><Label htmlFor="date">Payment Date</Label><Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required /></div>
               <div>
                 <Label htmlFor="method">Payment Method</Label>
@@ -116,9 +126,9 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Collected" value={`₹${totalCollected.toLocaleString()}`} icon={CheckCircle} color="success" />
-        <StatCard title="Pending Amount (This Month)" value={`₹${totalPending > 0 ? totalPending.toLocaleString() : '0'}`} icon={Clock} color="warning" />
-        <StatCard title="Collected This Month" value={`₹${thisMonthCollection.toLocaleString()}`} icon={Calendar} color="primary" />
+        <StatCard title="Total Collected" value={`${totalCollected.toLocaleString()}`} icon={CheckCircle} color="success" />
+        <StatCard title="Pending Amount (This Month)" value={`${totalPending > 0 ? totalPending.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`} icon={Clock} color="warning" />
+        <StatCard title="Collected This Month" value={`${thisMonthCollection.toLocaleString()}`} icon={Calendar} color="primary" />
       </div>
 
       <Card>
@@ -147,7 +157,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
                       <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
-                      <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
+                      <TableCell>{payment.amount.toLocaleString()}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">

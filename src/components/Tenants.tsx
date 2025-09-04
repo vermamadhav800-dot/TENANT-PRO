@@ -197,7 +197,7 @@ const TenantFormModal = ({
               </Select>
             </div>
              <div>
-              <Label htmlFor="rentAmount">Per-Person Rent (₹)</Label>
+              <Label htmlFor="rentAmount">Per-Person Rent</Label>
               <Input id="rentAmount" name="rentAmount" type="number" value={calculatedRent.toFixed(2)} required readOnly disabled/>
               <p className="text-xs text-muted-foreground mt-1">Rent is auto-divided among tenants.</p>
             </div>
@@ -312,8 +312,11 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     today.setHours(0,0,0,0);
     const dueDate = parseISO(tenant.dueDate);
 
-    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === today.getMonth());
-    if (hasPaid) return { label: 'Paid', color: 'success' };
+    const paidThisMonth = payments
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === today.getMonth())
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    if (paidThisMonth >= tenant.rentAmount) return { label: 'Paid', color: 'success' };
     
     const daysDiff = differenceInDays(dueDate, today);
 
@@ -384,7 +387,7 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
                               <div>{tenant.phone}</div>
                               <div className="text-sm text-muted-foreground">{tenant.email}</div>
                           </TableCell>
-                           <TableCell>₹{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
+                           <TableCell>{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
                           <TableCell>{tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
                           <TableCell className="font-mono">XXXX-XXXX-{tenant.aadhaar?.slice(-4) || 'XXXX'}</TableCell>
                           <TableCell>
@@ -431,7 +434,3 @@ export default function Tenants({ appState, setAppState }: TenantsProps) {
     </div>
   );
 }
-
-
-
-    

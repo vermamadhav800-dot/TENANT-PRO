@@ -25,26 +25,37 @@ export default function Reports({ appState }: ReportsProps) {
 
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
-  const pendingTenants = tenants.filter(tenant => {
-    if (!tenant.dueDate) return false;
-    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
+  const pendingTenantsData = tenants.map(tenant => {
+    if (!tenant.dueDate) return { tenant, pendingAmount: 0, hasPaid: false };
+    
     const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(dueDate, new Date()) < 0;
-    return isDue && !hasPaid;
-  });
-  
-  const totalPending = pendingTenants.reduce((sum, t) => sum + t.rentAmount, 0);
+    const isDue = differenceInDays(new Date(), dueDate) >= 0;
 
-  const paidTenants = new Set(thisMonthPayments.map(p => p.tenantId));
-  
-  const pendingTenantsCount = tenants.length - paidTenants.size;
+    if (!isDue) return { tenant, pendingAmount: 0, hasPaid: false };
+
+    const paidThisMonth = payments
+      .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    const pendingAmount = tenant.rentAmount - paidThisMonth;
+    
+    return {
+      tenant,
+      pendingAmount: pendingAmount > 0 ? pendingAmount : 0,
+      hasPaid: paidThisMonth >= tenant.rentAmount
+    };
+  }).filter(Boolean);
+
+  const totalPending = pendingTenantsData.reduce((sum, data) => sum + data.pendingAmount, 0);
+  const paidTenantsCount = pendingTenantsData.filter(d => d.hasPaid).length;
+  const pendingTenantsCount = tenants.length - paidTenantsCount;
 
   const handleExport = () => {
     const dataToExport = {
       summary: {
         totalCollected,
         totalPending,
-        paidTenants: paidTenants.size,
+        paidTenants: paidTenantsCount,
         pendingTenants: pendingTenantsCount,
       },
       tenants,
@@ -71,17 +82,17 @@ export default function Reports({ appState }: ReportsProps) {
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="p-4 bg-gray-50 rounded-lg">
                 <IndianRupee className="mx-auto h-8 w-8 text-green-500 mb-2" />
-                <p className="text-2xl font-bold">₹{totalCollected.toLocaleString()}</p>
+                <p className="text-2xl font-bold">{totalCollected.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Total Collected</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
                 <IndianRupee className="mx-auto h-8 w-8 text-yellow-500 mb-2" />
-                <p className="text-2xl font-bold">₹{totalPending > 0 ? totalPending.toLocaleString() : '0'}</p>
+                <p className="text-2xl font-bold">{totalPending > 0 ? totalPending.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
                 <p className="text-sm text-muted-foreground">Total Pending</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
                 <Check className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-                <p className="text-2xl font-bold">{paidTenants.size}</p>
+                <p className="text-2xl font-bold">{paidTenantsCount}</p>
                 <p className="text-sm text-muted-foreground">Tenants Paid</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
