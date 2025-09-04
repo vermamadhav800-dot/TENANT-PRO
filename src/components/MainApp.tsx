@@ -44,7 +44,7 @@ const TABS = [
 
 export default function MainApp({ onLogout }: MainAppProps) {
   const [appState, setAppState] = useLocalStorage("estateflow_appState", INITIAL_APP_STATE);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("tenants");
   const [isOnline, setIsOnline] = useState(true);
 
   const renderTabContent = () => {
@@ -57,7 +57,7 @@ export default function MainApp({ onLogout }: MainAppProps) {
       case "electricity": return <Electricity {...props} />;
       case "reports": return <Reports {...props} />;
       case "settings": return <AppSettings {...props} />;
-      default: return <Dashboard {...props} setActiveTab={setActiveTab} />;
+      default: return <Tenants {...props} />;
     }
   };
 

@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Plus, DoorOpen, Users, IndianRupee, Trash2, Edit, Bot } from 'lucide-react';
+import { Plus, DoorOpen, Users, IndianRupee, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { AppState, Room } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import RentOptimizer from './RentOptimizer';
 
 interface RoomsProps {
   appState: AppState;
@@ -21,8 +20,6 @@ export default function Rooms({ appState, setAppState }: RoomsProps) {
   const { rooms, tenants } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [isOptimizerOpen, setIsOptimizerOpen] = useState(false);
-  const [roomToOptimize, setRoomToOptimize] = useState<Room | null>(null);
   const { toast } = useToast();
 
   const openModal = (room: Room | null) => {
@@ -56,7 +53,12 @@ setIsModalOpen(true);
   };
 
   const handleDeleteRoom = (roomId: string) => {
-    if (tenants.some(t => t.roomId === roomId)) {
+    // This logic needs to be updated because tenants are not directly associated with rooms in the new model.
+    // A tenant has a `unitNo`, which corresponds to a room's `number`.
+    const roomToDelete = rooms.find(r => r.id === roomId);
+    if (!roomToDelete) return;
+
+    if (tenants.some(t => t.unitNo === roomToDelete.number)) {
       toast({ variant: "destructive", title: "Error", description: "Cannot delete room with tenants. Please reassign tenants first." });
       return;
     }
@@ -69,10 +71,6 @@ setIsModalOpen(true);
     }
   };
 
-  const openOptimizer = (room: Room) => {
-    setRoomToOptimize(room);
-    setIsOptimizerOpen(true);
-  };
 
   return (
     <div className="space-y-6">
@@ -90,7 +88,7 @@ setIsModalOpen(true);
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rooms.map(room => {
-            const occupants = tenants.filter(t => t.roomId === room.id);
+            const occupants = tenants.filter(t => t.unitNo === room.number);
             const isFull = occupants.length >= room.capacity;
             return (
               <Card key={room.id} className="card-hover">
@@ -106,8 +104,7 @@ setIsModalOpen(true);
                   <div className="flex items-center text-sm"><Users className="mr-2 h-4 w-4 text-muted-foreground"/> <span>Occupancy: {occupants.length} / {room.capacity}</span></div>
                   <div className="flex items-center text-sm"><IndianRupee className="mr-2 h-4 w-4 text-muted-foreground"/> <span>Rent: {room.rent.toLocaleString()} / month</span></div>
                 </CardContent>
-                <CardFooter className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openOptimizer(room)}><Bot className="mr-1 h-4 w-4" /> Optimize</Button>
+                <CardFooter className="grid grid-cols-2 gap-2">
                   <Button variant="outline" size="sm" onClick={() => openModal(room)}><Edit className="mr-1 h-4 w-4" /> Edit</Button>
                   <Button variant="destructive" size="sm" onClick={() => handleDeleteRoom(room.id)}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
                 </CardFooter>
@@ -117,7 +114,10 @@ setIsModalOpen(true);
         </div>
       )}
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={(isOpen) => {
+        setIsModalOpen(isOpen);
+        if (!isOpen) setEditingRoom(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingRoom ? 'Edit Room' : 'Add New Room'}</DialogTitle>
@@ -132,14 +132,6 @@ setIsModalOpen(true);
           </form>
         </DialogContent>
       </Dialog>
-      
-      {roomToOptimize && (
-        <RentOptimizer
-          isOpen={isOptimizerOpen}
-          setIsOpen={setIsOptimizerOpen}
-          room={roomToOptimize}
-        />
-      )}
     </div>
   );
 }

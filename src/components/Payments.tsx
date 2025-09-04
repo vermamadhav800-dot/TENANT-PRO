@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
 import type { AppState, Payment } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
+import { differenceInDays, parseISO } from 'date-fns';
+
 
 interface PaymentsProps {
   appState: AppState;
@@ -20,7 +22,7 @@ interface PaymentsProps {
 }
 
 export default function Payments({ appState, setAppState }: PaymentsProps) {
-  const { payments, tenants, rooms } = appState;
+  const { payments, tenants } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { toast } = useToast();
 
@@ -56,7 +58,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
   };
 
   const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentPerPerson, 0);
+  
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
   const thisMonthPayments = payments.filter(p => {
@@ -64,7 +66,13 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
     return paymentDate.getMonth() === thisMonth && paymentDate.getFullYear() === thisYear;
   });
   const thisMonthCollection = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalPending = totalExpectedRent - thisMonthCollection;
+  
+  const totalPending = tenants.filter(tenant => {
+    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
+    const dueDate = parseISO(tenant.dueDate);
+    const isDue = differenceInDays(dueDate, new Date()) < 0;
+    return isDue && !hasPaid;
+  }).reduce((sum, t) => sum + t.rentAmount, 0);
 
 
   return (
@@ -119,7 +127,7 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Tenant</TableHead>
-                <TableHead>Room</TableHead>
+                <TableHead>Unit No.</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
@@ -134,11 +142,10 @@ export default function Payments({ appState, setAppState }: PaymentsProps) {
               ) : (
                 payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(payment => {
                   const tenant = tenants.find(t => t.id === payment.tenantId);
-                  const room = rooms.find(r => r.id === tenant?.roomId);
                   return (
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
-                      <TableCell>{room?.number || "N/A"}</TableCell>
+                      <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
                       <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>

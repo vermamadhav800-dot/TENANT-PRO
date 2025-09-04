@@ -6,6 +6,7 @@ import StatCard from './StatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { AppState } from '@/lib/types';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface DashboardProps {
   appState: AppState;
@@ -17,7 +18,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
   const totalTenants = tenants.length;
   const totalRooms = rooms.length;
-  const occupiedRoomsCount = new Set(tenants.map(t => t.roomId)).size;
+  const occupiedRoomsCount = new Set(tenants.map(t => t.unitNo)).size;
   const occupancyRate = totalRooms > 0 ? Math.round((occupiedRoomsCount / totalRooms) * 100) : 0;
 
   const thisMonth = new Date().getMonth();
@@ -29,8 +30,15 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
 
   const monthlyRevenue = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
-  const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentPerPerson, 0);
-  const pendingPayments = totalExpectedRent - monthlyRevenue;
+  const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentAmount, 0);
+
+  const pendingPayments = tenants.filter(tenant => {
+    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
+    const dueDate = parseISO(tenant.dueDate);
+    const isDue = differenceInDays(dueDate, new Date()) < 0;
+    return isDue && !hasPaid;
+  }).reduce((sum, t) => sum + t.rentAmount, 0);
+  
 
   return (
     <div className="space-y-8">
@@ -60,7 +68,7 @@ export default function Dashboard({ appState, setActiveTab }: DashboardProps) {
           title="Pending Payments"
           value={`₹${pendingPayments > 0 ? pendingPayments.toLocaleString() : 0}`}
           icon={Clock}
-          description="Due this month"
+          description="Due for this month"
           color="danger"
         />
       </div>

@@ -5,6 +5,7 @@ import { BarChart, IndianRupee, Users, Check, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { AppState } from '@/lib/types';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface ReportsProps {
   appState: AppState;
@@ -23,16 +24,17 @@ export default function Reports({ appState }: ReportsProps) {
   });
 
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalExpectedRent = tenants.reduce((sum, t) => sum + t.rentPerPerson, 0);
-  const totalPending = totalExpectedRent - totalCollected;
 
-  const paidTenants = new Set();
-  thisMonthPayments.forEach(p => {
-    const tenant = tenants.find(t => t.id === p.tenantId);
-    if (tenant && p.amount >= tenant.rentPerPerson) {
-      paidTenants.add(p.tenantId);
-    }
+  const pendingTenants = tenants.filter(tenant => {
+    const hasPaid = payments.some(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth);
+    const dueDate = parseISO(tenant.dueDate);
+    const isDue = differenceInDays(dueDate, new Date()) < 0;
+    return isDue && !hasPaid;
   });
+  
+  const totalPending = pendingTenants.reduce((sum, t) => sum + t.rentAmount, 0);
+
+  const paidTenants = new Set(thisMonthPayments.map(p => p.tenantId));
   
   const pendingTenantsCount = tenants.length - paidTenants.size;
 

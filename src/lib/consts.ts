@@ -8,7 +8,7 @@ export const INITIAL_APP_STATE: AppState = {
 };
 
 export const MOCK_USER = {
-  name: 'Admin',
-  username: 'admin',
-  password: 'password',
+  name: 'Madhav Verma',
+  email: 'vermamadhav800@gmail.com',
+  password: 'jaibabalal123',
 };

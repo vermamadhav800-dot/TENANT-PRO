@@ -9,12 +9,13 @@ export interface Tenant {
   id: string;
   name: string;
   phone: string;
+  email: string;
+  unitNo: string;
+  rentAmount: number;
+  dueDate: string;
   aadhaar: string;
-  address: string;
-  roomId: string;
-  rentPerPerson: number;
+  aadhaarCardUrl?: string;
   profilePhotoUrl?: string;
-  aadhaarPhotoUrl?: string;
 }
 
 export interface Payment {
