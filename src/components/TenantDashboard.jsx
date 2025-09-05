@@ -190,25 +190,24 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
-                    {!adminUpiId && !qrCodeUrl ? (
-                        <p className="text-red-500 text-center">The owner has not configured any payment methods yet.</p>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           {upiLink && (
-                             <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {upiLink && (
+                            <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
                                 <Button size="lg" className="w-full h-full">
                                     <ExternalLink className="mr-2 h-5 w-5" />
                                     Pay via UPI App
                                 </Button>
                             </a>
-                           )}
-                           {qrCodeUrl && (
-                                <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
-                                    <QrCode className="mr-2 h-5 w-5" />
-                                    Pay with QR Code
-                                </Button>
-                           )}
-                        </div>
+                        )}
+                        {qrCodeUrl && (
+                             <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
+                                <QrCode className="mr-2 h-5 w-5" />
+                                Pay with QR Code
+                            </Button>
+                        )}
+                    </div>
+                    {(!adminUpiId && !qrCodeUrl) && (
+                         <p className="text-red-500 text-center">The owner has not configured any payment methods yet.</p>
                     )}
                     <div className="space-y-2 pt-4">
                         <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
