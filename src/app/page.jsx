@@ -8,12 +8,14 @@ import MainApp from "@/components/MainApp";
 import TenantDashboard from "@/components/TenantDashboard";
 import { useLocalStorage } from "@/lib/hooks";
 import { MOCK_USER_INITIAL, INITIAL_APP_STATE } from '@/lib/consts';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useLocalStorage('user', null); // Can be admin or tenant object
   const [role, setRole] = useLocalStorage('role', null); // 'admin' or 'tenant'
   const [appState, setAppState] = useLocalStorage('appState', INITIAL_APP_STATE);
+  const { toast } = useToast();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,29 +26,25 @@ export default function Home() {
   }, []);
 
   const handleLogin = (credentials) => {
-    let loggedInUser = null;
-    let loggedInRole = null;
-
     if (credentials.role === 'admin') {
       if (credentials.username === MOCK_USER_INITIAL.username && credentials.password === MOCK_USER_INITIAL.password) {
-        loggedInUser = MOCK_USER_INITIAL;
-        loggedInRole = 'admin';
+        setUser(MOCK_USER_INITIAL);
+        setRole('admin');
+        return true;
       } else {
-        alert("Invalid admin credentials!");
+        toast({ variant: "destructive", title: "Login Failed", description: "Invalid admin credentials!" });
+        return false;
       }
     } else { // Tenant login
       const tenant = appState.tenants.find(t => t.username === credentials.username && t.phone === credentials.password);
       if (tenant) {
-        loggedInUser = tenant;
-        loggedInRole = 'tenant';
+        setUser(tenant);
+        setRole('tenant');
+        return true;
       } else {
-        alert("Invalid tenant credentials! Use your registered username and phone number as the password.");
+        toast({ variant: "destructive", title: "Login Failed", description: "Invalid tenant credentials! Use your username and phone number." });
+        return false;
       }
-    }
-    
-    if(loggedInUser && loggedInRole) {
-      setUser(loggedInUser);
-      setRole(loggedInRole);
     }
   };
 

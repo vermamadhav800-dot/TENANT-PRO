@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -14,17 +15,24 @@ export default function Auth({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState('tenant'); // 'admin' or 'tenant'
+  const { toast } = useToast();
 
   const handleAuthAction = (e) => {
     e.preventDefault();
     if (!username || !password) {
-      alert("Please enter username and password.");
+      toast({ variant: "destructive", title: "Error", description: "Please enter username and password." });
       return;
     }
     setIsLoading(true);
+    
+    // Simulate network delay
     setTimeout(() => {
-      onLogin({ username, password, role });
-      setIsLoading(false);
+      const loginSuccess = onLogin({ username, password, role });
+      if (!loginSuccess) {
+        setIsLoading(false);
+      }
+      // If login is successful, the parent component will re-render and this component will unmount,
+      // so we don't need to set isLoading to false in the success case.
     }, 1000);
   };
 
