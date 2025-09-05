@@ -20,6 +20,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
+import GlowingRupee from './icons/GlowingRupee';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -299,7 +300,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </div>
                     <div className="flex justify-between items-center pt-2">
                         <p className="text-lg font-semibold">Final Amount Due</p>
-                        <p className="text-3xl font-bold text-primary">{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p className="text-3xl font-bold text-primary flex items-center gap-1"><GlowingRupee className="w-7 h-7" />{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
@@ -438,7 +439,7 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                         <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
+                        <div className="text-2xl font-bold flex items-center gap-1"><GlowingRupee className="w-6 h-6" />{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>
@@ -685,7 +686,7 @@ const TenantNoticeBoard = ({ appState }) => {
 
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
+    { id: 'payments', label: 'Rent & Payments', icon: GlowingRupee },
     { id: 'notices', label: 'Notice Board', icon: Megaphone },
     { id: 'support', label: 'Help & Support', icon: Wrench },
     { id: 'notifications', label: 'Notifications', icon: Bell },

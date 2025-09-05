@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import PaymentGateway from './PaymentGateway';
+import GlowingRupee from './icons/GlowingRupee';
 
 const planFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
@@ -36,7 +37,7 @@ const plans = {
     pro: {
         id: 'pro',
         name: 'Pro',
-        price: '₹499',
+        price: '499',
         priceSuffix: '/mo',
         description: 'For property owners who need advanced tools and automation.',
         cta: 'Upgrade to Pro',
@@ -46,7 +47,7 @@ const plans = {
     business: {
         id: 'business',
         name: 'Business',
-        price: '₹999',
+        price: '999',
         priceSuffix: '/mo',
         description: 'The ultimate solution for managing multiple properties seamlessly.',
         cta: 'Upgrade to Business',
@@ -149,9 +150,10 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                     <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
-                    <div className="text-center">
+                    <div className="text-center flex items-center justify-center">
+                        {plan.price !== 'Free' && <GlowingRupee className="w-10 h-10 -ml-2 -mr-1" />}
                         <span className="text-4xl font-extrabold">{plan.price}</span>
-                        <span className="text-muted-foreground">{plan.priceSuffix}</span>
+                        <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>
                     </div>
                     <Separator />
                     <ul className="space-y-4 text-sm">
