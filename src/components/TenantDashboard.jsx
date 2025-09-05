@@ -68,7 +68,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             tenantId: tenant.id,
             amount: tenant.rentAmount,
             date: new Date().toISOString(),
-            method: 'QR Code Scan',
+            method: 'Paytm',
         };
 
         setAppState(prev => ({
@@ -110,19 +110,19 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                     <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
                          <DialogTrigger asChild>
                             <Button className="w-full sm:w-auto ml-auto btn-gradient-glow">
-                                <QrCode className="mr-2 h-4 w-4" /> Pay Now
+                                <QrCode className="mr-2 h-4 w-4" /> Pay with Paytm
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Scan to Pay</DialogTitle>
+                                <DialogTitle>Pay with Paytm</DialogTitle>
                                 <DialogDescription>
                                     Use your favorite payment app to scan this QR code and pay your rent. After paying, click the "I Have Paid" button below.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex justify-center p-4">
                                 <img 
-                                    src="https://storage.googleapis.com/stately-temp-files/2024-07-25/qr-code-1721915993952.png" 
+                                    src="https://placehold.co/256x256/png?text=Scan+QR" 
                                     alt="Payment QR Code" 
                                     width={256} 
                                     height={256} 
@@ -362,5 +362,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    
 
     
