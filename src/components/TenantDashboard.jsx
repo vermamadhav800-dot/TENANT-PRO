@@ -66,8 +66,10 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
     const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
 
-    const { upiId: adminUpiId } = appState.defaults || {};
-    const qrCodeUrl = '/qr-code.png';
+    const { upiId: adminUpiId, qrCodeUrl: customQrCodeUrl } = appState.defaults || {};
+    const defaultQrCodeUrl = '/qr-code.png';
+    const qrCodeToDisplay = customQrCodeUrl || defaultQrCodeUrl;
+
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
@@ -166,13 +168,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4 text-center">
-                        {qrCodeUrl ? (
-                            <img src={qrCodeUrl} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" data-ai-hint="qr code"/>
-                        ) : (
-                            <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">
-                                QR Code not set by owner.
-                            </div>
-                        )}
+                        <img src={qrCodeToDisplay} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" data-ai-hint="qr code"/>
                         <p className="font-bold text-xl">Amount: {amountDue.toFixed(2)}</p>
                         <Button variant="link" onClick={() => setPaymentView('default')}>Back to other options</Button>
                     </div>
@@ -192,23 +188,21 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 </DialogHeader>
                 <div className="py-4 space-y-4">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {upiLink && (
+                        {upiLink ? (
                             <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
                                 <Button size="lg" className="w-full h-full">
                                     <ExternalLink className="mr-2 h-5 w-5" />
                                     Pay via UPI App
                                 </Button>
                             </a>
-                        )}
-                        {qrCodeUrl && (
-                             <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
-                                <QrCode className="mr-2 h-5 w-5" />
-                                Pay with QR Code
-                            </Button>
-                        )}
+                        ) : <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground">UPI App payment not configured.</div>}
+                        <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
+                           <QrCode className="mr-2 h-5 w-5" />
+                           Pay with QR Code
+                       </Button>
                     </div>
-                    {(!adminUpiId && !qrCodeUrl) && (
-                         <p className="text-red-500 text-center">The owner has not configured any payment methods yet.</p>
+                    {(!adminUpiId) && (
+                         <p className="text-amber-600 text-center text-sm bg-amber-50 p-2 rounded-md">The owner has not configured UPI app payments yet.</p>
                     )}
                     <div className="space-y-2 pt-4">
                         <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
@@ -222,7 +216,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || (!adminUpiId && !qrCodeUrl)}>
+                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot}>
                         Submit for Approval
                     </Button>
                 </DialogFooter>
@@ -267,7 +261,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             if (!isOpen) setPaymentView('default'); // Reset view on close
                         }}>
                              <DialogTrigger asChild>
-                                <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId && !qrCodeUrl}>
+                                <Button className="w-full sm:w-auto ml-auto btn-gradient-glow">
                                     Pay Amount Due
                                 </Button>
                             </DialogTrigger>

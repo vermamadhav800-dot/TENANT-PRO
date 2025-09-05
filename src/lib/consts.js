@@ -14,7 +14,7 @@ export const INITIAL_APP_STATE = {
     propertyAddress: "123 Tech Park, Bangalore",
     electricityRatePerUnit: 8,
     upiId: "prakash@exampleupi",
-    // This is now a static asset, so the URL is removed from here
+    qrCodeUrl: null, // Will store the Data URL of the uploaded QR code
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },

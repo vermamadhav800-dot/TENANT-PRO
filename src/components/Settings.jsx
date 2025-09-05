@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Sun, Moon, Palette } from 'lucide-react';
+import { Sun, Moon, Palette, Upload } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 export default function AppSettings({ appState, setAppState, user }) {
@@ -16,6 +16,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   const { theme, setTheme } = useTheme();
   const [defaults, setDefaults] = useState(appState.defaults);
   const [currentUser, setCurrentUser] = useState(user);
+  const [qrCodePreview, setQrCodePreview] = useState(appState.defaults.qrCodeUrl || null);
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -25,6 +26,19 @@ export default function AppSettings({ appState, setAppState, user }) {
   const handleUserChange = (e) => {
     const { name, value } = e.target;
     setCurrentUser(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleQrCodeUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result;
+        setQrCodePreview(dataUrl);
+        setDefaults(prev => ({ ...prev, qrCodeUrl: dataUrl }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = () => {
@@ -79,7 +93,7 @@ export default function AppSettings({ appState, setAppState, user }) {
           <CardDescription>Set default values and your property and payment details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div>
               <Label htmlFor="propertyName">Property Name</Label>
               <Input
@@ -122,6 +136,23 @@ export default function AppSettings({ appState, setAppState, user }) {
                 value={defaults.upiId || ''}
                 onChange={handleDefaultsChange}
               />
+            </div>
+            <div className="md:col-span-2">
+                <Label>Payment QR Code</Label>
+                <div className="flex items-center gap-4 mt-2">
+                    {qrCodePreview ? (
+                        <img src={qrCodePreview} alt="QR Code Preview" className="w-24 h-24 border rounded-md" />
+                    ) : (
+                         <div className="w-24 h-24 border rounded-md flex items-center justify-center bg-muted text-muted-foreground text-xs">
+                            No QR Code
+                        </div>
+                    )}
+                    <Input id="qrCodeUpload" type="file" accept="image/*" onChange={handleQrCodeUpload} className="hidden" />
+                    <Button type="button" onClick={() => document.getElementById('qrCodeUpload').click()}>
+                        <Upload className="mr-2 h-4 w-4" /> {qrCodePreview ? 'Change' : 'Upload'} QR Code
+                    </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Upload the QR code image for tenant payments.</p>
             </div>
           </div>
         </CardContent>
