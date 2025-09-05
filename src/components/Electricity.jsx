@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, Trash2, Zap, FileText, Calculator, Home } from 'lucide-react';
+import { Plus, Trash2, Zap, FileText, Calculator, Home, Check, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -13,9 +13,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
 import { useToast } from "@/hooks/use-toast";
+import { cn } from '@/lib/utils';
+
 
 export default function Electricity({ appState, setAppState }) {
-  const { electricity, rooms, defaults } = appState;
+  const { electricity, rooms, tenants, defaults } = appState;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [readingToDelete, setReadingToDelete] = useState(null);
@@ -43,6 +45,7 @@ export default function Electricity({ appState, setAppState }) {
       ratePerUnit,
       totalAmount: unitsConsumed * ratePerUnit,
       date: new Date(formData.get('date')).toISOString(),
+      applied: false, // New flag
     };
     
     setAppState(prev => ({ ...prev, electricity: [...prev.electricity, newReading] }));
@@ -62,6 +65,55 @@ export default function Electricity({ appState, setAppState }) {
     setIsDeleteAlertOpen(false);
     setReadingToDelete(null);
   };
+  
+  const handleApplyToBills = (readingId) => {
+    const reading = electricity.find(r => r.id === readingId);
+    if (!reading || reading.applied) return;
+    
+    const tenantsInRoom = tenants.filter(t => rooms.find(room => room.id === reading.roomId)?.number === t.unitNo);
+
+    if (tenantsInRoom.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No tenants in room",
+            description: "Cannot apply bill because there are no tenants assigned to this room."
+        });
+        return;
+    }
+
+    const amountPerTenant = reading.totalAmount / tenantsInRoom.length;
+
+    setAppState(prev => {
+      // 1. Mark the reading as applied
+      const updatedElectricity = prev.electricity.map(r => r.id === readingId ? { ...r, applied: true } : r);
+      
+      // 2. Add the charge to each tenant
+      const updatedTenants = prev.tenants.map(t => {
+        if (tenantsInRoom.some(tr => tr.id === t.id)) {
+          const newCharges = [...(t.otherCharges || []), {
+            id: `elec-${reading.id}`,
+            amount: amountPerTenant,
+            description: `Electricity Bill for ${new Date(reading.date).toLocaleString('default', { month: 'long' })}`,
+            date: reading.date,
+          }];
+          return { ...t, otherCharges: newCharges };
+        }
+        return t;
+      });
+
+      return {
+        ...prev,
+        electricity: updatedElectricity,
+        tenants: updatedTenants,
+      };
+    });
+
+    toast({
+        title: "Bill Applied!",
+        description: `An amount of ${amountPerTenant.toFixed(2)} has been added to the bill of ${tenantsInRoom.length} tenant(s).`
+    });
+  };
+
 
   const thisMonthReadings = electricity.filter(r => new Date(r.date).getMonth() === new Date().getMonth());
   const totalUnits = thisMonthReadings.reduce((sum, r) => sum + r.unitsConsumed, 0);
@@ -100,7 +152,7 @@ export default function Electricity({ appState, setAppState }) {
         <CardHeader><CardTitle>Electricity Reading History</CardTitle></CardHeader>
         <CardContent>
           <Table>
-            <TableHeader><TableRow><TableHead>Room</TableHead><TableHead>Previous</TableHead><TableHead>Current</TableHead><TableHead>Units</TableHead><TableHead>Rate</TableHead><TableHead>Amount</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Room</TableHead><TableHead>Units</TableHead><TableHead>Amount</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
             <TableBody>
               {electricity.length === 0 ? (
                 <TableRow><TableCell colSpan={8} className="text-center h-24 text-muted-foreground">No readings recorded yet.</TableCell></TableRow>
@@ -110,13 +162,23 @@ export default function Electricity({ appState, setAppState }) {
                   return (
                     <TableRow key={reading.id}>
                       <TableCell className="font-medium">{room?.number || "N/A"}</TableCell>
-                      <TableCell>{reading.previousReading}</TableCell>
-                      <TableCell>{reading.currentReading}</TableCell>
                       <TableCell className="font-semibold text-blue-600">{reading.unitsConsumed.toFixed(2)}</TableCell>
-                      <TableCell>{reading.ratePerUnit.toFixed(2)}</TableCell>
                       <TableCell className="font-semibold text-green-600">{reading.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>{new Date(reading.date).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => confirmDeleteReading(reading)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                      <TableCell>
+                        {reading.applied ? (
+                            <span className="flex items-center text-green-600"><Check className="mr-2 h-4 w-4"/>Applied</span>
+                        ) : (
+                             <Button size="sm" variant="outline" onClick={() => handleApplyToBills(reading.id)}>
+                                <IndianRupee className="mr-2 h-4 w-4"/> Apply to Bills
+                             </Button>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => confirmDeleteReading(reading)} disabled={reading.applied}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })

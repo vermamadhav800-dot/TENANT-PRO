@@ -11,7 +11,7 @@ import {
 } from 'date-fns';
 
 export function getInsights(appState) {
-  const { payments, expenses, tenants, rooms, electricity } = appState;
+  const { payments, expenses, tenants, rooms } = appState;
   
   // 1. Monthly Financial Trends for the last 12 months
   const now = new Date();
@@ -83,13 +83,11 @@ export function getInsights(appState) {
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return;
 
-    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = (electricity || [])
-      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-      .reduce((sum, e) => sum + e.totalAmount, 0);
-    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+    const monthlyCharges = (tenant.otherCharges || [])
+      .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+      .reduce((sum, c) => sum + c.amount, 0);
     
-    const totalDue = tenant.rentAmount + electricityShare;
+    const totalDue = tenant.rentAmount + monthlyCharges;
     
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
@@ -158,5 +156,3 @@ export function getInsights(appState) {
     alerts: sortedAlerts.slice(0, 5), // Limit to 5 most relevant alerts
   };
 }
-
-    

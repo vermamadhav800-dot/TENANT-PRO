@@ -75,14 +75,11 @@ export default function Payments({ appState, setAppState }) {
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return totalPending;
 
-    // Calculate tenant's share of electricity bill for the month
-    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = (electricity || [])
-      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-      .reduce((sum, e) => sum + e.totalAmount, 0);
-    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-    
-    const totalDue = tenant.rentAmount + electricityShare;
+    const monthlyCharges = (tenant.otherCharges || [])
+      .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+      .reduce((sum, c) => sum + c.amount, 0);
+
+    const totalDue = tenant.rentAmount + monthlyCharges;
 
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
@@ -199,5 +196,3 @@ export default function Payments({ appState, setAppState }) {
     </div>
   );
 }
-
-    

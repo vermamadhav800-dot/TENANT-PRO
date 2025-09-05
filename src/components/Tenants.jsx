@@ -119,7 +119,7 @@ const TenantFormModal = ({
         if (tenant) { // Editing existing tenant
             updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t);
         } else { // Adding new tenant
-            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString(), createdAt: new Date().toISOString() }];
+            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString(), createdAt: new Date().toISOString(), otherCharges: [] }];
         }
 
         // Recalculate rent for the new/updated unit
@@ -375,7 +375,7 @@ const NotificationModal = ({ tenant, isOpen, setIsOpen, setAppState }) => {
 
 
 export default function Tenants({ appState, setAppState }) {
-  const { tenants, rooms, payments, electricity, notifications = [] } = appState;
+  const { tenants, rooms, payments, notifications = [] } = appState;
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -414,12 +414,11 @@ export default function Tenants({ appState, setAppState }) {
     tenants.forEach(tenant => {
         const room = rooms.find(r => r.number === tenant.unitNo);
         if (room) {
-            const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-            const roomElectricityBill = (electricity || [])
-                .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-                .reduce((sum, e) => sum + e.totalAmount, 0);
-            const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-            const monthlyBill = tenant.rentAmount + electricityShare;
+            const monthlyCharges = (tenant.otherCharges || [])
+              .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+              .reduce((sum, c) => sum + c.amount, 0);
+
+            const monthlyBill = tenant.rentAmount + monthlyCharges;
             
             if (!grouped[tenant.unitNo]) {
                 grouped[tenant.unitNo] = { tenants: [], roomDetails: room };
@@ -431,7 +430,7 @@ export default function Tenants({ appState, setAppState }) {
     return Object.fromEntries(
         Object.entries(grouped).sort(([roomA], [roomB]) => roomA.localeCompare(roomB, undefined, { numeric: true }))
     );
-  }, [tenants, rooms, electricity]);
+  }, [tenants, rooms]);
   
   const getRentStatus = (tenant) => {
     if (!tenant.dueDate || !isValid(parseISO(tenant.dueDate))) {
@@ -446,22 +445,20 @@ export default function Tenants({ appState, setAppState }) {
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return { label: 'Awaiting', color: 'secondary' };
 
-    const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = (electricity || [])
-      .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-      .reduce((sum, e) => sum + e.totalAmount, 0);
-    const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+    const monthlyCharges = (tenant.otherCharges || [])
+      .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+      .reduce((sum, c) => sum + c.amount, 0);
     
-    const totalDue = tenant.rentAmount + electricityShare;
+    const totalDue = tenant.rentAmount + monthlyCharges;
 
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
 
-    if (paidThisMonth >= totalDue) return { label: 'Paid', color: 'success' };
+    if (paidThisMonth >= totalDue && totalDue > 0) return { label: 'Paid', color: 'success' };
     
     const daysDiff = differenceInDays(today, dueDate);
-    if (daysDiff > 0) return { label: 'Overdue', color: 'destructive' };
+    if (daysDiff > 0 && totalDue > 0) return { label: 'Overdue', color: 'destructive' };
     
     return { label: 'Upcoming', color: 'warning' };
   };

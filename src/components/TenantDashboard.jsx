@@ -70,13 +70,11 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
 
         if (!room) return { electricityBillShare: 0, totalCharges: tenant.rentAmount, paidThisMonth: 0, amountDue: tenant.rentAmount };
 
-        const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
-        const roomElectricityBill = (appState.electricity || [])
-            .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-            .reduce((sum, e) => sum + e.totalAmount, 0);
+        const monthlyCharges = (tenant.otherCharges || [])
+            .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+            .reduce((sum, c) => sum + c.amount, 0);
 
-        const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-        const charges = tenant.rentAmount + billShare;
+        const charges = tenant.rentAmount + monthlyCharges;
         
         const currentMonthPayments = payments
           .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
@@ -85,13 +83,13 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         const finalAmountDue = charges - currentMonthPayments;
 
         return {
-            electricityBillShare: billShare,
+            electricityBillShare: monthlyCharges, // Assuming otherCharges is just electricity for now
             totalCharges: charges,
             paidThisMonth: currentMonthPayments,
             amountDue: finalAmountDue > 0 ? finalAmountDue : 0,
         };
 
-    }, [appState.electricity, appState.tenants, room, tenant.rentAmount, payments, tenant.id]);
+    }, [room, tenant, payments, appState.defaults]);
 
     const tenantPayments = useMemo(() => {
         return payments
@@ -163,7 +161,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <p className="text-lg font-bold">{tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Electricity</p>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Other Charges</p>
                             <p className="text-lg font-bold">{electricityBillShare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                          <div>
@@ -287,13 +285,11 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
 
         if (!room) return { amountDue: tenant.rentAmount };
 
-        const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
-        const roomElectricityBill = (appState.electricity || [])
-            .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
-            .reduce((sum, e) => sum + e.totalAmount, 0);
+        const monthlyCharges = (tenant.otherCharges || [])
+            .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+            .reduce((sum, c) => sum + c.amount, 0);
 
-        const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-        const totalCharges = tenant.rentAmount + billShare;
+        const totalCharges = tenant.rentAmount + monthlyCharges;
 
         const paidThisMonth = payments
             .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
@@ -305,7 +301,7 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
             amountDue: finalAmountDue > 0 ? finalAmountDue : 0,
         };
 
-    }, [appState.electricity, appState.tenants, room, tenant, payments]);
+    }, [room, tenant, payments]);
 
     const rentStatus = useMemo(() => {
         if (amountDue <= 0) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
@@ -539,7 +535,3 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
-
-    
-
-    
