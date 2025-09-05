@@ -32,7 +32,7 @@ export default function Home() {
         setRole('admin');
         return true;
       } else {
-        toast({ variant: "destructive", title: "Login Failed", description: "Invalid admin credentials!" });
+        toast({ variant: "destructive", title: "Login Failed", description: "Invalid admin credentials." });
         return false;
       }
     } else { // Tenant login
@@ -65,6 +65,8 @@ export default function Home() {
         dueDate: null,
         aadhaar: "",
         profilePhotoUrl: `https://picsum.photos/seed/${Date.now()}/200`,
+        leaseStartDate: null,
+        leaseEndDate: null,
     };
 
     setAppState(prev => ({
@@ -96,6 +98,7 @@ export default function Home() {
       if (role === 'tenant' && user) {
           return <TenantDashboard
               appState={appState}
+              setAppState={setAppState}
               tenant={user}
               onLogout={handleLogout}
           />
