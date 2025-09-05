@@ -19,6 +19,7 @@ import {
   Wrench,
   Megaphone,
   Star,
+  CheckCircle,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -50,6 +51,7 @@ import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
 import { differenceInDays, parseISO } from 'date-fns';
 import Upgrade from "./Upgrade";
+import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -257,14 +259,25 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            {currentPlan === 'standard' && (
-              <div className="p-2">
-                 <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
+             <div className="p-2">
+              {currentPlan === 'standard' ? (
+                <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
                   <Star className="mr-2 h-4 w-4" />
                   Upgrade to Pro
                 </Button>
-              </div>
-            )}
+              ) : (
+                <div 
+                  className={cn(
+                    "w-full text-center p-2 rounded-lg text-sm font-semibold",
+                    currentPlan === 'pro' && "bg-blue-100 text-blue-800",
+                    currentPlan === 'business' && "bg-purple-100 text-purple-800"
+                  )}
+                >
+                  <CheckCircle className="inline-block mr-2 h-4 w-4" />
+                  {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan
+                </div>
+              )}
+            </div>
              <div className="flex items-center gap-3 p-2 border-t">
                <Avatar className="h-9 w-9">
                   <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
