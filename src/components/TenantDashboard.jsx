@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from "next-themes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import AppLogo from './AppLogo';
@@ -122,7 +121,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex justify-center p-4">
-                                <Image 
+                                <img 
                                     src="https://storage.googleapis.com/stately-temp-files/2024-07-25/qr-code-1721915993952.png" 
                                     alt="Payment QR Code" 
                                     width={256} 
