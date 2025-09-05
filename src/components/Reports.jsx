@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet, Star, Lock } from 'lucide-react';
+import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet, Star, Lock, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,7 +15,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 
 
@@ -145,6 +144,27 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
       link.click();
       document.body.removeChild(link);
   };
+  
+  const handleExportAllData = () => {
+      if (!isPro) {
+        setIsUpgradeModalOpen(true);
+        return;
+      }
+      try {
+        const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+          JSON.stringify(appState, null, 2)
+        )}`;
+        const link = document.createElement("a");
+        link.href = jsonString;
+        link.download = `estateflow-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "Success", description: "Full data export started."});
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "Failed to export data."});
+        console.error("Failed to export all data:", error);
+      }
+  };
 
 
   const handleRemind = (tenantName) => {
@@ -184,6 +204,14 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
                     <div className="flex items-center">
                       <Sheet className="mr-2 h-4 w-4"/>
                       <span>Export as CSV</span>
+                      {!isPro && <Badge className="ml-2 bg-amber-500 text-white">Pro</Badge>}
+                    </div>
+                </DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                 <DropdownMenuItem onClick={handleExportAllData} disabled={!isPro}>
+                    <div className="flex items-center">
+                      <Database className="mr-2 h-4 w-4"/>
+                      <span>Export All Data (JSON)</span>
                       {!isPro && <Badge className="ml-2 bg-amber-500 text-white">Pro</Badge>}
                     </div>
                 </DropdownMenuItem>
@@ -327,5 +355,3 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
     </div>
   );
 }
-
-    
