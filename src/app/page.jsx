@@ -15,8 +15,7 @@ import { LoaderCircle } from "lucide-react";
 
 export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState(null); // Firebase user object
+  const [user, setUser] = useState(undefined); // undefined indicates auth state is not yet known
   const [userData, setUserData] = useState(null); // User data from Firestore
   const [role, setRole] = useState(null); // 'owner' or 'tenant'
   const { toast } = useToast();
@@ -45,7 +44,6 @@ export default function Home() {
         setUserData(null);
         setRole(null);
       }
-      setAuthLoading(false);
     });
 
     return () => {
@@ -124,7 +122,8 @@ export default function Home() {
   };
   
   const renderContent = () => {
-      if (isStartupLoading || authLoading) {
+      // Show startup screen if the timer hasn't finished or if we haven't heard from Firebase auth yet.
+      if (isStartupLoading || user === undefined) {
           return <StartupScreen />;
       }
       
@@ -135,8 +134,8 @@ export default function Home() {
               onLogout={handleLogout} 
           />;
       }
-      // Tenant login will be handled via a separate flow, likely involving phone auth
-      // For now, the auth form handles owner login/registration
+      
+      // If there's no user and auth is resolved, show the login form.
       return <Auth onAuth={handleAuth} />;
   }
 
