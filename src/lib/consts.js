@@ -14,7 +14,7 @@ export const INITIAL_APP_STATE = {
     propertyAddress: "123 Tech Park, Bangalore",
     electricityRatePerUnit: 8,
     upiId: "prakash@exampleupi",
-    qrCodeUrl: "https://placehold.co/300x300.png?text=Your+QR+Code",
+    qrCodeUrl: "https://i.imgur.com/8NnL2Gz.png",
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },
