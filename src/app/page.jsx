@@ -35,47 +35,17 @@ export default function Home() {
         toast({ variant: "destructive", title: "Login Failed", description: "Invalid admin credentials." });
         return false;
       }
-    } else { // Tenant login
-      const tenant = appState.tenants.find(t => t.username === credentials.username && t.password === credentials.password);
+    } else { // Tenant login using phone number
+      const tenant = appState.tenants.find(t => t.phone === credentials.username);
       if (tenant) {
         setUser(tenant);
         setRole('tenant');
         return true;
       } else {
-        toast({ variant: "destructive", title: "Login Failed", description: "Invalid username or password for tenant." });
+        toast({ variant: "destructive", title: "Login Failed", description: "This phone number is not registered. Please contact your admin." });
         return false;
       }
     }
-  };
-
-  const handleSignUp = (newTenantData) => {
-    const existingTenant = appState.tenants.find(t => t.username === newTenantData.username);
-    if(existingTenant) {
-        toast({ variant: "destructive", title: "Sign Up Failed", description: "Username already exists." });
-        return false;
-    }
-
-    const newTenant = {
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        ...newTenantData,
-        // Admin will need to assign these later
-        unitNo: null, 
-        rentAmount: 0,
-        dueDate: null,
-        aadhaar: "",
-        profilePhotoUrl: `https://picsum.photos/seed/${Date.now()}/200`,
-        leaseStartDate: null,
-        leaseEndDate: null,
-    };
-
-    setAppState(prev => ({
-        ...prev,
-        tenants: [...prev.tenants, newTenant]
-    }));
-
-    toast({ title: "Sign Up Successful", description: "You can now log in with your new account." });
-    return true;
   };
 
   const handleLogout = () => {
@@ -103,7 +73,7 @@ export default function Home() {
               onLogout={handleLogout}
           />
       }
-      return <Auth onLogin={handleLogin} onSignUp={handleSignUp} />;
+      return <Auth onLogin={handleLogin} />;
   }
 
   return <>{renderContent()}</>;

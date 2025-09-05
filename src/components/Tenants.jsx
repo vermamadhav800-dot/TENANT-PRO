@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -101,7 +101,7 @@ const TenantFormModal = ({
             name: formData.get('name'),
             phone: formData.get('phone'),
             username: formData.get('username'),
-            password: formData.get('password') || tenant?.password, // Keep old password if not changed
+            // password is no longer needed for tenant login
             unitNo: unitNo,
             rentAmount: 0, // This will be recalculated
             dueDate: formData.get('dueDate') ? new Date(formData.get('dueDate')).toISOString() : null,
@@ -148,7 +148,7 @@ const TenantFormModal = ({
         <DialogHeader>
           <DialogTitle className="text-2xl">{tenant ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
           <DialogDescription>
-            {tenant ? 'Update the details for this tenant.' : 'Fill in the form to add a new tenant to your property.'}
+            {tenant ? 'Update the details for this tenant.' : 'Fill in the form to add a new tenant to your property. The phone number will be their login.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
@@ -165,12 +165,17 @@ const TenantFormModal = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" defaultValue={tenant?.name} required /></div>
-            <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
+            <div><Label htmlFor="phone">Phone Number (Tenant Login ID)</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><Label htmlFor="username">Username (Email)</Label><Input id="username" name="username" defaultValue={tenant?.username} type="email" required /></div>
-            <div><Label htmlFor="password">Password</Label><Input id="password" name="password" type="password" placeholder={tenant ? "Leave blank to keep same" : "Set initial password"} required={!tenant} /></div>
+            <div><Label htmlFor="username">Email Address</Label><Input id="username" name="username" defaultValue={tenant?.username} type="email" required /></div>
+             <div className="flex items-center space-x-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3">
+                <ShieldAlert className="h-5 w-5 text-amber-600" />
+                <p className="text-xs text-amber-800">
+                    Tenants log in with their phone number. No password is required.
+                </p>
+            </div>
           </div>
 
           <div className="border-t pt-4 space-y-4">
