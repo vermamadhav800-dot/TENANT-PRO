@@ -59,14 +59,14 @@ export default function Reports({ appState, setAppState }) {
     const pendingAmount = totalDue - paidAmount;
     
     let status = 'upcoming';
-    if(new Date() >= dueDate) {
-      if (paidAmount >= totalDue) {
-        status = 'paid';
-      } else if (pendingAmount > 0 && differenceInDays(new Date(), dueDate) > 0) {
-        status = 'overdue';
-      } else {
-        status = 'pending';
-      }
+    if (totalDue > 0) { // Only evaluate status if there's something to be paid
+        if (pendingAmount <= 0) {
+            status = 'paid';
+        } else if (differenceInDays(new Date(), dueDate) > 0) {
+            status = 'overdue';
+        } else {
+            status = 'pending';
+        }
     }
 
     return {
@@ -252,5 +252,3 @@ export default function Reports({ appState, setAppState }) {
     </div>
   );
 }
-
-    
