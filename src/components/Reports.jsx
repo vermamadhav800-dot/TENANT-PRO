@@ -32,16 +32,20 @@ export default function Reports({ appState, setAppState }) {
   const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
 
   const tenantPaymentData = tenants.map(tenant => {
-    if (!tenant.dueDate) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming', isDue: false };
+    if (!tenant.dueDate || !parseISO(tenant.dueDate)) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
 
     const room = rooms.find(r => r.number === tenant.unitNo);
-    if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming', isDue: false };
+    if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
 
     const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(new Date(), dueDate) >= 0;
+
+    // Only consider bills for the current month in this report
+    if (dueDate.getMonth() !== thisMonth || dueDate.getFullYear() !== thisYear) {
+      return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
+    }
 
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = electricity
+    const roomElectricityBill = (electricity || [])
       .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
       .reduce((sum, e) => sum + e.totalAmount, 0);
     const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
@@ -55,7 +59,7 @@ export default function Reports({ appState, setAppState }) {
     const pendingAmount = totalDue - paidAmount;
     
     let status = 'upcoming';
-    if(isDue) {
+    if(new Date() >= dueDate) {
       if (paidAmount >= totalDue) {
         status = 'paid';
       } else if (pendingAmount > 0 && differenceInDays(new Date(), dueDate) > 0) {
@@ -71,13 +75,12 @@ export default function Reports({ appState, setAppState }) {
       paidAmount,
       pendingAmount: pendingAmount > 0 ? pendingAmount : 0,
       status,
-      isDue,
     };
   });
   
   const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
-  const paidTenantsCount = tenantPaymentData.filter(d => d?.isDue && d.status === 'paid').length;
-  const pendingTenantsCount = tenantPaymentData.filter(d => d?.isDue && (d.status === 'pending' || d.status === 'overdue')).length;
+  const paidTenantsCount = tenantPaymentData.filter(d => d?.status === 'paid').length;
+  const pendingTenantsCount = tenantPaymentData.filter(d => d?.status === 'pending' || d.status === 'overdue').length;
 
   const chartData = [
     { name: "This Month", collected: totalCollected, pending: totalPending }
@@ -188,7 +191,7 @@ export default function Reports({ appState, setAppState }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {tenantPaymentData.length > 0 ? tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
+                    {tenantPaymentData.length > 0 ? tenantPaymentData.filter(d => d.status !== 'upcoming').map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
                          const CurrentStatusIcon = statusConfig[status].icon;
                          return(
                             <TableRow key={tenant.id}>
@@ -219,7 +222,7 @@ export default function Reports({ appState, setAppState }) {
                     }) : (
                         <TableRow>
                             <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
-                                No tenant data to display.
+                                No tenant data to display for this month.
                             </TableCell>
                         </TableRow>
                     )}

@@ -64,11 +64,11 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const adminUpiId = appState.defaults?.upiId;
     const adminName = appState.MOCK_USER_INITIAL?.name || "Property Manager";
 
-    const { electricityBillShare, totalDue } = useMemo(() => {
+    const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
         const thisYear = new Date().getFullYear();
 
-        if (!room) return { electricityBillShare: 0, totalDue: tenant.rentAmount };
+        if (!room) return { electricityBillShare: 0, totalCharges: tenant.rentAmount, paidThisMonth: 0, amountDue: tenant.rentAmount };
 
         const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
         const roomElectricityBill = (appState.electricity || [])
@@ -76,13 +76,22 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             .reduce((sum, e) => sum + e.totalAmount, 0);
 
         const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+        const charges = tenant.rentAmount + billShare;
         
+        const currentMonthPayments = payments
+          .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+          .reduce((sum, p) => sum + p.amount, 0);
+        
+        const finalAmountDue = charges - currentMonthPayments;
+
         return {
             electricityBillShare: billShare,
-            totalDue: tenant.rentAmount + billShare
+            totalCharges: charges,
+            paidThisMonth: currentMonthPayments,
+            amountDue: finalAmountDue > 0 ? finalAmountDue : 0,
         };
 
-    }, [appState.electricity, appState.tenants, room, tenant.rentAmount]);
+    }, [appState.electricity, appState.tenants, room, tenant.rentAmount, payments, tenant.id]);
 
     const tenantPayments = useMemo(() => {
         return payments
@@ -115,7 +124,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         const newApprovalRequest = {
             id: Date.now().toString(),
             tenantId: tenant.id,
-            amount: totalDue,
+            amount: amountDue, // Submit the remaining amount due for approval
             date: new Date().toISOString(),
             screenshotUrl: paymentScreenshotPreview, // In a real app, this would be an uploaded URL
         };
@@ -139,7 +148,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} />;
     }
 
-    const upiLink = adminUpiId ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminName)}&am=${totalDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
+    const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminName)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
 
     return (
         <div className="space-y-6">
@@ -157,57 +166,71 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Electricity</p>
                             <p className="text-lg font-bold">{electricityBillShare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
+                         <div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeCheck className="h-4 w-4 text-green-500"/> Amount Paid</p>
+                            <p className="text-lg font-bold text-green-600">{paidThisMonth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        </div>
+                         <div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeAlert className="h-4 w-4 text-red-500"/> Total Charges</p>
+                            <p className="text-lg font-bold">{totalCharges.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        </div>
                     </div>
                     <div className="flex justify-between items-center pt-2">
-                        <p className="text-lg font-semibold">Total Due</p>
-                        <p className="text-3xl font-bold text-primary">{totalDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p className="text-lg font-semibold">Final Amount Due</p>
+                        <p className="text-3xl font-bold text-primary">{amountDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-                         <DialogTrigger asChild>
-                            <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
-                                <IndianRupee className="mr-2 h-4 w-4" /> Pay Total Bill
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Complete Your Payment</DialogTitle>
-                                <DialogDescription>
-                                   Step 1: Use the button below to pay <strong className="font-bold">{totalDue.toFixed(2)}</strong>.
-                                   Step 2: Take a screenshot of the confirmation.
-                                   Step 3: Upload it here and submit for approval.
-                                </DialogDescription>
-                            </DialogHeader>
-                             <div className="py-4 space-y-4">
-                                {!upiLink ? (
-                                    <p className="text-red-500 text-center">The admin has not configured their UPI ID for payments yet.</p>
-                                ) : (
-                                    <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
-                                        <Button size="lg" className="w-full">
-                                            <ExternalLink className="mr-2 h-5 w-5" />
-                                            Proceed to UPI App
-                                        </Button>
-                                    </a>
-                                )}
-                                <div className="space-y-2">
-                                    <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
-                                    <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
-                                    {paymentScreenshotPreview && (
-                                        <div className="mt-2 text-center">
-                                            <img src={paymentScreenshotPreview} alt="Payment screenshot preview" className="max-h-48 mx-auto rounded-md border" />
-                                            <p className="text-xs text-muted-foreground mt-1">Screenshot ready for upload.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink || !paymentScreenshot}>
-                                    Submit for Approval
+                     {amountDue > 0 ? (
+                        <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+                             <DialogTrigger asChild>
+                                <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
+                                    <IndianRupee className="mr-2 h-4 w-4" /> Pay Amount Due
                                 </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Complete Your Payment</DialogTitle>
+                                    <DialogDescription>
+                                       Step 1: Use the button below to pay <strong className="font-bold">{amountDue.toFixed(2)}</strong>.
+                                       Step 2: Take a screenshot of the confirmation.
+                                       Step 3: Upload it here and submit for approval.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                 <div className="py-4 space-y-4">
+                                    {!upiLink ? (
+                                        <p className="text-red-500 text-center">The admin has not configured their UPI ID for payments yet.</p>
+                                    ) : (
+                                        <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
+                                            <Button size="lg" className="w-full">
+                                                <ExternalLink className="mr-2 h-5 w-5" />
+                                                Proceed to UPI App
+                                            </Button>
+                                        </a>
+                                    )}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
+                                        <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
+                                        {paymentScreenshotPreview && (
+                                            <div className="mt-2 text-center">
+                                                <img src={paymentScreenshotPreview} alt="Payment screenshot preview" className="max-h-48 mx-auto rounded-md border" />
+                                                <p className="text-xs text-muted-foreground mt-1">Screenshot ready for upload.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink || !paymentScreenshot}>
+                                        Submit for Approval
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    ) : (
+                         <div className="w-full text-center font-semibold text-green-600 border border-green-500 bg-green-50 rounded-lg p-3">
+                            All dues for this month have been cleared!
+                        </div>
+                    )}
                 </CardFooter>
             </Card>
 
@@ -258,11 +281,11 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
 };
 
 const TenantHome = ({ tenant, payments, room, appState }) => {
-    const { totalDue } = useMemo(() => {
+    const { amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
         const thisYear = new Date().getFullYear();
 
-        if (!room) return { totalDue: tenant.rentAmount };
+        if (!room) return { amountDue: tenant.rentAmount };
 
         const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
         const roomElectricityBill = (appState.electricity || [])
@@ -270,12 +293,19 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
             .reduce((sum, e) => sum + e.totalAmount, 0);
 
         const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+        const totalCharges = tenant.rentAmount + billShare;
+
+        const paidThisMonth = payments
+            .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+            .reduce((sum, p) => sum + p.amount, 0);
+        
+        const finalAmountDue = totalCharges - paidThisMonth;
         
         return {
-            totalDue: tenant.rentAmount + billShare
+            amountDue: finalAmountDue > 0 ? finalAmountDue : 0,
         };
 
-    }, [appState.electricity, appState.tenants, room, tenant.rentAmount]);
+    }, [appState.electricity, appState.tenants, room, tenant, payments]);
 
     const rentStatus = useMemo(() => {
         if (!tenant.dueDate) return { label: 'Upcoming', color: "text-gray-500", Icon: BadgeAlert };
@@ -283,20 +313,14 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const dueDate = parseISO(tenant.dueDate);
-        const thisMonth = today.getMonth();
-        const thisYear = today.getFullYear();
-
-        const paidThisMonth = payments
-            .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
-            .reduce((sum, p) => sum + p.amount, 0);
-
-        if (paidThisMonth >= totalDue) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
+        
+        if (amountDue <= 0) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
 
         const daysDiff = differenceInDays(dueDate, today);
         if (daysDiff < 0) return { label: 'Overdue', color: "text-red-500", Icon: BadgeAlert };
 
         return { label: 'Upcoming', color: "text-yellow-500", Icon: BadgeAlert };
-    }, [tenant, payments, totalDue]);
+    }, [tenant, amountDue]);
 
     return (
         <div className="space-y-6">
@@ -318,7 +342,7 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                         <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalDue ? totalDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</div>
+                        <div className="text-2xl font-bold">{amountDue ? amountDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>

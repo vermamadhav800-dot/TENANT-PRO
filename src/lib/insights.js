@@ -63,7 +63,7 @@ export function getInsights(appState) {
   today.setHours(0,0,0,0);
   
   tenants.forEach(tenant => {
-    if (!tenant.dueDate) return;
+    if (!tenant.dueDate || !parseISO(tenant.dueDate)) return;
 
     const dueDate = parseISO(tenant.dueDate);
     const thisMonth = today.getMonth();
@@ -94,12 +94,14 @@ export function getInsights(appState) {
     const paidThisMonth = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
+      
+    const pendingAmount = totalDue - paidThisMonth;
 
-    if (isBefore(dueDate, today) && paidThisMonth < totalDue) {
+    if (isBefore(dueDate, today) && pendingAmount > 0) {
        const daysOverdue = differenceInDays(today, dueDate);
        alerts.push({
         type: 'Overdue Payment',
-        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${(totalDue - paidThisMonth).toFixed(2)}.`,
+        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${pendingAmount.toFixed(2)}.`,
         level: 'danger',
       });
     }

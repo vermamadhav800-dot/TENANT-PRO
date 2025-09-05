@@ -72,19 +72,20 @@ export default function Payments({ appState, setAppState }) {
   const thisMonthCollection = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
   
   const totalPending = tenants.reduce((totalPending, tenant) => {
-    if (!tenant.dueDate) return totalPending;
+    if (!tenant.dueDate || !parseISO(tenant.dueDate)) return totalPending;
 
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return totalPending;
 
+    // Only calculate pending for dues this month
     const dueDate = parseISO(tenant.dueDate);
-    const isDue = differenceInDays(new Date(), dueDate) >= 0;
-
-    if (!isDue) return totalPending;
+    if (dueDate.getMonth() !== thisMonth || dueDate.getFullYear() !== thisYear) {
+      return totalPending;
+    }
     
     // Calculate tenant's share of electricity bill for the month
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = electricity
+    const roomElectricityBill = (electricity || [])
       .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
       .reduce((sum, e) => sum + e.totalAmount, 0);
     const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
