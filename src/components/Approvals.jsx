@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Check, X, Inbox } from 'lucide-react';
@@ -205,7 +205,7 @@ function MaintenanceRequests({ appState, setAppState }) {
 
 export default function Approvals({ appState, setAppState }) {
   const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
-  const pendingMaintenanceCount = appState.maintenanceRequests?.length || 0;
+  const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
 
   return (
     <div className="space-y-6">
