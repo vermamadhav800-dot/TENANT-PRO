@@ -21,6 +21,7 @@ import {
   Star,
   CheckCircle,
   Lock,
+  FolderArchive,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -65,6 +66,7 @@ const TABS = [
   { id: "requests", label: "Requests", icon: Wrench, plan: 'standard' },
   { id: "electricity", label: "Electricity", icon: Zap, plan: 'standard' },
   { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro' },
+  { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business' },
   { id: "reports", label: "Reports", icon: BarChart, plan: 'pro' },
   { id: "notices", label: "Notices", icon: Megaphone, plan: 'standard' },
 ];
@@ -92,6 +94,8 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
         return <Electricity {...props} />;
       case "expenses":
         return <Expenses {...props} />;
+      case "documents":
+        return <Tenants {...props} />; // Document management is part of the tenant section
       case "reports":
         return <Reports {...props} />;
       case "notices":

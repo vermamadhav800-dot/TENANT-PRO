@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare, FolderArchive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -51,6 +51,7 @@ const TenantFormModal = ({
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant?.profilePhotoUrl || null);
   const [aadhaarCardPreview, setAadhaarCardPreview] = useState(tenant?.aadhaarCardUrl);
+  const [leaseAgreementPreview, setLeaseAgreementPreview] = useState(tenant?.leaseAgreementUrl);
   const [selectedUnit, setSelectedUnit] = useState(tenant?.unitNo);
   const [calculatedRent, setCalculatedRent] = useState(0);
 
@@ -111,6 +112,7 @@ const TenantFormModal = ({
             aadhaar: formData.get('aadhaar'),
             profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
             aadhaarCardUrl: aadhaarCardPreview,
+            leaseAgreementUrl: leaseAgreementPreview,
         };
 
         let updatedTenants;
@@ -207,14 +209,19 @@ const TenantFormModal = ({
           </div>
 
           <div className="border-t pt-4 space-y-4">
-             <h3 className="font-semibold">Identification</h3>
+             <h3 className="font-semibold">Documents (Business Feature)</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="^\d{12}$" title="Aadhaar must be 12 digits" /></div>
+                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="^d{12}$" title="Aadhaar must be 12 digits" /></div>
                 <div>
                   <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
                   <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setAadhaarCardPreview)} />
                   {aadhaarCardPreview && <a href={aadhaarCardPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
                 </div>
+             </div>
+             <div>
+                <Label htmlFor="leaseAgreement">Lease Agreement Upload</Label>
+                <Input id="leaseAgreement" name="leaseAgreement" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setLeaseAgreementPreview)} />
+                {leaseAgreementPreview && <a href={leaseAgreementPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Lease</a>}
              </div>
           </div>
 
@@ -285,7 +292,7 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <div className="flex flex-col items-center text-center gap-4">
              <Avatar className="w-24 h-24 ring-2 ring-offset-2 ring-primary ring-offset-background">
@@ -304,11 +311,22 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><IdCard className="w-4 h-4 text-muted-foreground" /><span>Aadhaar: XXXX-XXXX-{(tenant.aadhaar || '').slice(-4)}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><CalendarIcon className="w-4 h-4 text-muted-foreground" /><span>Lease: {tenant.leaseStartDate ? format(parseISO(tenant.leaseStartDate), 'dd MMM yyyy') : 'N/A'} to {tenant.leaseEndDate ? format(parseISO(tenant.leaseEndDate), 'dd MMM yyyy') : 'N/A'}</span></div>
           </div>
-          {tenant.aadhaarCardUrl && (
-            <Button asChild className="w-full">
-              <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer"><UploadCloud className="mr-2 h-4 w-4" />View Aadhaar Card</a>
-            </Button>
-          )}
+           <div className="border-t pt-4">
+            <h4 className="font-semibold mb-2">Uploaded Documents</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {tenant.aadhaarCardUrl ? (
+                    <Button asChild variant="outline">
+                        <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer"><UploadCloud className="mr-2 h-4 w-4" />View Aadhaar</a>
+                    </Button>
+                ) : <div className="text-sm text-muted-foreground text-center col-span-1 p-2 rounded-md bg-muted/50">No Aadhaar</div>}
+
+                 {tenant.leaseAgreementUrl ? (
+                    <Button asChild variant="outline">
+                        <a href={tenant.leaseAgreementUrl} target="_blank" rel="noopener noreferrer"><FolderArchive className="mr-2 h-4 w-4" />View Lease</a>
+                    </Button>
+                 ) : <div className="text-sm text-muted-foreground text-center col-span-1 p-2 rounded-md bg-muted/50">No Lease</div>}
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -44,6 +44,7 @@ export const INITIAL_APP_STATE = {
       dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 5).toISOString(),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=amit',
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
+      leaseAgreementUrl: 'https://placehold.co/600x400.png?text=Lease+Agreement',
       otherCharges: [],
     },
     {
@@ -59,6 +60,7 @@ export const INITIAL_APP_STATE = {
       dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 5).toISOString(),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=priya',
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
+      leaseAgreementUrl: null,
       otherCharges: [],
     },
      {
@@ -74,6 +76,7 @@ export const INITIAL_APP_STATE = {
       dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 10).toISOString(),
       profilePhotoUrl: 'https://i.pravatar.cc/150?u=rohan',
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
+      leaseAgreementUrl: 'https://placehold.co/600x400.png?text=Lease+Agreement',
       otherCharges: [],
     },
   ],
