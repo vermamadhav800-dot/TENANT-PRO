@@ -2,12 +2,14 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useTheme } from "next-themes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import AppLogo from './AppLogo';
@@ -52,8 +54,8 @@ const TenantProfile = ({ tenant }) => (
 
 const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
     const { toast } = useToast();
-    const [filter, setFilter] = useState('all');
     const [showReceipt, setShowReceipt] = useState(null);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
     const tenantPayments = useMemo(() => {
         return payments
@@ -61,14 +63,13 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             .sort((a, b) => new Date(b.date) - new Date(a.date));
     }, [payments, tenant.id]);
 
-    const handlePayNow = () => {
-        // This is a simulated payment flow
+    const handleConfirmPayment = () => {
         const newPayment = {
             id: Date.now().toString(),
             tenantId: tenant.id,
             amount: tenant.rentAmount,
             date: new Date().toISOString(),
-            method: 'Paytm',
+            method: 'QR Code Scan',
         };
 
         setAppState(prev => ({
@@ -76,9 +77,11 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             payments: [...prev.payments, newPayment]
         }));
         
+        setIsQrModalOpen(false);
+
         toast({
-            title: "Payment Successful!",
-            description: "Your rent has been paid and a receipt has been generated.",
+            title: "Payment Recorded!",
+            description: "Your rent payment has been recorded and a receipt has been generated.",
         });
 
         setShowReceipt({ payment: newPayment, tenant, room });
@@ -105,9 +108,35 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={handlePayNow} className="w-full sm:w-auto ml-auto btn-gradient-glow">
-                        Pay Now with Paytm
-                    </Button>
+                    <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+                         <DialogTrigger asChild>
+                            <Button className="w-full sm:w-auto ml-auto btn-gradient-glow">
+                                <QrCode className="mr-2 h-4 w-4" /> Pay Now
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Scan to Pay</DialogTitle>
+                                <DialogDescription>
+                                    Use your favorite payment app to scan this QR code and pay your rent. After paying, click the "I Have Paid" button below.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex justify-center p-4">
+                                <Image 
+                                    src="https://storage.googleapis.com/stately-temp-files/2024-07-25/qr-code-1721915993952.png" 
+                                    alt="Payment QR Code" 
+                                    width={256} 
+                                    height={256} 
+                                    className="rounded-lg"
+                                />
+                            </div>
+                            <DialogFooter>
+                                <Button onClick={handleConfirmPayment} className="w-full">
+                                    I Have Paid
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </CardFooter>
             </Card>
 
@@ -255,7 +284,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 <AppLogo className="w-8 h-8" iconClassName="w-5 h-5" />
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {TABS.map(tab => (
                     <Button
                         key={tab.id}
@@ -271,7 +300,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                     </Button>
                 ))}
             </nav>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t mt-auto">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
                     <LogOut className="w-5 h-5" />
                     Log Out
@@ -290,9 +319,11 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             {/* Mobile Sidebar */}
             {isSidebarOpen && (
                  <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}>
-                    <div className="absolute top-0 left-0 h-full w-64 bg-background shadow-lg p-0" onClick={e => e.stopPropagation()}>
-                       <SidebarContent />
-                    </div>
+                     <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                        <SheetContent side="left" className="p-0 w-64">
+                           <SidebarContent />
+                        </SheetContent>
+                    </Sheet>
                 </div>
             )}
 
