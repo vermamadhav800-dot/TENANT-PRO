@@ -98,13 +98,13 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                             <tr>
                                 <td className="p-3 border-b border-gray-200 text-gray-800">{payment.id}</td>
                                 <td className="p-3 border-b border-gray-200 text-gray-800">{format(parseISO(payment.date), 'dd MMMM, yyyy')}</td>
-                                <td className="p-3 border-b border-gray-200 text-gray-800 text-right">{payment.amount.toLocaleString()}</td>
+                                <td className="p-3 border-b border-gray-200 text-gray-800 text-right">₹{payment.amount.toLocaleString()}</td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colSpan="2" className="p-3 font-semibold text-gray-800 text-right">Total:</td>
-                                <td className="p-3 font-semibold text-gray-800 text-right">{payment.amount.toLocaleString()}</td>
+                                <td className="p-3 font-semibold text-gray-800 text-right">₹{payment.amount.toLocaleString()}</td>
                             </tr>
                         </tfoot>
                     </table>

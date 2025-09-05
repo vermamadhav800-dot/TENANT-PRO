@@ -43,7 +43,7 @@ export default function Payments({ appState, setAppState }) {
     };
     
     setAppState(prev => ({ ...prev, payments: [...prev.payments, newPayment] }));
-    toast({ title: "Success", description: `Payment of ${newPayment.amount} recorded for ${tenant.name}.` });
+    toast({ title: "Success", description: `Payment of ₹${newPayment.amount} recorded for ${tenant.name}.` });
     setIsAddModalOpen(false);
   };
   
@@ -111,7 +111,7 @@ export default function Payments({ appState, setAppState }) {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label htmlFor="amount">Amount</Label><Input id="amount" name="amount" type="number" required /></div>
+              <div><Label htmlFor="amount">Amount (₹)</Label><Input id="amount" name="amount" type="number" required /></div>
               <div><Label htmlFor="date">Payment Date</Label><Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required /></div>
               <div>
                 <Label htmlFor="method">Payment Method</Label>
@@ -131,9 +131,9 @@ export default function Payments({ appState, setAppState }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Collected" value={`${totalCollected.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={CheckCircle} color="success" />
-        <StatCard title="Pending Amount (This Month)" value={`${totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}`} icon={Clock} color="warning" />
-        <StatCard title="Collected This Month" value={`${thisMonthCollection.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={Calendar} color="primary" />
+        <StatCard title="Total Collected" value={`₹${totalCollected.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={CheckCircle} color="success" />
+        <StatCard title="Pending Amount (This Month)" value={`₹${totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}`} icon={Clock} color="warning" />
+        <StatCard title="Collected This Month" value={`₹${thisMonthCollection.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={Calendar} color="primary" />
       </div>
 
       <Card>
@@ -162,7 +162,7 @@ export default function Payments({ appState, setAppState }) {
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
                       <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
-                      <TableCell>{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                      <TableCell>₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">

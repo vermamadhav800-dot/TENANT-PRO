@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -208,7 +207,7 @@ const TenantFormModal = ({
               </div>
                <div>
                 <Label htmlFor="rentAmount">Per-Person Rent (Calculated)</Label>
-                <Input id="rentAmount" name="rentAmount" type="number" value={calculatedRent.toFixed(2)} required readOnly className="bg-muted"/>
+                <Input id="rentAmount" name="rentAmount" type="text" value={`₹${calculatedRent.toFixed(2)}`} required readOnly className="bg-muted"/>
                 <p className="text-xs text-muted-foreground mt-1">Rent is auto-divided among tenants in the room.</p>
               </div>
             </div>
@@ -324,7 +323,7 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Mail className="w-4 h-4 text-muted-foreground" /><span>{tenant.username}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Phone className="w-4 h-4 text-muted-foreground" /><span>{tenant.phone}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Home className="w-4 h-4 text-muted-foreground" /><span>Room {tenant.unitNo} (Capacity: {room?.capacity})</span></div>
-            <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><span>Rent: {tenant.rentAmount?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / month</span></div>
+            <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><span>Rent: ₹{tenant.rentAmount?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / month</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><IdCard className="w-4 h-4 text-muted-foreground" /><span>Aadhaar: XXXX-XXXX-{(tenant.aadhaar || '').slice(-4)}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><CalendarIcon className="w-4 h-4 text-muted-foreground" /><span>Lease: {tenant.leaseStartDate ? format(parseISO(tenant.leaseStartDate), 'dd MMM yyyy') : 'N/A'} to {tenant.leaseEndDate ? format(parseISO(tenant.leaseEndDate), 'dd MMM yyyy') : 'N/A'}</span></div>
           </div>
@@ -561,7 +560,7 @@ export default function Tenants({ appState, setAppState }) {
                                   </div>
                               </div>
                           </TableCell>
-                          <TableCell>{tenant.monthlyBill ? tenant.monthlyBill.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
+                          <TableCell>₹{tenant.monthlyBill ? tenant.monthlyBill.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
                           <TableCell>{tenant.dueDate && isValid(parseISO(tenant.dueDate)) ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
                           <TableCell>
                             <Badge variant={status.color} className={cn(
@@ -622,5 +621,3 @@ export default function Tenants({ appState, setAppState }) {
     </div>
   );
 }
-
-    

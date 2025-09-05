@@ -117,7 +117,7 @@ export default function Rooms({ appState, setAppState }) {
                 </CardHeader>
                 <CardContent className="space-y-2 flex-grow">
                    <div className="flex items-baseline text-3xl font-bold">
-                    {room.rent.toLocaleString('en-IN', {minimumFractionDigits: 0})}
+                    ₹{room.rent.toLocaleString('en-IN', {minimumFractionDigits: 0})}
                     <span className="text-sm text-muted-foreground ml-1.5">/ month</span>
                   </div>
                 </CardContent>
@@ -160,7 +160,7 @@ export default function Rooms({ appState, setAppState }) {
           <form onSubmit={handleFormSubmit} className="space-y-4 py-4">
             <div><Label htmlFor="number">Room Number/Name</Label><Input id="number" name="number" defaultValue={editingRoom?.number} required /></div>
             <div><Label htmlFor="capacity">Capacity (Max Tenants)</Label><Input id="capacity" name="capacity" type="number" defaultValue={editingRoom?.capacity} required /></div>
-            <div><Label htmlFor="rent">Total Monthly Rent</Label><Input id="rent" name="rent" type="number" step="0.01" defaultValue={editingRoom?.rent} required /></div>
+            <div><Label htmlFor="rent">Total Monthly Rent (₹)</Label><Input id="rent" name="rent" type="number" step="0.01" defaultValue={editingRoom?.rent} required /></div>
             <DialogFooter className="pt-4"><Button type="submit" className="w-full btn-gradient-glow">{editingRoom ? 'Save Changes' : 'Add Room'}</Button></DialogFooter>
           </form>
         </DialogContent>

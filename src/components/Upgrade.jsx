@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import PaymentGateway from './PaymentGateway';
-import GlowingRupee from './icons/GlowingRupee';
 
 const planFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
@@ -150,8 +149,8 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                     <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
-                    <div className="text-center flex items-center justify-center">
-                        {plan.price !== 'Free' && <GlowingRupee className="w-10 h-10 -ml-2 -mr-1" />}
+                    <div className="text-center flex items-baseline justify-center">
+                        {plan.price !== 'Free' && <span className="text-3xl font-bold -mr-1">₹</span>}
                         <span className="text-4xl font-extrabold">{plan.price}</span>
                         <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>
                     </div>

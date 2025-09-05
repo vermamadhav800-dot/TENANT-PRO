@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -20,7 +19,6 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
-import GlowingRupee from './icons/GlowingRupee';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -198,7 +196,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <img src={adminQrCodeUrl} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" />
                             : <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">The owner has not provided a QR code.</div>
                         }
-                        <p className="font-bold text-xl">Amount Due: {amountDue.toFixed(2)}</p>
+                        <p className="font-bold text-xl">Amount Due: ₹{amountDue.toFixed(2)}</p>
                         {upiLink && (
                             <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
                                 <Button size="lg" className="w-full">
@@ -243,7 +241,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     )}
 
                     <div className="space-y-2 pt-4">
-                        <Label htmlFor="payment-amount">Amount Paid</Label>
+                        <Label htmlFor="payment-amount">Amount Paid (₹)</Label>
                         <Input 
                             id="payment-amount" 
                             type="number" 
@@ -283,24 +281,24 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     <div className="grid grid-cols-2 gap-4 border-b pb-4">
                          <div>
                             <p className="text-sm text-muted-foreground">Base Rent</p>
-                            <p className="text-lg font-bold">{tenant.rentAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">₹{tenant.rentAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Other Charges</p>
-                            <p className="text-lg font-bold">{electricityBillShare.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">₹{electricityBillShare.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                          <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeCheck className="h-4 w-4 text-green-500"/> Amount Paid</p>
-                            <p className="text-lg font-bold text-green-600">{paidThisMonth.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold text-green-600">₹{paidThisMonth.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                          <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeAlert className="h-4 w-4 text-red-500"/> Total Charges</p>
-                            <p className="text-lg font-bold">{totalCharges.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">₹{totalCharges.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-2">
                         <p className="text-lg font-semibold">Final Amount Due</p>
-                        <p className="text-3xl font-bold text-primary flex items-center gap-1"><GlowingRupee className="w-7 h-7" />{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p className="text-3xl font-bold text-primary">₹{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
@@ -346,7 +344,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                                 combinedPayments.map(payment => (
                                     <TableRow key={payment.id}>
                                         <TableCell>{format(new Date(payment.date), 'dd MMMM, yyyy')}</TableCell>
-                                        <TableCell className="font-medium">{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                        <TableCell className="font-medium">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                         <TableCell>
                                             {payment.status === 'Processing' ? (
                                                 <span className="flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
@@ -437,9 +435,10 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
+                        <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold flex items-center gap-1"><GlowingRupee className="w-6 h-6" />{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
+                        <div className="text-2xl font-bold">₹{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>
@@ -686,7 +685,7 @@ const TenantNoticeBoard = ({ appState }) => {
 
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'payments', label: 'Rent & Payments', icon: GlowingRupee },
+    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
     { id: 'notices', label: 'Notice Board', icon: Megaphone },
     { id: 'support', label: 'Help & Support', icon: Wrench },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -816,5 +815,3 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
-
-    

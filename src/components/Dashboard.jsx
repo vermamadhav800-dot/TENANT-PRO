@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { differenceInDays, parseISO, formatDistanceToNow, isValid } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo } from 'react';
-import GlowingRupee from './icons/GlowingRupee';
+
 
 export default function Dashboard({ appState, setActiveTab }) {
   const { tenants, rooms, payments, electricity, expenses = [] } = appState;
@@ -58,7 +58,7 @@ export default function Dashboard({ appState, setActiveTab }) {
         Icon: CreditCard,
         content: (
           <p>
-            Received a payment of <strong>{p.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong> from{' '}
+            Received a payment of <strong>₹{p.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong> from{' '}
             <strong>{tenant?.name || 'Unknown'}</strong>.
           </p>
         ),
@@ -72,7 +72,7 @@ export default function Dashboard({ appState, setActiveTab }) {
         Icon: Wallet,
         content: (
             <p>
-                Recorded an expense of <strong>{e.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong> for <strong>{e.description}</strong>.
+                Recorded an expense of <strong>₹{e.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong> for <strong>{e.description}</strong>.
             </p>
         )
     }));
@@ -96,21 +96,21 @@ export default function Dashboard({ appState, setActiveTab }) {
             <div className="bg-white/20 p-3 rounded-lg"><TrendingUp className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Revenue</p>
-              <p className="text-2xl font-bold flex items-center gap-1"><GlowingRupee className="w-6 h-6" />{monthlyRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+              <p className="text-2xl font-bold">₹{monthlyRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-lg"><TrendingDown className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Expenses</p>
-              <p className="text-2xl font-bold flex items-center gap-1"><GlowingRupee className="w-6 h-6" />{monthlyExpenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+              <p className="text-2xl font-bold">₹{monthlyExpenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-lg"><Scale className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Net Profit</p>
-              <p className="text-2xl font-bold flex items-center gap-1"><GlowingRupee className="w-6 h-6" />{netProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+              <p className="text-2xl font-bold">₹{netProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
             </div>
           </div>
         </CardContent>

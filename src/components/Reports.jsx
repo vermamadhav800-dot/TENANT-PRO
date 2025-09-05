@@ -124,7 +124,7 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
         setIsUpgradeModalOpen(true);
         return;
       }
-      const headers = ["Tenant Name", "Phone", "Room", "Total Due", "Amount Paid", "Pending", "Status"];
+      const headers = ["Tenant Name", "Phone", "Room", "Total Due (INR)", "Amount Paid (INR)", "Pending (INR)", "Status"];
       const rows = tenantPaymentData.map(d => [
           d.tenant.name,
           d.tenant.phone,
@@ -225,11 +225,11 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
         <CardHeader><CardTitle>This Month's Summary</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{totalCollected.toLocaleString('en-IN')}</p>
+                <p className="text-2xl font-bold">₹{totalCollected.toLocaleString('en-IN')}</p>
                 <p className="text-sm text-muted-foreground">Total Collected</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
+                <p className="text-2xl font-bold">₹{totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
                 <p className="text-sm text-muted-foreground">Total Pending</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
@@ -280,9 +280,9 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
                                     </div>
                                 </TableCell>
                                 <TableCell>{tenant.unitNo}</TableCell>
-                                <TableCell>{totalDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                                <TableCell className="text-green-600 font-medium">{paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                                <TableCell className="font-semibold text-red-600">{pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell>₹{totalDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell className="text-green-600 font-medium">₹{paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell className="font-semibold text-red-600">₹{pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                 <TableCell>
                                     <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
                                         <CurrentStatusIcon className="h-4 w-4"/>
@@ -320,8 +320,8 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
             }} className="w-full h-full">
                 <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                    <YAxis tickFormatter={(value) => `${value.toLocaleString('en-IN')}`} tickLine={false} axisLine={false} />
-                    <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(value) => `${value.toLocaleString('en-IN')}`} />} />
+                    <YAxis tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`} tickLine={false} axisLine={false} />
+                    <Tooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(value) => `₹${value.toLocaleString('en-IN')}`} />} />
                     <Legend />
                     <Bar dataKey="collected" fill="var(--color-collected)" radius={4} />
                     <Bar dataKey="pending" fill="var(--color-pending)" radius={4} />
@@ -356,5 +356,3 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
     </div>
   );
 }
-
-    
