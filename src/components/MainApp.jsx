@@ -56,6 +56,7 @@ import Upgrade from "./Upgrade";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "./ui/badge";
+import Documents from "./Documents";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard' },
@@ -95,7 +96,7 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
       case "expenses":
         return <Expenses {...props} />;
       case "documents":
-        return <Tenants {...props} />; // Document management is part of the tenant section
+        return <Documents {...props} />;
       case "reports":
         return <Reports {...props} />;
       case "notices":
@@ -361,5 +362,3 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     </SidebarProvider>
   );
 }
-
-    
