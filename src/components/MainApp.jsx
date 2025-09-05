@@ -69,17 +69,18 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
   const { setTheme, theme } = useTheme();
 
   // Fetch all data collections for the logged-in owner
-  const { data: tenants, loading: tenantsLoading } = useCollection('tenants', user.uid);
-  const { data: rooms, loading: roomsLoading } = useCollection('rooms', user.uid);
-  const { data: payments, loading: paymentsLoading } = useCollection('payments', user.uid);
-  const { data: electricity, loading: electricityLoading } = useCollection('electricity', user.uid);
-  const { data: expenses, loading: expensesLoading } = useCollection('expenses', user.uid);
-  const { data: settings, loading: settingsLoading } = useDocument('settings', user.uid);
-  const { data: pendingApprovals, loading: approvalsLoading } = useCollection('approvals', user.uid);
-  const { data: maintenanceRequests, loading: maintenanceLoading } = useCollection('maintenanceRequests', user.uid);
-  const { data: globalNotices, loading: noticesLoading } = useCollection('notices', user.uid);
+  const { data: tenants, loading: tenantsLoading, error: tenantsError } = useCollection('tenants', user.uid);
+  const { data: rooms, loading: roomsLoading, error: roomsError } = useCollection('rooms', user.uid);
+  const { data: payments, loading: paymentsLoading, error: paymentsError } = useCollection('payments', user.uid);
+  const { data: electricity, loading: electricityLoading, error: electricityError } = useCollection('electricity', user.uid);
+  const { data: expenses, loading: expensesLoading, error: expensesError } = useCollection('expenses', user.uid);
+  const { data: settings, loading: settingsLoading, error: settingsError } = useDocument('settings', user.uid);
+  const { data: pendingApprovals, loading: approvalsLoading, error: approvalsError } = useCollection('approvals', user.uid);
+  const { data: maintenanceRequests, loading: maintenanceLoading, error: maintenanceError } = useCollection('maintenanceRequests', user.uid);
+  const { data: globalNotices, loading: noticesLoading, error: noticesError } = useCollection('notices', user.uid);
   
   const isLoading = tenantsLoading || roomsLoading || paymentsLoading || electricityLoading || expensesLoading || settingsLoading || approvalsLoading || maintenanceLoading || noticesLoading;
+  const anyError = tenantsError || roomsError || paymentsError || electricityError || expensesError || settingsError || approvalsError || maintenanceError || noticesError;
 
   // The appState is now composed of data fetched from Firestore
   const appState = {
@@ -148,6 +149,10 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
             <div className="flex justify-center items-center h-full">
                 <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
             </div>
+        ) : anyError ? (
+            <div className="flex justify-center items-center h-full text-red-500">
+                Error loading data. Please refresh the page.
+            </div>
         ) : (
             <div className="animate-fade-in">{renderTabContent()}</div>
         )}
@@ -159,11 +164,12 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
 export default function MainApp({ onLogout, user, userData }) {
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const { data: pendingApprovals } = useCollection('approvals', user.uid);
-  const { data: maintenanceRequests } = useCollection('maintenanceRequests', user.uid);
-  const pendingApprovalsCount = (pendingApprovals || []).filter(a => a.status === 'pending').length;
-  const pendingMaintenanceCount = (maintenanceRequests || []).filter(r => r.status === 'Pending').length;
-  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
+  const { data: pendingApprovals, loading: approvalsLoading } = useCollection('approvals', user.uid);
+  const { data: maintenanceRequests, loading: maintenanceLoading } = useCollection('maintenanceRequests', user.uid);
+  
+  const totalPendingRequests = !approvalsLoading && !maintenanceLoading 
+    ? ((pendingApprovals || []).filter(a => a.status === 'pending').length + (maintenanceRequests || []).filter(r => r.status === 'Pending').length)
+    : 0;
   
   return (
     <SidebarProvider>
@@ -242,5 +248,3 @@ export default function MainApp({ onLogout, user, userData }) {
     </SidebarProvider>
   );
 }
-
-    

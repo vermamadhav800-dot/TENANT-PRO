@@ -15,8 +15,8 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 export default function Rooms({ user }) {
-  const { data: rooms, loading: roomsLoading } = useCollection('rooms', user.uid);
-  const { data: tenants, loading: tenantsLoading } = useCollection('tenants', user.uid);
+  const { data: rooms, loading: roomsLoading, error: roomsError } = useCollection('rooms', user.uid);
+  const { data: tenants, loading: tenantsLoading, error: tenantsError } = useCollection('tenants', user.uid);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [roomToDelete, setRoomToDelete] = useState(null);
@@ -29,6 +29,7 @@ export default function Rooms({ user }) {
   };
 
   const recalculateRentForRoom = async (unitNo, newRent) => {
+      if (!tenants) return;
       const tenantsInRoom = tenants.filter(t => t.unitNo === unitNo);
       if (tenantsInRoom.length === 0) return;
       
@@ -74,7 +75,7 @@ export default function Rooms({ user }) {
   };
 
   const confirmDeleteRoom = (room) => {
-    if (tenants.some(t => t.unitNo === room.number)) {
+    if (tenants && tenants.some(t => t.unitNo === room.number)) {
       toast({ variant: "destructive", title: "Error", description: "Cannot delete room with tenants. Please reassign tenants first." });
       return;
     }
@@ -97,6 +98,10 @@ export default function Rooms({ user }) {
   if (roomsLoading || tenantsLoading) {
       return <div className="flex justify-center items-center h-64"><LoaderCircle className="w-8 h-8 animate-spin" /></div>
   }
+  
+  if (roomsError || tenantsError) {
+      return <div className="text-center text-red-500">Error loading data. Please try refreshing.</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -108,7 +113,7 @@ export default function Rooms({ user }) {
         <Button onClick={() => openModal(null)} className="btn-gradient-glow"><Plus className="mr-2 h-4 w-4" /> Add Room</Button>
       </div>
 
-      {rooms.length === 0 ? (
+      {!rooms || rooms.length === 0 ? (
         <div className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
           <DoorOpen className="mx-auto h-16 w-16 mb-4" />
           <h3 className="text-xl font-semibold mb-2">No Rooms Found</h3>
@@ -118,7 +123,7 @@ export default function Rooms({ user }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {rooms.sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true })).map(room => {
-            const occupants = tenants.filter(t => t.unitNo === room.number);
+            const occupants = tenants ? tenants.filter(t => t.unitNo === room.number) : [];
             const isFull = occupants.length >= room.capacity;
             return (
               <Card key={room.id} className="glass-card card-hover flex flex-col">
@@ -143,7 +148,7 @@ export default function Rooms({ user }) {
                      <AlertDialogTrigger asChild>
                       <Button variant="destructive" onClick={() => confirmDeleteRoom(room)}><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
                     </AlertDialogTrigger>
-                    {roomToDelete && !tenants.some(t => t.unitNo === roomToDelete.number) && (
+                    {roomToDelete && tenants && !tenants.some(t => t.unitNo === roomToDelete.number) && (
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -189,5 +194,3 @@ export default function Rooms({ user }) {
     </div>
   );
 }
-
-    
