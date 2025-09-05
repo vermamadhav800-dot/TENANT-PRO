@@ -1,3 +1,5 @@
+// This file is now largely deprecated as state is managed in Firestore.
+// It can be removed in a future cleanup.
 
 export const INITIAL_APP_STATE = {
   rooms: [],
@@ -21,11 +23,4 @@ export const INITIAL_APP_STATE = {
     username: 'owner@example.com',
     password: 'password123',
   },
-};
-
-// This is only used if there's no owner in appState yet
-export const MOCK_USER_INITIAL = {
-  name: 'Owner',
-  username: 'owner@example.com',
-  password: 'password123',
 };

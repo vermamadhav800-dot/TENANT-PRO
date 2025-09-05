@@ -14,10 +14,8 @@ import {
   Menu,
   Moon,
   Sun,
-  LoaderCircle,
   Wallet,
   TrendingUp,
-  BadgeCheck,
   Wrench,
   Megaphone,
 } from "lucide-react";
@@ -49,6 +47,7 @@ import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
+import { useCollection } from "@/lib/hooks";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -63,18 +62,12 @@ const TABS = [
   { id: "notices", label: "Notices", icon: Megaphone },
 ];
 
-function AppContent({
-  activeTab,
-  appState,
-  setAppState,
-  setActiveTab,
-  user,
-}) {
+function AppContent({ activeTab, setActiveTab, user, userData }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
 
   const renderTabContent = () => {
-    const props = { appState, setAppState };
+    const props = { user, userData };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
@@ -97,16 +90,17 @@ function AppContent({
       case "notices":
         return <NoticeBoard {...props} />;
       case "settings":
-        return <AppSettings {...props} user={user} />;
+        return <AppSettings {...props} />;
       default:
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
   };
 
-  const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
-  const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
+  const { data: pendingApprovals } = useCollection('approvals', user.uid);
+  const { data: maintenanceRequests } = useCollection('maintenanceRequests', user.uid);
+  const pendingApprovalsCount = pendingApprovals.filter(a => a.status === 'pending').length;
+  const pendingMaintenanceCount = maintenanceRequests.filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
-
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
@@ -128,21 +122,15 @@ function AppContent({
   );
 }
 
-export default function MainApp({ appState, setAppState, onLogout, user }) {
+export default function MainApp({ onLogout, user, userData }) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
-  const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
+
+  const { data: pendingApprovals } = useCollection('approvals', user.uid);
+  const { data: maintenanceRequests } = useCollection('maintenanceRequests', user.uid);
+  const pendingApprovalsCount = (pendingApprovals || []).filter(a => a.status === 'pending').length;
+  const pendingMaintenanceCount = (maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
-
-  if (!appState) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Loading your data...</p>
-      </div>
-    );
-  }
-
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -178,12 +166,12 @@ export default function MainApp({ appState, setAppState, onLogout, user }) {
           <SidebarFooter>
              <div className="flex items-center gap-3 p-2 border-t">
                <Avatar className="h-9 w-9">
-                  <AvatarImage src={`https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
-                  <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={userData.photoURL || `https://i.pravatar.cc/150?u=${userData.email}`} alt={userData.name} />
+                  <AvatarFallback>{userData.name?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
               <div className="overflow-hidden">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.username}</p>
+                <p className="text-sm font-medium truncate">{userData.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{userData.email}</p>
               </div>
             </div>
             <Separator className="my-1"/>
@@ -212,10 +200,9 @@ export default function MainApp({ appState, setAppState, onLogout, user }) {
         </Sidebar>
         <AppContent
           activeTab={activeTab}
-          appState={appState}
-          setAppState={setAppState}
           setActiveTab={setActiveTab}
           user={user}
+          userData={userData}
         />
       </div>
     </SidebarProvider>

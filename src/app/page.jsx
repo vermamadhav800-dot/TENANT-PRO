@@ -6,42 +6,43 @@ import StartupScreen from "@/components/StartupScreen";
 import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import TenantDashboard from "@/components/TenantDashboard";
-import { useLocalStorage } from "@/lib/hooks";
-import { MOCK_USER_INITIAL, INITIAL_APP_STATE } from '@/lib/consts';
 import { useToast } from "@/hooks/use-toast";
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { LoaderCircle } from "lucide-react";
 
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isStartupLoading, setIsStartupLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null); // Firebase user object
+  const [userData, setUserData] = useState(null); // User data from Firestore
   const [role, setRole] = useState(null); // 'owner' or 'tenant'
-  const [appState, setAppState] = useLocalStorage('appState', INITIAL_APP_STATE);
   const { toast } = useToast();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      setIsStartupLoading(false);
     }, 2000);
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Here you would typically fetch user role from your database (Firestore)
-        // For now, we'll make an assumption. If email is not a phone number, they are owner.
-        // This logic will be replaced later.
-        if (user.email) {
-            setUser(user);
-            setRole('owner');
-        } else if (user.phoneNumber) {
-            // Logic for tenant will be added here
-            setUser(user);
-            setRole('tenant');
+        setUser(user);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(data);
+          setRole(data.role);
+        } else {
+          // This case might happen during registration right before doc is created.
+          // Or if a user exists in Auth but not in Firestore.
+          setRole(null); 
         }
       } else {
         setUser(null);
+        setUserData(null);
         setRole(null);
       }
       setAuthLoading(false);
@@ -55,32 +56,37 @@ export default function Home() {
 
   const handleAuth = async (credentials, action) => {
     try {
-        if (credentials.role === 'owner') {
-            if (action === 'login') {
-                await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
-                toast({ title: "Login Successful", description: "Welcome back!" });
-                return true;
-            } else { // Register
-                const userCredential = await createUserWithEmailAndPassword(auth, credentials.username, credentials.password);
-                // In a real app, you'd create a corresponding user document in Firestore here.
-                const newOwner = {
-                    uid: userCredential.user.uid,
-                    name: credentials.name,
-                    email: credentials.username,
-                };
-                const newDefaults = {
-                    ...appState.defaults,
-                    propertyName: credentials.propertyName,
-                    propertyAddress: credentials.propertyAddress
-                };
-                setAppState(prev => ({ ...prev, defaults: newDefaults }));
-                toast({ title: "Registration Successful", description: "Welcome! You can now manage your property." });
-                return true;
-            }
-        } else { // Tenant login
-            // Tenant login logic with Firebase Phone Auth will be implemented next.
-            toast({ variant: "destructive", title: "Coming Soon", description: "Tenant login via phone is being connected to the backend." });
-            return false;
+        if (action === 'login') {
+            const userCredential = await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+            toast({ title: "Login Successful", description: "Welcome back!" });
+            return true;
+        } else { // Register
+            const userCredential = await createUserWithEmailAndPassword(auth, credentials.username, credentials.password);
+            
+            const newUser = {
+                uid: userCredential.user.uid,
+                name: credentials.name,
+                email: credentials.username,
+                role: 'owner',
+            };
+            
+            // Create user document in Firestore
+            await setDoc(doc(db, "users", userCredential.user.uid), newUser);
+            
+            // Create a default settings document for the new owner
+            await setDoc(doc(db, "settings", userCredential.user.uid), {
+                ownerId: userCredential.user.uid,
+                propertyName: credentials.propertyName,
+                propertyAddress: credentials.propertyAddress,
+                electricityRatePerUnit: 8,
+                upiId: '',
+            });
+
+            setUserData(newUser);
+            setRole('owner');
+
+            toast({ title: "Registration Successful", description: "Welcome! You can now manage your property." });
+            return true;
         }
     } catch (error) {
         console.error("Firebase Auth Error:", error);
@@ -94,33 +100,19 @@ export default function Home() {
   };
   
   const renderContent = () => {
-      if (isLoading || authLoading) {
+      if (isStartupLoading || authLoading) {
           return <StartupScreen />;
       }
       
-      const ownerUser = {
-          name: user?.displayName || appState.MOCK_USER_INITIAL.name,
-          username: user?.email,
-      };
-
-      if (role === 'owner' && user) {
+      if (role === 'owner' && user && userData) {
           return <MainApp 
-              appState={appState}
-              setAppState={setAppState}
-              user={ownerUser} 
+              user={user} // Firebase auth user
+              userData={userData} // Firestore user data
               onLogout={handleLogout} 
           />;
       }
-      if (role === 'tenant' && user) {
-          // This will be fleshed out with real tenant data from firestore
-          const tenantUser = appState.tenants.find(t => t.phone === user.phoneNumber) || { name: 'Tenant', phone: user.phoneNumber };
-          return <TenantDashboard
-              appState={appState}
-              setAppState={setAppState}
-              tenant={tenantUser}
-              onLogout={handleLogout}
-          />
-      }
+      // Tenant login will be handled via a separate flow, likely involving phone auth
+      // For now, the auth form handles owner login/registration
       return <Auth onAuth={handleAuth} />;
   }
 

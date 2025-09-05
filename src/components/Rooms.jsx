@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, DoorOpen, Trash2, Edit } from 'lucide-react';
+import { Plus, DoorOpen, Trash2, Edit, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -10,12 +10,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
+import { useCollection } from '@/lib/hooks';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
-export default function Rooms({ appState, setAppState }) {
-  const { rooms, tenants } = appState;
+export default function Rooms({ user }) {
+  const { data: rooms, loading: roomsLoading } = useCollection('rooms', user.uid);
+  const { data: tenants, loading: tenantsLoading } = useCollection('tenants', user.uid);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [roomToDelete, setRoomToDelete] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const openModal = (room) => {
@@ -23,19 +28,24 @@ export default function Rooms({ appState, setAppState }) {
     setIsModalOpen(true);
   };
 
-  const recalculateRentForRoom = (unitNo, allTenants, newRent) => {
-      const tenantsInRoom = allTenants.filter(t => t.unitNo === unitNo);
-      if (tenantsInRoom.length === 0) return allTenants;
+  const recalculateRentForRoom = async (unitNo, newRent) => {
+      const tenantsInRoom = tenants.filter(t => t.unitNo === unitNo);
+      if (tenantsInRoom.length === 0) return;
       
       const newRentAmount = newRent / tenantsInRoom.length;
       
-      return allTenants.map(t => 
-        t.unitNo === unitNo ? { ...t, rentAmount: newRentAmount } : t
-      );
+      const batch = writeBatch(db);
+      tenantsInRoom.forEach(t => {
+          const tenantRef = doc(db, "tenants", t.id);
+          batch.update(tenantRef, { rentAmount: newRentAmount });
+      });
+      
+      await batch.commit();
   };
 
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(event.currentTarget);
     const roomData = {
       number: formData.get('number'),
@@ -43,26 +53,24 @@ export default function Rooms({ appState, setAppState }) {
       rent: Number(formData.get('rent')),
     };
 
-    if (editingRoom) {
-      const updatedRoom = { ...editingRoom, ...roomData };
-      setAppState(prev => {
-        const updatedRooms = prev.rooms.map(r => r.id === editingRoom.id ? updatedRoom : r);
-        const updatedTenants = recalculateRentForRoom(editingRoom.number, prev.tenants, updatedRoom.rent);
-        
-        return {
-          ...prev,
-          rooms: updatedRooms,
-          tenants: updatedTenants,
+    try {
+        if (editingRoom) {
+          const roomRef = doc(db, "rooms", editingRoom.id);
+          await updateDoc(roomRef, roomData);
+          await recalculateRentForRoom(editingRoom.number, roomData.rent);
+          toast({ title: "Success", description: "Room updated successfully." });
+        } else {
+          await addDoc(collection(db, "rooms"), { ...roomData, ownerId: user.uid, createdAt: new Date().toISOString() });
+          toast({ title: "Success", description: "New room added." });
         }
-      });
-      toast({ title: "Success", description: "Room updated successfully." });
-    } else {
-      const newRoom = { ...roomData, id: Date.now().toString(), createdAt: new Date().toISOString() };
-      setAppState(prev => ({ ...prev, rooms: [...prev.rooms, newRoom] }));
-      toast({ title: "Success", description: "New room added." });
+        setIsModalOpen(false);
+        setEditingRoom(null);
+    } catch (error) {
+        console.error("Error saving room:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to save room details." });
+    } finally {
+        setIsSubmitting(false);
     }
-    setIsModalOpen(false);
-    setEditingRoom(null);
   };
 
   const confirmDeleteRoom = (room) => {
@@ -73,16 +81,22 @@ export default function Rooms({ appState, setAppState }) {
     setRoomToDelete(room);
   };
 
-  const handleDeleteRoom = () => {
+  const handleDeleteRoom = async () => {
     if (!roomToDelete) return;
 
-    setAppState(prev => ({
-      ...prev,
-      rooms: prev.rooms.filter(r => r.id !== roomToDelete.id)
-    }));
-    toast({ title: "Success", description: "Room deleted." });
+    try {
+        await deleteDoc(doc(db, "rooms", roomToDelete.id));
+        toast({ title: "Success", description: "Room deleted." });
+    } catch (error) {
+        console.error("Error deleting room:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to delete room." });
+    }
     setRoomToDelete(null);
   };
+
+  if (roomsLoading || tenantsLoading) {
+      return <div className="flex justify-center items-center h-64"><LoaderCircle className="w-8 h-8 animate-spin" /></div>
+  }
 
   return (
     <div className="space-y-6">
@@ -164,7 +178,10 @@ export default function Rooms({ appState, setAppState }) {
             <div><Label htmlFor="capacity">Capacity</Label><Input id="capacity" name="capacity" type="number" defaultValue={editingRoom?.capacity} required /></div>
             <div><Label htmlFor="rent">Monthly Rent</Label><Input id="rent" name="rent" type="number" step="0.01" defaultValue={editingRoom?.rent} required /></div>
             <DialogFooter className="pt-4">
-              <Button type="submit" className="w-full btn-gradient-glow">{editingRoom ? 'Save Changes' : 'Add Room'}</Button>
+              <Button type="submit" className="w-full btn-gradient-glow" disabled={isSubmitting}>
+                {isSubmitting ? <LoaderCircle className="animate-spin mr-2"/> : null}
+                {editingRoom ? 'Save Changes' : 'Add Room'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
