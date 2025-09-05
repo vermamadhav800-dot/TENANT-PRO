@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, BrainCircuit } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,6 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
-import TenantAiAssistant from './TenantAiAssistant';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -689,7 +688,6 @@ const TABS = [
     { id: 'notices', label: 'Notice Board', icon: Megaphone, plan: 'standard' },
     { id: 'support', label: 'Help & Support', icon: Wrench, plan: 'standard' },
     { id: 'notifications', label: 'Notifications', icon: Bell, plan: 'standard' },
-    { id: 'ai-assistant', label: 'AI Assistant', icon: BrainCircuit, plan: 'business' },
     { id: 'profile', label: 'Profile', icon: User, plan: 'standard' },
 ];
 
@@ -722,8 +720,6 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <HelpAndSupport tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'notifications':
                 return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
-            case 'ai-assistant':
-                return <div className="h-[calc(100vh-8rem)]"><TenantAiAssistant tenant={tenant} appState={appState} /></div>;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
