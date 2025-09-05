@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Sun, Moon, Palette, Upload, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { Switch } from './ui/switch';
 
 export default function AppSettings({ appState, setAppState, user }) {
   const { toast } = useToast();
@@ -21,6 +22,17 @@ export default function AppSettings({ appState, setAppState, user }) {
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
     setDefaults(prev => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
+  };
+  
+  const handleReminderSettingsChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setDefaults(prev => ({
+      ...prev,
+      reminderSettings: {
+        ...prev.reminderSettings,
+        [name]: type === 'checkbox' ? checked : Number(value),
+      }
+    }));
   };
 
   const handleUserChange = (e) => {
@@ -44,7 +56,7 @@ export default function AppSettings({ appState, setAppState, user }) {
       ...prev, 
       defaults: {
         ...defaults,
-        qrCodeUrl: qrCodePreview, // Save the base64 string
+        qrCodeUrl: qrCodePreview,
       }, 
       MOCK_USER_INITIAL: { ...prev.MOCK_USER_INITIAL, ...currentUser } 
     }));
@@ -88,6 +100,54 @@ export default function AppSettings({ appState, setAppState, user }) {
         </CardContent>
       </Card>
       
+       <Card>
+        <CardHeader>
+            <CardTitle>Automations</CardTitle>
+            <CardDescription>Configure automated features like payment reminders.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                    <Label htmlFor="enable-reminders" className="font-semibold">Enable Automatic Reminders</Label>
+                    <p className="text-sm text-muted-foreground">Send payment reminders to tenants automatically.</p>
+                </div>
+                <Switch 
+                    id="enable-reminders"
+                    name="enabled"
+                    checked={defaults.reminderSettings?.enabled || false}
+                    onCheckedChange={(checked) => handleReminderSettingsChange({ target: { name: 'enabled', type: 'checkbox', checked } })}
+                />
+            </div>
+            {defaults.reminderSettings?.enabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4 border-l-2 ml-2">
+                    <div>
+                        <Label htmlFor="beforeDays">Remind Before Due Date (Days)</Label>
+                        <Input
+                            id="beforeDays"
+                            name="beforeDays"
+                            type="number"
+                            value={defaults.reminderSettings?.beforeDays || 3}
+                            onChange={handleReminderSettingsChange}
+                        />
+                         <p className="text-xs text-muted-foreground mt-1">A reminder will be sent this many days before the due date.</p>
+                    </div>
+                     <div>
+                        <Label htmlFor="overdueDays">Remind When Overdue (Every X Days)</Label>
+                        <Input
+                            id="overdueDays"
+                            name="overdueDays"
+                            type="number"
+                            value={defaults.reminderSettings?.overdueDays || 3}
+                            onChange={handleReminderSettingsChange}
+                        />
+                         <p className="text-xs text-muted-foreground mt-1">A new reminder will be sent if payment is still overdue after this many days.</p>
+                    </div>
+                </div>
+            )}
+        </CardContent>
+      </Card>
+
+
       <Card>
         <CardHeader>
           <CardTitle>Property & Payment Settings</CardTitle>
@@ -127,7 +187,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                 onChange={handleDefaultsChange}
               />
             </div>
-             <div>
+             <div className="relative">
               <Label htmlFor="upiId">Your UPI ID</Label>
               <Input
                 id="upiId"

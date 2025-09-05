@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -47,6 +47,7 @@ import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
+import { differenceInDays, parseISO } from 'date-fns';
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -124,6 +125,98 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
+
+  useEffect(() => {
+    const { defaults = {}, tenants = [], payments = [], rooms = [] } = appState;
+    const { reminderSettings = {} } = defaults;
+    
+    if (!reminderSettings.enabled) return;
+
+    // Throttle the reminder check to once every 6 hours
+    const lastCheck = new Date(appState.defaults.lastReminderCheck || 0);
+    const now = new Date();
+    if (now.getTime() - lastCheck.getTime() < 6 * 60 * 60 * 1000) {
+        return;
+    }
+
+    const newNotifications = [];
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    tenants.forEach(tenant => {
+        if (!tenant.dueDate) return;
+
+        const dueDate = parseISO(tenant.dueDate);
+        const daysUntilDue = differenceInDays(dueDate, now);
+
+        // Calculate pending amount
+        const room = rooms.find(r => r.number === tenant.unitNo);
+        if (!room) return;
+
+        const monthlyCharges = (tenant.otherCharges || [])
+            .filter(c => new Date(c.date).getMonth() === thisMonth && new Date(c.date).getFullYear() === thisYear)
+            .reduce((sum, c) => sum + c.amount, 0);
+
+        const totalDue = tenant.rentAmount + monthlyCharges;
+
+        const paidThisMonth = payments
+            .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+            .reduce((sum, p) => sum + p.amount, 0);
+        
+        const pendingAmount = totalDue - paidThisMonth;
+
+        if (pendingAmount <= 0) return; // Skip if paid
+
+        const hasRecentReminder = (appState.notifications || []).some(n => 
+            n.tenantId === tenant.id && 
+            new Date(n.createdAt).getTime() > now.getTime() - (reminderSettings.overdueDays * 24 * 60 * 60 * 1000)
+        );
+
+        if (hasRecentReminder) return;
+
+        // Upcoming Reminder
+        if (daysUntilDue > 0 && daysUntilDue <= reminderSettings.beforeDays) {
+            newNotifications.push({
+                id: `${tenant.id}-upcoming-${now.getTime()}`,
+                tenantId: tenant.id,
+                message: `Reminder: Your rent of ${pendingAmount.toFixed(2)} is due in ${daysUntilDue} day(s).`,
+                createdAt: now.toISOString(),
+                isRead: false,
+            });
+        }
+
+        // Overdue Reminder
+        if (daysUntilDue < 0) {
+             newNotifications.push({
+                id: `${tenant.id}-overdue-${now.getTime()}`,
+                tenantId: tenant.id,
+                message: `Your rent payment of ${pendingAmount.toFixed(2)} is overdue. Please pay as soon as possible.`,
+                createdAt: now.toISOString(),
+                isRead: false,
+            });
+        }
+    });
+
+    if (newNotifications.length > 0) {
+      setAppState(prev => ({
+        ...prev,
+        notifications: [...(prev.notifications || []), ...newNotifications],
+        defaults: {
+            ...prev.defaults,
+            lastReminderCheck: now.toISOString(),
+        }
+      }));
+    } else {
+       setAppState(prev => ({
+        ...prev,
+        defaults: {
+            ...prev.defaults,
+            lastReminderCheck: now.toISOString(),
+        }
+      }));
+    }
+  }, [appState.tenants, appState.payments, appState.rooms, appState.defaults.reminderSettings]);
+
 
   return (
     <SidebarProvider>

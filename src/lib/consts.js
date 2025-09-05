@@ -14,7 +14,13 @@ export const INITIAL_APP_STATE = {
     propertyAddress: "123 Tech Park, Bangalore",
     electricityRatePerUnit: 8,
     upiId: "prakash@exampleupi",
-    qrCodeUrl: "/qr-code.png"
+    qrCodeUrl: "/qr-code.png",
+    reminderSettings: {
+      enabled: true,
+      beforeDays: 3, // Days before due date
+      overdueDays: 3, // Every x days when overdue
+    },
+    lastReminderCheck: null,
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },
