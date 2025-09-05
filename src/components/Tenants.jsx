@@ -401,21 +401,37 @@ export default function Tenants({ appState, setAppState }) {
 
   const tenantsByRoom = useMemo(() => {
     const grouped = {};
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+
     rooms.forEach(room => {
-        grouped[room.number] = [];
+        grouped[room.number] = {
+            tenants: [],
+            roomDetails: room,
+        };
     });
+
     tenants.forEach(tenant => {
-      if (tenant.unitNo) {
-        if (!grouped[tenant.unitNo]) {
-            grouped[tenant.unitNo] = [];
+        const room = rooms.find(r => r.number === tenant.unitNo);
+        if (room) {
+            const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
+            const roomElectricityBill = (electricity || [])
+                .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+                .reduce((sum, e) => sum + e.totalAmount, 0);
+            const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+            const monthlyBill = tenant.rentAmount + electricityShare;
+            
+            if (!grouped[tenant.unitNo]) {
+                grouped[tenant.unitNo] = { tenants: [], roomDetails: room };
+            }
+            grouped[tenant.unitNo].tenants.push({ ...tenant, monthlyBill });
         }
-        grouped[tenant.unitNo].push(tenant);
-      }
     });
+
     return Object.fromEntries(
         Object.entries(grouped).sort(([roomA], [roomB]) => roomA.localeCompare(roomB, undefined, { numeric: true }))
     );
-  }, [tenants, rooms]);
+  }, [tenants, rooms, electricity]);
   
   const getRentStatus = (tenant) => {
     if (!tenant.dueDate || !isValid(parseISO(tenant.dueDate))) {
@@ -491,12 +507,12 @@ export default function Tenants({ appState, setAppState }) {
         </Card>
       ) : (
       <div className="space-y-8">
-        {Object.entries(tenantsByRoom).map(([roomNumber, roomTenants]) => (
-          <Card key={roomNumber} className="glass-card">
+        {Object.values(tenantsByRoom).map(({ roomDetails, tenants: roomTenants }) => (
+          <Card key={roomDetails.number} className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Home className="text-primary"/>
-                Room {roomNumber}
+                Room {roomDetails.number}
                 <Badge variant="secondary">{roomTenants.length} Tenant(s)</Badge>
               </CardTitle>
             </CardHeader>
@@ -506,7 +522,7 @@ export default function Tenants({ appState, setAppState }) {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[250px]">Name</TableHead>
-                      <TableHead>Rent</TableHead>
+                      <TableHead>Monthly Bill</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right w-[50px]">Actions</TableHead>
@@ -529,7 +545,7 @@ export default function Tenants({ appState, setAppState }) {
                                   </div>
                               </div>
                           </TableCell>
-                          <TableCell>{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
+                          <TableCell>{tenant.monthlyBill ? tenant.monthlyBill.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</TableCell>
                           <TableCell>{tenant.dueDate && isValid(parseISO(tenant.dueDate)) ? format(parseISO(tenant.dueDate), 'dd MMM yyyy') : 'N/A'}</TableCell>
                           <TableCell>
                             <Badge variant={status.color} className={cn(
