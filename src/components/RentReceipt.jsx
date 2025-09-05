@@ -13,7 +13,7 @@ import html2canvas from 'html2canvas';
 export default function RentReceipt({ receiptDetails, onBack, appState }) {
     const { payment, tenant } = receiptDetails;
     const { defaults = {}, MOCK_USER_INITIAL = {} } = appState;
-    const adminDetails = MOCK_USER_INITIAL;
+    const ownerDetails = MOCK_USER_INITIAL;
     const receiptRef = useRef();
 
     const handleDownload = () => {
@@ -21,35 +21,35 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         if (!input) return;
 
         html2canvas(input, { 
-            scale: 2, // Higher scale for better quality
+            scale: 2,
             useCORS: true 
         }).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'pt',
-                format: 'a4' // Standard A4 size
+                format: 'a4'
             });
+            
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
+            
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
+            
             const canvasAspectRatio = canvasWidth / canvasHeight;
             const pdfAspectRatio = pdfWidth / pdfHeight;
 
             let finalWidth, finalHeight;
 
-            // Fit to width
-            finalWidth = pdfWidth;
-            finalHeight = finalWidth / canvasAspectRatio;
-            
-            // If it's too high after fitting to width, then fit to height
-            if (finalHeight > pdfHeight) {
+            if (canvasAspectRatio > pdfAspectRatio) {
+                finalWidth = pdfWidth;
+                finalHeight = finalWidth / canvasAspectRatio;
+            } else {
                 finalHeight = pdfHeight;
                 finalWidth = finalHeight * canvasAspectRatio;
             }
             
-            // Center the image
             const x = (pdfWidth - finalWidth) / 2;
             const y = (pdfHeight - finalHeight) / 2;
 
@@ -112,7 +112,7 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
 
                  <div className="mt-8 text-center">
                     <p className="text-sm text-gray-500">
-                        If you have any questions, please contact us at {adminDetails.username}.
+                        If you have any questions, please contact us at {ownerDetails.username}.
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                         Issued by: {defaults.propertyName || '[Your Property Name]'}

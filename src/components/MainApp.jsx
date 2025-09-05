@@ -142,7 +142,7 @@ export default function MainApp({ appState, setAppState, onLogout, user }) {
               <AppLogo className="w-8 h-8" iconClassName="w-5 h-5" />
               <span className="text-lg font-semibold">EstateFlow</span>
             </div>
-             <p className="text-xs text-center text-muted-foreground pb-2">Admin Panel</p>
+             <p className="text-xs text-center text-muted-foreground pb-2">Owner Panel</p>
           </SidebarHeader>
           <SidebarContent className="p-2">
             <SidebarMenu>

@@ -2,14 +2,14 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle, Shield, User, Phone as PhoneIcon } from "lucide-react";
+import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle, Shield, User, Phone as PhoneIcon, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const AdminLoginForm = ({ onLogin, role }) => {
+const OwnerLoginForm = ({ onAuth, role }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,7 @@ const AdminLoginForm = ({ onLogin, role }) => {
         setIsLoading(true);
 
         setTimeout(() => {
-            const loginSuccess = onLogin({ username, password, role });
+            const loginSuccess = onAuth({ username, password, role }, 'login');
             if (!loginSuccess) {
                 setIsLoading(false);
             }
@@ -36,10 +36,10 @@ const AdminLoginForm = ({ onLogin, role }) => {
         <form onSubmit={handleAuthAction} className="space-y-6">
             <div className="space-y-2">
                 <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                        type="text"
-                        placeholder="Username"
+                        type="email"
+                        placeholder="Email"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="pl-10 py-6"
@@ -74,14 +74,70 @@ const AdminLoginForm = ({ onLogin, role }) => {
                         Signing In...
                     </>
                 ) : (
-                    "Sign In as Admin"
+                    "Sign In as Owner"
                 )}
             </Button>
         </form>
     );
 };
 
-const TenantLoginForm = ({ onLogin, role }) => {
+const OwnerRegisterForm = ({ onAuth, role, setAuthMode }) => {
+    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [propertyName, setPropertyName] = useState("");
+    const [propertyAddress, setPropertyAddress] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
+
+    const handleAuthAction = (e) => {
+        e.preventDefault();
+        if (!name || !username || !password || !propertyName || !propertyAddress) {
+            toast({ variant: "destructive", title: "Error", description: "Please fill out all fields." });
+            return;
+        }
+        setIsLoading(true);
+
+        setTimeout(() => {
+            onAuth({ name, username, password, propertyName, propertyAddress, role }, 'register');
+        }, 1000);
+    };
+
+    return (
+        <form onSubmit={handleAuthAction} className="space-y-4">
+             <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 py-6" required />
+            </div>
+             <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input type="email" placeholder="Email Address" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10 py-6" required />
+            </div>
+             <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 py-6" required />
+            </div>
+             <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input type="text" placeholder="Property Name" value={propertyName} onChange={(e) => setPropertyName(e.target.value)} className="pl-10 py-6" required />
+            </div>
+             <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input type="text" placeholder="Property Address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} className="pl-10 py-6" required />
+            </div>
+
+            <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
+                {isLoading ? <><LoaderCircle className="mr-2 h-5 w-5 animate-spin" />Registering...</> : "Create Account"}
+            </Button>
+            <Button variant="link" className="w-full" onClick={() => setAuthMode('login')}>
+                Already have an account? Sign In
+            </Button>
+        </form>
+    );
+};
+
+
+const TenantLoginForm = ({ onAuth, role }) => {
     const [phone, setPhone] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -95,8 +151,7 @@ const TenantLoginForm = ({ onLogin, role }) => {
         setIsLoading(true);
 
         setTimeout(() => {
-            // Here, we pass the phone number as both username and password for the logic in page.jsx
-            const loginSuccess = onLogin({ username: phone, role });
+            const loginSuccess = onAuth({ username: phone, role }, 'login');
             if (!loginSuccess) {
                 setIsLoading(false);
             }
@@ -118,7 +173,7 @@ const TenantLoginForm = ({ onLogin, role }) => {
                     />
                 </div>
                  <CardDescription className="text-center text-xs pt-2">
-                    Your phone number is your key. The admin must register your number before you can log in.
+                    Your phone number is your key. The owner must register your number before you can log in.
                 </CardDescription>
             </div>
             <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
@@ -136,8 +191,23 @@ const TenantLoginForm = ({ onLogin, role }) => {
 };
 
 
-export default function Auth({ onLogin }) {
+export default function Auth({ onAuth }) {
     const [role, setRole] = useState('tenant');
+    const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+
+    const renderOwnerForm = () => {
+        if (authMode === 'login') {
+            return (
+                <>
+                    <OwnerLoginForm onAuth={onAuth} role={role} />
+                     <Button variant="link" className="w-full mt-4" onClick={() => setAuthMode('register')}>
+                        Don't have an account? Create one
+                    </Button>
+                </>
+            );
+        }
+        return <OwnerRegisterForm onAuth={onAuth} role={role} setAuthMode={setAuthMode} />;
+    }
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center dark-bg-grid p-4">
@@ -148,23 +218,19 @@ export default function Auth({ onLogin }) {
                     </div>
                     <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>
                     <CardDescription>
-                         Sign in to your account
+                         Sign in or create an account to continue
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 gap-2 bg-muted p-1 rounded-lg mb-6">
-                        <button onClick={() => setRole('tenant')} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'tenant' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
+                        <button onClick={() => { setRole('tenant'); setAuthMode('login'); }} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'tenant' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
                             <User className="inline-block mr-2 h-4 w-4" /> I'm a Tenant
                         </button>
-                        <button onClick={() => setRole('admin')} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'admin' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
-                            <Shield className="inline-block mr-2 h-4 w-4" /> I'm an Admin
+                        <button onClick={() => setRole('owner')} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'owner' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
+                            <Shield className="inline-block mr-2 h-4 w-4" /> I'm an Owner
                         </button>
                     </div>
-                    {role === 'admin' ? (
-                        <AdminLoginForm onLogin={onLogin} role={role} />
-                    ) : (
-                        <TenantLoginForm onLogin={onLogin} role={role} />
-                    )}
+                    {role === 'owner' ? renderOwnerForm() : <TenantLoginForm onAuth={onAuth} role={role} />}
                 </CardContent>
             </Card>
         </div>

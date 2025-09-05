@@ -62,7 +62,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
 
     const adminUpiId = appState.defaults?.upiId;
-    const adminDetails = appState.MOCK_USER_INITIAL || {};
+    const ownerDetails = appState.MOCK_USER_INITIAL || {};
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
@@ -138,7 +138,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
 
         toast({
             title: "Submitted for Approval!",
-            description: "Your payment has been submitted to the admin for verification. It will reflect once approved.",
+            description: "Your payment has been submitted to the owner for verification. It will reflect once approved.",
         });
     };
 
@@ -146,7 +146,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} appState={appState} />;
     }
 
-    const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
+    const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(ownerDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
 
     return (
         <div className="space-y-6">
@@ -197,7 +197,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                                 </DialogHeader>
                                  <div className="py-4 space-y-4">
                                     {!upiLink ? (
-                                        <p className="text-red-500 text-center">The admin has not configured their UPI ID for payments yet.</p>
+                                        <p className="text-red-500 text-center">The owner has not configured their UPI ID for payments yet.</p>
                                     ) : (
                                         <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
                                             <Button size="lg" className="w-full">
@@ -402,7 +402,7 @@ const Notifications = ({ tenant, appState, setAppState }) => {
                          <div className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
                             <Bell className="mx-auto h-16 w-16 mb-4" />
                             <h3 className="text-xl font-semibold mb-2">No Notifications</h3>
-                            <p>You have no new messages from the admin.</p>
+                            <p>You have no new messages from the owner.</p>
                         </div>
                     )}
                 </CardContent>
@@ -423,7 +423,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { payments, rooms, notifications = [] } = appState;
-    const adminDetails = appState.MOCK_USER_INITIAL || { name: 'Admin', username: 'admin' };
+    const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
 
 
     const unreadNotificationsCount = useMemo(() => {

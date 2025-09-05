@@ -13,10 +13,16 @@ export const INITIAL_APP_STATE = {
     propertyAddress: '[Your Full Property Address]',
     propertyName: 'Happy Homes PG',
   },
+  MOCK_USER_INITIAL: {
+    name: 'Owner',
+    username: 'owner@example.com',
+    password: 'password123',
+  },
 };
 
+// This is only used if there's no owner in appState yet
 export const MOCK_USER_INITIAL = {
-  name: 'Admin',
-  username: 'admin',
+  name: 'Owner',
+  username: 'owner@example.com',
   password: 'password123',
 };
