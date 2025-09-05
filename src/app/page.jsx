@@ -48,6 +48,34 @@ export default function Home() {
     }
   };
 
+  const handleSignUp = (newTenantData) => {
+    const existingTenant = appState.tenants.find(t => t.username === newTenantData.username);
+    if(existingTenant) {
+        toast({ variant: "destructive", title: "Sign Up Failed", description: "Username already exists." });
+        return false;
+    }
+
+    const newTenant = {
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        ...newTenantData,
+        // Admin will need to assign these later
+        unitNo: null, 
+        rentAmount: 0,
+        dueDate: null,
+        aadhaar: "",
+        profilePhotoUrl: `https://picsum.photos/seed/${Date.now()}/200`,
+    };
+
+    setAppState(prev => ({
+        ...prev,
+        tenants: [...prev.tenants, newTenant]
+    }));
+
+    toast({ title: "Sign Up Successful", description: "You can now log in with your new account." });
+    return true;
+  };
+
   const handleLogout = () => {
     setUser(null);
     setRole(null);
@@ -72,7 +100,7 @@ export default function Home() {
               onLogout={handleLogout}
           />
       }
-      return <Auth onLogin={handleLogin} />;
+      return <Auth onLogin={handleLogin} onSignUp={handleSignUp} />;
   }
 
   return <>{renderContent()}</>;
