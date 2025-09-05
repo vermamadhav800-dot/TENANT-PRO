@@ -16,6 +16,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   const { theme, setTheme } = useTheme();
   const [defaults, setDefaults] = useState(appState.defaults);
   const [currentUser, setCurrentUser] = useState(user);
+  const [qrCodePreview, setQrCodePreview] = useState(appState.defaults.qrCodeUrl || null);
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -26,11 +27,25 @@ export default function AppSettings({ appState, setAppState, user }) {
     const { name, value } = e.target;
     setCurrentUser(prev => ({ ...prev, [name]: value }));
   };
+  
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setQrCodePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = () => {
     setAppState(prev => ({ 
       ...prev, 
-      defaults: defaults, 
+      defaults: {
+        ...defaults,
+        qrCodeUrl: qrCodePreview, // Save the base64 string
+      }, 
       MOCK_USER_INITIAL: { ...prev.MOCK_USER_INITIAL, ...currentUser } 
     }));
     toast({
@@ -112,29 +127,42 @@ export default function AppSettings({ appState, setAppState, user }) {
                 onChange={handleDefaultsChange}
               />
             </div>
-            <div className="space-y-2">
+             <div>
               <Label htmlFor="upiId">Your UPI ID</Label>
-              <div className="flex items-center gap-2">
-                  <Input
-                    id="upiId"
-                    name="upiId"
-                    type="text"
-                    placeholder="e.g., yourname@okhdfcbank"
-                    value={defaults.upiId || ''}
-                    onChange={handleDefaultsChange}
-                  />
-                  <Button 
-                    variant="destructive" 
-                    size="icon" 
-                    onClick={() => setDefaults(prev => ({...prev, upiId: ''}))}
-                    aria-label="Delete UPI ID"
-                  >
-                      <Trash2 className="h-4 w-4" />
-                  </Button>
-              </div>
-               <p className="text-xs text-muted-foreground mt-2">This is used to generate dynamic QR codes for payment. Delete it to disable the QR code option.</p>
+              <Input
+                id="upiId"
+                name="upiId"
+                type="text"
+                placeholder="e.g., yourname@okhdfcbank"
+                value={defaults.upiId || ''}
+                onChange={handleDefaultsChange}
+              />
             </div>
           </div>
+           <div className="space-y-2 pt-4 border-t mt-4">
+              <Label>Payment QR Code</Label>
+              <div className="flex items-start gap-4">
+                {qrCodePreview && (
+                  <img src={qrCodePreview} alt="QR Code Preview" className="w-24 h-24 rounded-md border p-1"/>
+                )}
+                <div className="flex-1">
+                  <Input 
+                    id="qrCode"
+                    type="file" 
+                    accept="image/png, image/jpeg, image/jpg" 
+                    onChange={handleFileChange}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Upload a QR code image. Tenants will see this image to make payments.
+                  </p>
+                  {qrCodePreview && (
+                    <Button variant="link" className="text-red-500 p-0 h-auto mt-2" onClick={() => setQrCodePreview(null)}>
+                      <Trash2 className="mr-2 h-4 w-4" /> Remove Image
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
         </CardContent>
       </Card>
       
