@@ -99,6 +99,16 @@ const TenantFormModal = ({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const unitNo = formData.get('unitNo');
+    const aadhaar = formData.get('aadhaar');
+
+    if (aadhaar && aadhaar.length !== 12) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Aadhaar Number",
+            description: "Aadhaar number must be exactly 12 digits long."
+        });
+        return;
+    }
     
     setAppState(prev => {
         const tenantData = {
@@ -111,7 +121,7 @@ const TenantFormModal = ({
             dueDate: formData.get('dueDate') ? new Date(formData.get('dueDate')).toISOString() : null,
             leaseStartDate: formData.get('leaseStartDate') ? new Date(formData.get('leaseStartDate')).toISOString() : null,
             leaseEndDate: formData.get('leaseEndDate') ? new Date(formData.get('leaseEndDate')).toISOString() : null,
-            aadhaar: formData.get('aadhaar'),
+            aadhaar: aadhaar,
             profilePhotoUrl: profilePhotoPreview || `https://picsum.photos/seed/${Date.now()}/200`,
             aadhaarCardUrl: aadhaarCardPreview,
             leaseAgreementUrl: leaseAgreementPreview,
@@ -216,24 +226,20 @@ const TenantFormModal = ({
                 {!isBusiness && <Badge className="bg-purple-100 text-purple-700 border-purple-200">Business Feature</Badge>}
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required type="number" /></div>
                 <div className="space-y-1">
                   <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
                   <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setAadhaarCardPreview)} disabled={!isBusiness} />
                   {aadhaarCardPreview && <a href={aadhaarCardPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
+                   {!isBusiness && <p className="text-xs text-muted-foreground">Available on the Business plan.</p>}
                 </div>
              </div>
              <div className="space-y-1">
                 <Label htmlFor="leaseAgreement">Lease Agreement Upload</Label>
                 <Input id="leaseAgreement" name="leaseAgreement" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setLeaseAgreementPreview)} disabled={!isBusiness} />
                 {leaseAgreementPreview && <a href={leaseAgreementPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Lease</a>}
+                 {!isBusiness && <p className="text-xs text-muted-foreground">Available on the Business plan.</p>}
              </div>
-             {!isBusiness && (
-                <div className="text-center text-sm p-3 bg-muted rounded-lg text-muted-foreground flex items-center justify-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    Upgrade to Business plan to upload and manage documents.
-                </div>
-             )}
           </div>
 
           <DialogFooter className="pt-4 !mt-8">
