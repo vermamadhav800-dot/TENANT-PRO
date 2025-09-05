@@ -13,7 +13,7 @@ export const INITIAL_APP_STATE = {
     propertyName: "Prakash's PG",
     propertyAddress: "123 Tech Park, Bangalore",
     electricityRatePerUnit: 8,
-    upiId: "prakash@exampleupi",
+    upiId: "prakash@exampleupi"
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },
