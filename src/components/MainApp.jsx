@@ -142,7 +142,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
-  const currentPlan = appState.defaults.subscriptionPlan || 'standard';
+  const currentPlan = appState.defaults?.subscriptionPlan || 'standard';
   const isPro = currentPlan === 'pro' || currentPlan === 'business';
   const isBusiness = currentPlan === 'business';
 

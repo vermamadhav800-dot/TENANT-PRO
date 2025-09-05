@@ -29,7 +29,6 @@ const planFeatures = [
     { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true, icon: BrainCircuit },
     { feature: "Document & Lease Management", standard: false, pro: false, business: true, icon: FolderArchive },
     { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true, icon: BrainCircuit },
-    { feature: "Multiple Property Management", standard: false, pro: false, business: true, icon: Building },
 ];
 
 const plans = {
