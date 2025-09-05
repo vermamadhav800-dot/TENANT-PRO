@@ -2,23 +2,28 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function Auth({ onLogin }) {
-  const [username, setUsername] = useState("jaibabalal");
-  const [password, setPassword] = useState("jaibabalal123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState('tenant'); // 'admin' or 'tenant'
 
   const handleAuthAction = (e) => {
     e.preventDefault();
+    if (!username || !password) {
+      alert("Please enter username and password.");
+      return;
+    }
     setIsLoading(true);
-    // Simulate API call
     setTimeout(() => {
-      onLogin({ username, password });
+      onLogin({ username, password, role });
       setIsLoading(false);
     }, 1000);
   };
@@ -30,10 +35,33 @@ export default function Auth({ onLogin }) {
           <div className="w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="text-white h-10 w-10" />
           </div>
-          <CardTitle className="text-3xl font-headline">Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your Dashboard</CardDescription>
+          <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>
+          <CardDescription>Sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-2 gap-2 bg-muted p-1 rounded-lg mb-6">
+            <button
+              onClick={() => setRole('tenant')}
+              className={cn(
+                "py-2.5 rounded-md text-sm font-medium transition-colors",
+                role === 'tenant' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50'
+              )}
+            >
+              <User className="inline-block mr-2 h-4 w-4" />
+              I'm a Tenant
+            </button>
+            <button
+              onClick={() => setRole('admin')}
+              className={cn(
+                "py-2.5 rounded-md text-sm font-medium transition-colors",
+                role === 'admin' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50'
+              )}
+            >
+              <Shield className="inline-block mr-2 h-4 w-4" />
+              I'm an Admin
+            </button>
+          </div>
+
           <form onSubmit={handleAuthAction} className="space-y-6">
             <div className="space-y-2">
               <div className="relative">
@@ -53,7 +81,7 @@ export default function Auth({ onLogin }) {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder={role === 'admin' ? "Password" : "Phone Number"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 py-6"
@@ -75,7 +103,7 @@ export default function Auth({ onLogin }) {
                   Signing In...
                 </>
               ) : (
-                'Sign In'
+                `Sign In as ${role === 'admin' ? 'Admin' : 'Tenant'}`
               )}
             </Button>
           </form>
