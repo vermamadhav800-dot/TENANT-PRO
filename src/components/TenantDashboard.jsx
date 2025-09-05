@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -547,10 +547,46 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
     );
 };
 
+const TenantNoticeBoard = ({ appState }) => {
+    const { globalNotices = [] } = appState;
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notice Board</CardTitle>
+                    <CardDescription>Announcements from the property owner.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {globalNotices.length > 0 ? (
+                        <div className="space-y-6">
+                            {globalNotices.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(notice => (
+                                <div key={notice.id} className="p-4 rounded-lg border bg-card">
+                                    <h3 className="font-semibold text-lg">{notice.title}</h3>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                        Posted on {format(new Date(notice.createdAt), 'dd MMMM, yyyy - hh:mm a')}
+                                    </p>
+                                    <p className="text-sm whitespace-pre-wrap">{notice.message}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+                            <Megaphone className="mx-auto h-16 w-16 mb-4" />
+                            <h3 className="text-xl font-semibold mb-2">The Notice Board is Clear</h3>
+                            <p>There are no announcements right now.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
 
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
+    { id: 'notices', label: 'Notice Board', icon: Megaphone },
     { id: 'support', label: 'Help & Support', icon: Wrench },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
@@ -578,6 +614,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
             case 'payments':
                 return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
+            case 'notices':
+                return <TenantNoticeBoard appState={appState} />;
             case 'support':
                 return <HelpAndSupport tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'notifications':

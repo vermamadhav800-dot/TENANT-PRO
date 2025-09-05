@@ -8,6 +8,7 @@ export const INITIAL_APP_STATE = {
   pendingApprovals: [],
   notifications: [],
   maintenanceRequests: [],
+  globalNotices: [],
   defaults: {
     electricityRatePerUnit: 8,
     upiId: '',

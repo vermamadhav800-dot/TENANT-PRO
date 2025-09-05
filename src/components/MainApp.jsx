@@ -19,6 +19,7 @@ import {
   TrendingUp,
   BadgeCheck,
   Wrench,
+  Megaphone,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -47,6 +48,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
+import NoticeBoard from "./NoticeBoard";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -58,6 +60,7 @@ const TABS = [
   { id: "electricity", label: "Electricity", icon: Zap },
   { id: "expenses", label: "Expenses", icon: Wallet },
   { id: "reports", label: "Reports", icon: BarChart },
+  { id: "notices", label: "Notices", icon: Megaphone },
 ];
 
 function AppContent({
@@ -91,6 +94,8 @@ function AppContent({
         return <Expenses {...props} />;
       case "reports":
         return <Reports {...props} />;
+      case "notices":
+        return <NoticeBoard {...props} />;
       case "settings":
         return <AppSettings {...props} user={user} />;
       default:
