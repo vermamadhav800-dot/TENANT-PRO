@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight, Wallet, Zap, MinusCircle, BrainCircuit } from 'lucide-react';
+import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight, Wallet, Zap, MinusCircle, BrainCircuit, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
@@ -101,12 +101,16 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
     
     const getActionForPlan = (plan, isCurrent) => {
         if (isCurrent) {
-            return {
-                text: "Your Current Plan",
-                variant: "outline",
-                disabled: true,
-                onClick: () => {}
-            };
+             if (plan.id === 'standard') {
+                return {
+                    text: "Your Current Plan",
+                    variant: "outline",
+                    disabled: true,
+                    onClick: () => {}
+                };
+             }
+             // For Pro/Business, we render a badge instead of a button.
+             return null; 
         }
         
         const planOrder = { standard: 1, pro: 2, business: 3 };
@@ -133,12 +137,14 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
     const renderPlanCard = (plan) => {
         const isCurrent = plan.id === currentPlanId;
         const isPro = plan.id === 'pro';
+        const isPremium = plan.id === 'pro' || plan.id === 'business';
         const action = getActionForPlan(plan, isCurrent);
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col glass-card transition-all duration-300 hover:border-primary/80 hover:shadow-primary/20",
+                "flex flex-col glass-card transition-all duration-300 hover:border-primary/80 hover:shadow-primary/20 relative overflow-hidden",
                 isCurrent && "border-2 border-primary shadow-lg shadow-primary/20",
+                isCurrent && isPremium && "bg-gradient-to-br from-card to-primary/10",
                 isPro && !isCurrent && "border-2 border-transparent lg:scale-105"
             )}>
                 <CardHeader className="text-center">
@@ -147,7 +153,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
                     <div className="text-center flex items-baseline justify-center">
-                        <span className="text-4xl font-extrabold">₹{plan.price}</span>
+                        <span className="text-4xl font-extrabold">{plan.price !== 'Free' ? `₹${plan.price}` : 'Free'}</span>
                         {plan.price !== 'Free' && <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>}
                     </div>
                     <Separator className="bg-white/10"/>
@@ -170,16 +176,22 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                     <Button 
-                        className={cn("w-full", action.className)}
-                        variant={action.variant}
-                        onClick={action.onClick} 
-                        disabled={action.disabled}
-                    >
-                        {action.icon && action.text !== "Upgrade to Pro" && action.text !== "Upgrade to Business" && action.icon}
-                        {action.text}
-                        {(action.text === "Upgrade to Pro" || action.text === "Upgrade to Business") && action.icon}
-                    </Button>
+                     {action ? (
+                        <Button 
+                            className={cn("w-full", action.className)}
+                            variant={action.variant}
+                            onClick={action.onClick} 
+                            disabled={action.disabled}
+                        >
+                            {action.icon && action.text !== "Upgrade to Pro" && action.text !== "Upgrade to Business" && action.icon}
+                            {action.text}
+                            {(action.text === "Upgrade to Pro" || action.text === "Upgrade to Business") && action.icon}
+                        </Button>
+                     ) : (
+                        <div className="w-full h-10 flex items-center justify-center rounded-md bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold shadow-lg shadow-primary/20">
+                           <Star className="mr-2 h-4 w-4 text-amber-300" /> Current Royalty Plan
+                        </div>
+                     )}
                 </CardFooter>
             </Card>
         )
