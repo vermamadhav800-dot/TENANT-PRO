@@ -8,7 +8,6 @@ import { format, parseISO } from 'date-fns';
 
 export default function RentReceipt({ receiptDetails, onBack, adminDetails, appState }) {
     const { payment, tenant, room } = receiptDetails;
-    const { rooms } = appState;
 
     const handlePrint = () => {
         window.print();
@@ -61,14 +60,14 @@ export default function RentReceipt({ receiptDetails, onBack, adminDetails, appS
                             </div>
                             <div className="text-right">
                                 <h4 className="font-semibold text-muted-foreground mb-2">PAYMENT FOR</h4>
-                                <p className="font-bold text-xl">{tenant.unitNo && rooms.find(r => r.number === tenant.unitNo) ? `Property at [Property Address for Room ${tenant.unitNo}]` : '[Property Address Here]'}</p>
+                                <p className="font-bold text-xl">{tenant.unitNo && room ? `Property at [Property Address for Room ${tenant.unitNo}]` : '[Property Address Here]'}</p>
                             </div>
                         </div>
 
                         <div className="border-y-2 border-dashed py-6 my-6 space-y-4">
                              <div className="flex justify-between items-center text-xl">
                                 <p className="text-muted-foreground">Rent for the period of {format(parseISO(payment.date), 'MMMM yyyy')}</p>
-                                <p className="font-semibold">₹{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                <p className="font-semibold">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <p className="text-muted-foreground">Paid via {payment.method} on {format(parseISO(payment.date), 'dd MMM, yyyy')}</p>
@@ -77,7 +76,7 @@ export default function RentReceipt({ receiptDetails, onBack, adminDetails, appS
 
                          <div className="flex justify-between items-center bg-primary/10 p-6 rounded-lg">
                             <p className="text-2xl font-bold text-primary">TOTAL PAID</p>
-                            <p className="text-4xl font-bold text-primary">₹{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-4xl font-bold text-primary">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-8 pt-16">

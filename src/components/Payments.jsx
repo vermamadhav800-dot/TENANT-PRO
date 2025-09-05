@@ -131,9 +131,9 @@ export default function Payments({ appState, setAppState }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Collected" value={`${totalCollected.toLocaleString()}`} icon={CheckCircle} color="success" />
-        <StatCard title="Pending Amount (This Month)" value={`${totalPending > 0 ? totalPending.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`} icon={Clock} color="warning" />
-        <StatCard title="Collected This Month" value={`${thisMonthCollection.toLocaleString()}`} icon={Calendar} color="primary" />
+        <StatCard title="Total Collected" value={`₹${totalCollected.toLocaleString('en-IN')}`} icon={CheckCircle} color="success" />
+        <StatCard title="Pending Amount (This Month)" value={`₹${totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`} icon={Clock} color="warning" />
+        <StatCard title="Collected This Month" value={`₹${thisMonthCollection.toLocaleString('en-IN')}`} icon={Calendar} color="primary" />
       </div>
 
       <Card>
@@ -162,7 +162,7 @@ export default function Payments({ appState, setAppState }) {
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
                       <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
-                      <TableCell>{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                      <TableCell>₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">

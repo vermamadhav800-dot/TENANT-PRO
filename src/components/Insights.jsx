@@ -47,7 +47,7 @@ export default function Insights({ appState }) {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{totalRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</div>
             </CardContent>
         </Card>
         <Card>
@@ -56,7 +56,7 @@ export default function Insights({ appState }) {
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{totalExpenses.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₹{totalExpenses.toLocaleString('en-IN')}</div>
             </CardContent>
         </Card>
         <Card>
@@ -65,7 +65,7 @@ export default function Insights({ appState }) {
                 <Scale className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{netProfit.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₹{netProfit.toLocaleString('en-IN')}</div>
             </CardContent>
         </Card>
       </div>
@@ -84,8 +84,8 @@ export default function Insights({ appState }) {
             }} className="w-full h-full">
                <ComposedChart data={monthlyTrends}>
                     <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                    <YAxis tickFormatter={(value) => value.toLocaleString()} />
-                    <Tooltip content={<ChartTooltipContent />} />
+                    <YAxis tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`} />
+                    <Tooltip content={<ChartTooltipContent formatter={(value, name) => (<div><span className="font-medium">{`₹${value.toLocaleString('en-IN')}`}</span><br/><span className="text-muted-foreground">{name}</span></div>)}/>} />
                     <Legend />
                     <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
                     <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} />
@@ -102,7 +102,7 @@ export default function Insights({ appState }) {
           <CardContent className="h-[300px] w-full flex items-center justify-center">
              <ChartContainer config={{}} className="w-full h-full">
                 <PieChart>
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
+                    <Tooltip content={<ChartTooltipContent hideLabel formatter={(value, name) => (<div><span className="font-medium">{name}</span><br/><span className="text-muted-foreground">{`₹${value.toLocaleString('en-IN')}`}</span></div>)}/>} />
                     <Pie
                         data={expenseBreakdown}
                         dataKey="value"
