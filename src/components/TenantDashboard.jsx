@@ -189,7 +189,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     <DialogHeader>
                         <DialogTitle>Pay with QR Code</DialogTitle>
                          <DialogDescription>
-                           Scan the code below, complete the payment, take a screenshot, and upload it for approval.
+                           Scan the code below, or use the button to pay directly with a UPI app. Then, take a screenshot and upload it for approval.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4 text-center">
@@ -198,7 +198,15 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             : <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">The owner has not provided a QR code.</div>
                         }
                         <p className="font-bold text-xl">Amount Due: {amountDue.toFixed(2)}</p>
-                        <Button variant="link" onClick={() => setPaymentView('default')}>Back to other options</Button>
+                        {upiLink && (
+                            <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
+                                <Button size="lg" className="w-full">
+                                    <ExternalLink className="mr-2 h-5 w-5" />
+                                    Redirect to UPI App
+                                </Button>
+                            </a>
+                        )}
+                        <Button variant="link" onClick={() => setPaymentView('default')}>Back</Button>
                     </div>
                 </>
             );
