@@ -23,12 +23,13 @@ const planFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
     { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: false, pro: true, business: true },
-    { feature: "Automated Reminders", standard: false, pro: true, business: true },
-    { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
+    { feature: "Expense Tracking", standard: false, pro: true, business: true, icon: Wallet },
+    { feature: "Automated Reminders", standard: false, pro: true, business: true, icon: Zap },
+    { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true, icon: FileText },
     { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true, icon: BrainCircuit },
-    { feature: "Document & Lease Management", standard: false, pro: false, business: true },
-    { feature: "Multiple Property Management", standard: false, pro: false, business: true },
+    { feature: "Document & Lease Management", standard: false, pro: false, business: true, icon: FolderArchive },
+    { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true, icon: BrainCircuit },
+    { feature: "Multiple Property Management", standard: false, pro: false, business: true, icon: Building },
 ];
 
 const plans = {
