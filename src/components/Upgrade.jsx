@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight } from 'lucide-react';
+import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight, Wallet, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
@@ -20,10 +20,11 @@ import {
 } from '@/components/ui/alert-dialog'
 
 const planFeatures = [
-    { feature: "Manage Unlimited Tenants & Rooms", standard: true, pro: true, business: true },
-    { feature: "Payment & Expense Tracking", standard: true, pro: true, business: true },
-    { feature: "Tenant & Owner Portals", standard: true, pro: true, business: true },
-    { feature: "Automated Reminders", standard: true, pro: true, business: true },
+    { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
+    { feature: "Payment Tracking", standard: true, pro: true, business: true },
+    { feature: "Tenant Portal", standard: true, pro: true, business: true },
+    { feature: "Expense Tracking", standard: false, pro: true, business: true, icon: Wallet },
+    { feature: "Automated Reminders", standard: false, pro: true, business: true, icon: Zap },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true, icon: FileText },
     { feature: "Document & Lease Management", standard: false, pro: false, business: true, icon: FolderArchive },
     { feature: "Multiple Property Management", standard: false, pro: false, business: true, icon: Building },
@@ -35,7 +36,7 @@ const plans = {
         name: 'Standard',
         price: 'Free',
         priceSuffix: '',
-        description: 'Perfect for getting started and managing a single property efficiently.',
+        description: 'Perfect for getting started with basic management needs.',
         cta: 'Your Current Plan',
         maxProperties: 1,
     },
@@ -44,7 +45,7 @@ const plans = {
         name: 'Pro',
         price: '₹499',
         priceSuffix: '/mo',
-        description: 'For property owners who need advanced tools and reporting.',
+        description: 'For property owners who need advanced tools and automation.',
         cta: 'Upgrade to Pro',
         maxProperties: 1,
     },
