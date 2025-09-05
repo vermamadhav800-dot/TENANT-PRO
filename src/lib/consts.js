@@ -9,7 +9,9 @@ export const INITIAL_APP_STATE = {
   notifications: [],
   defaults: {
     electricityRatePerUnit: 8,
-    upiId: ''
+    upiId: '',
+    propertyAddress: '[Your Full Property Address]',
+    propertyName: '[Your Building Name]',
   },
 };
 

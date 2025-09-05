@@ -72,11 +72,33 @@ export default function AppSettings({ appState, setAppState, user }) {
       
       <Card>
         <CardHeader>
-          <CardTitle>Default & Payment Settings</CardTitle>
-          <CardDescription>Set default values and your payment details.</CardDescription>
+          <CardTitle>Property & Payment Settings</CardTitle>
+          <CardDescription>Set default values and your property and payment details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+              <Label htmlFor="propertyName">Property Name</Label>
+              <Input
+                id="propertyName"
+                name="propertyName"
+                type="text"
+                placeholder="e.g., Happy Homes PG"
+                value={defaults.propertyName || ''}
+                onChange={handleDefaultsChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="propertyAddress">Property Address</Label>
+              <Input
+                id="propertyAddress"
+                name="propertyAddress"
+                type="text"
+                placeholder="e.g., 123 Main St, Anytown"
+                value={defaults.propertyAddress || ''}
+                onChange={handleDefaultsChange}
+              />
+            </div>
             <div>
               <Label htmlFor="electricityRatePerUnit">Default Electricity Rate (per Unit)</Label>
               <Input

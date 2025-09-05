@@ -103,8 +103,8 @@ export default function Expenses({ appState, setAppState }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="This Month's Expenses" value={`₹${totalMonthlyExpense.toLocaleString('en-IN')}`} icon={Calendar} color="danger" />
-        <StatCard title="Total Expenses" value={`₹${totalExpense.toLocaleString('en-IN')}`} icon={BarChart2} color="warning" />
+        <StatCard title="This Month's Expenses" value={`₹${totalMonthlyExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={Calendar} color="danger" />
+        <StatCard title="Total Expenses" value={`₹${totalExpense.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={BarChart2} color="warning" />
         <StatCard title="Expense Count" value={expenses.length.toString()} icon={Wallet} color="primary" />
       </div>
 
@@ -121,7 +121,7 @@ export default function Expenses({ appState, setAppState }) {
                     <TableRow key={expense.id}>
                       <TableCell className="font-medium">{expense.description}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-muted text-muted-foreground">{expense.category}</span></TableCell>
-                      <TableCell className="font-semibold text-red-600">₹{expense.amount.toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="font-semibold text-red-600">₹{expense.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => confirmDeleteExpense(expense)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                     </TableRow>

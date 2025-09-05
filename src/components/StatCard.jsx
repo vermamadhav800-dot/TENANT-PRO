@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ export default function StatCard({ title, value, icon: Icon, description, color 
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold">{value}</div>
-        {description && <p className={cn("text-xs mt-1", descriptionColorClasses[color])}>{description}</p>}
+        {description && <p className={cn("text-xs mt-1 font-medium", descriptionColorClasses[color])}>{description}</p>}
       </CardContent>
     </Card>
   );

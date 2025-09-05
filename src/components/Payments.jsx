@@ -131,9 +131,9 @@ export default function Payments({ appState, setAppState }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Collected" value={`₹${totalCollected.toLocaleString('en-IN')}`} icon={CheckCircle} color="success" />
-        <StatCard title="Pending Amount (This Month)" value={`₹${totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}`} icon={Clock} color="warning" />
-        <StatCard title="Collected This Month" value={`₹${thisMonthCollection.toLocaleString('en-IN')}`} icon={Calendar} color="primary" />
+        <StatCard title="Total Collected" value={`₹${totalCollected.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={CheckCircle} color="success" />
+        <StatCard title="Pending Amount (This Month)" value={`₹${totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}`} icon={Clock} color="warning" />
+        <StatCard title="Collected This Month" value={`₹${thisMonthCollection.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={Calendar} color="primary" />
       </div>
 
       <Card>

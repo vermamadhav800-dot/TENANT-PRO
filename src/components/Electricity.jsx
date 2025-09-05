@@ -143,7 +143,7 @@ export default function Electricity({ appState, setAppState }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Units (Month)" value={totalUnits.toFixed(2)} icon={Zap} color="primary" />
-        <StatCard title="Total Bill (Month)" value={`₹${totalBill.toLocaleString('en-IN')}`} icon={FileText} color="warning" />
+        <StatCard title="Total Bill (Month)" value={`₹${totalBill.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={FileText} color="warning" />
         <StatCard title="Average Rate" value={`₹${avgRate.toFixed(2)}`} icon={Calculator} color="success" />
         <StatCard title="Avg. Bill/Room" value={`₹${avgPerRoom.toFixed(2)}`} icon={Home} color="danger" />
       </div>
