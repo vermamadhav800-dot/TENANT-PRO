@@ -24,21 +24,29 @@ export default function Home() {
   }, []);
 
   const handleLogin = (credentials) => {
+    let loggedInUser = null;
+    let loggedInRole = null;
+
     if (credentials.role === 'admin') {
       if (credentials.username === MOCK_USER_INITIAL.username && credentials.password === MOCK_USER_INITIAL.password) {
-        setUser(MOCK_USER_INITIAL);
-        setRole('admin');
+        loggedInUser = MOCK_USER_INITIAL;
+        loggedInRole = 'admin';
       } else {
         alert("Invalid admin credentials!");
       }
     } else { // Tenant login
       const tenant = appState.tenants.find(t => t.username === credentials.username && t.phone === credentials.password);
       if (tenant) {
-        setUser(tenant);
-        setRole('tenant');
+        loggedInUser = tenant;
+        loggedInRole = 'tenant';
       } else {
         alert("Invalid tenant credentials! Use your registered username and phone number as the password.");
       }
+    }
+    
+    if(loggedInUser && loggedInRole) {
+      setUser(loggedInUser);
+      setRole(loggedInRole);
     }
   };
 

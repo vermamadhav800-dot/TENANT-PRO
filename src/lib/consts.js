@@ -1,8 +1,23 @@
 
 
 export const INITIAL_APP_STATE = {
-  rooms: [],
-  tenants: [],
+  rooms: [
+    { id: "1", number: "101", capacity: 2, rent: 12000, createdAt: "2023-01-01T00:00:00.000Z" }
+  ],
+  tenants: [
+    { 
+      id: "1", 
+      name: "John Doe", 
+      phone: "1234567890", 
+      username: "johndoe",
+      unitNo: "101",
+      rentAmount: 6000,
+      dueDate: new Date().toISOString(),
+      aadhaar: "123456789012",
+      profilePhotoUrl: `https://i.pravatar.cc/150?u=johndoe`,
+      createdAt: "2023-01-10T00:00:00.000Z"
+    }
+  ],
   payments: [],
   electricity: [],
   expenses: [],
