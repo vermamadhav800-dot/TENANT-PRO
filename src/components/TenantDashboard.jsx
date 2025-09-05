@@ -68,7 +68,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             tenantId: tenant.id,
             amount: tenant.rentAmount,
             date: new Date().toISOString(),
-            method: 'Razorpay',
+            method: 'Paytm',
         };
 
         setAppState(prev => ({
@@ -106,7 +106,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                 </CardContent>
                 <CardFooter>
                     <Button onClick={handlePayNow} className="w-full sm:w-auto ml-auto btn-gradient-glow">
-                        Pay Now with Razorpay
+                        Pay Now with Paytm
                     </Button>
                 </CardFooter>
             </Card>
@@ -332,3 +332,5 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    
