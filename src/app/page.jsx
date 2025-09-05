@@ -21,45 +21,49 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const startupTimer = setTimeout(() => {
       setIsStartupLoading(false);
     }, 2000);
 
-    // This listener handles all auth changes.
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUser(user);
-        try {
+        // Give Firestore a moment to initialize and connect.
+        // This is a robust way to prevent the "client is offline" race condition.
+        setTimeout(async () => {
+          try {
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
+            
             if (userDoc.exists()) {
               const data = userDoc.data();
               setUserData(data);
               setRole(data.role);
+              setUser(user); // Set user state only after data is successfully fetched
             } else {
-              setRole(null); 
+              // User exists in Auth, but not in Firestore. This is an error state.
+              console.error("User document not found in Firestore for UID:", user.uid);
+              toast({ variant: "destructive", title: "User Data Missing", description: "Your user profile is incomplete. Please contact support." });
+              await signOut(auth); // Log out to prevent being stuck.
             }
-        } catch (error) {
+          } catch (error) {
             console.error("Error fetching user data:", error);
-            // This can happen if firestore is not ready, log out to be safe
-            toast({ variant: "destructive", title: "Could not load data", description: "There was an issue loading your profile. Please try again."})
+            toast({ variant: "destructive", title: "Could not load data", description: "There was an issue loading your profile. Please try again." });
             await signOut(auth);
-            setUser(null);
-            setUserData(null);
-            setRole(null);
-        }
+          }
+        }, 500); // A 500ms delay is usually sufficient.
       } else {
-        setUser(null); // Explicitly set to null when logged out
+        setUser(null);
         setUserData(null);
         setRole(null);
       }
     });
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(startupTimer);
       unsubscribe();
     };
   }, [toast]);
+
 
   const handleAuth = async (credentials, action) => {
     try {
@@ -136,8 +140,16 @@ export default function Home() {
                 onLogout={handleLogout} 
               />;
           }
-          // Note: TenantDashboard would be rendered here if role === 'tenant'
-          // return <TenantDashboard ... />
+          if (role === 'tenant') {
+            // Find the specific tenant data from the full tenants list
+            const tenantData = appState.tenants.find(t => t.id === user.uid);
+            if(tenantData) {
+                 return <TenantDashboard 
+                    tenant={tenantData} 
+                    onLogout={handleLogout} 
+                />;
+            }
+          }
       }
 
       // If there's no user, show the login form.
