@@ -27,9 +27,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   };
 
   const handleSave = () => {
-    setAppState(prev => ({ ...prev, defaults }));
-    // In a real app, you would also save the user details to your backend.
-    // For this mock app, we'll just show a toast.
+    setAppState(prev => ({ ...prev, defaults, MOCK_USER_INITIAL: { ...prev.MOCK_USER_INITIAL, ...currentUser } }));
     toast({
       title: "Settings Saved",
       description: "Your new settings have been applied.",
@@ -135,7 +133,7 @@ export default function AppSettings({ appState, setAppState, user }) {
             <Input id="name" name="name" value={currentUser.name} onChange={handleUserChange} />
           </div>
           <div>
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Email (Username)</Label>
             <Input id="username" name="username" value={currentUser.username} onChange={handleUserChange} disabled />
           </div>
            <div>
@@ -146,7 +144,7 @@ export default function AppSettings({ appState, setAppState, user }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} size="lg">Save All Settings</Button>
+        <Button onClick={handleSave} size="lg" className="btn-gradient-glow">Save All Settings</Button>
       </div>
     </div>
   );
