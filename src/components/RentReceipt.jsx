@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
 
-export default function RentReceipt({ receiptDetails, onBack, adminDetails }) {
+export default function RentReceipt({ receiptDetails, onBack, adminDetails, appState }) {
     const { payment, tenant, room } = receiptDetails;
+    const { rooms } = appState;
 
     const handlePrint = () => {
         window.print();

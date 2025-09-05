@@ -54,7 +54,7 @@ const TenantProfile = ({ tenant }) => (
     </div>
 );
 
-const RentAndPayments = ({ tenant, payments, setAppState, room, appState, rooms }) => {
+const RentAndPayments = ({ tenant, payments, setAppState, room, appState, adminDetails }) => {
     const { toast } = useToast();
     const [showReceipt, setShowReceipt] = useState(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -62,7 +62,6 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState, rooms 
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
 
     const adminUpiId = appState.defaults?.upiId;
-    const adminDetails = appState.MOCK_USER_INITIAL;
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
@@ -143,7 +142,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState, rooms 
     };
 
     if (showReceipt) {
-        return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} adminDetails={adminDetails} rooms={rooms} />;
+        return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} adminDetails={adminDetails} appState={appState} />;
     }
 
     const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
@@ -423,6 +422,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { payments, rooms, notifications = [] } = appState;
+    const adminDetails = appState.MOCK_USER_INITIAL || { name: 'Admin', username: 'admin' };
+
 
     const unreadNotificationsCount = useMemo(() => {
         return notifications.filter(n => n.tenantId === tenant.id && !n.isRead).length;
@@ -437,7 +438,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             case 'dashboard':
                 return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
             case 'payments':
-                return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} rooms={rooms} />;
+                return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} adminDetails={adminDetails} />;
             case 'notifications':
                 return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'profile':
