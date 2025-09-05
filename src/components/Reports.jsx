@@ -157,6 +157,7 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
         const link = document.createElement("a");
         link.href = jsonString;
         link.download = `estateflow-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         toast({ title: "Success", description: "Full data export started."});
@@ -355,3 +356,5 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
     </div>
   );
 }
+
+    
