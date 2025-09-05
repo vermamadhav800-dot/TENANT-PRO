@@ -34,7 +34,7 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
   const { toast } = useToast();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const reportTableRef = useState(null);
-  const isPro = defaults.subscriptionPlan === 'pro';
+  const isPro = defaults.subscriptionPlan === 'pro' || defaults.subscriptionPlan === 'business';
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
@@ -309,7 +309,7 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
                 Pro Feature Locked
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This feature is only available on the Pro plan. Please upgrade your plan to unlock advanced data exports and other powerful features.
+              This feature is only available on the Pro or Business plan. Please upgrade your plan to unlock advanced data exports.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

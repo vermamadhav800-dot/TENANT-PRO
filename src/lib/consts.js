@@ -1,4 +1,5 @@
 
+
 // This file contains the initial mock data for the application.
 // In a real-world scenario, this data would be fetched from a database.
 
@@ -21,7 +22,8 @@ export const INITIAL_APP_STATE = {
       overdueDays: 3, // Every x days when overdue
     },
     lastReminderCheck: null,
-    subscriptionPlan: 'free', // 'free' or 'pro'
+    subscriptionPlan: 'standard', // 'standard', 'pro', or 'business'
+    maxProperties: 1, // Based on subscription
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },
