@@ -43,7 +43,7 @@ export default function PaymentGateway({ isOpen, onOpenChange, plan, onPaymentSu
           <div className="p-4 border rounded-lg bg-muted/50">
             <div className="flex justify-between items-center">
               <span className="font-semibold">Plan: {plan.name}</span>
-              <span className="font-bold text-lg">{plan.price}{plan.priceSuffix}</span>
+              <span className="font-bold text-lg">₹{plan.price}{plan.priceSuffix}</span>
             </div>
              <p className="text-sm text-muted-foreground mt-1">Billed monthly. You can cancel anytime.</p>
           </div>
@@ -79,7 +79,7 @@ export default function PaymentGateway({ isOpen, onOpenChange, plan, onPaymentSu
                   Processing...
                 </>
               ) : (
-                `Pay ${plan.price}`
+                `Pay ₹${plan.price}`
               )}
             </Button>
           </DialogFooter>
@@ -88,3 +88,5 @@ export default function PaymentGateway({ isOpen, onOpenChange, plan, onPaymentSu
     </Dialog>
   );
 }
+
+    

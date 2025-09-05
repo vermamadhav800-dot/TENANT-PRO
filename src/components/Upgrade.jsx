@@ -150,9 +150,8 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
                     <div className="text-center flex items-baseline justify-center">
-                        {plan.price !== 'Free' && <span className="text-3xl font-bold -mr-1">₹</span>}
                         <span className="text-4xl font-extrabold">{plan.price}</span>
-                        <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>
+                        {plan.price !== 'Free' && <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>}
                     </div>
                     <Separator />
                     <ul className="space-y-4 text-sm">
@@ -211,3 +210,5 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
         </div>
     );
 }
+
+    

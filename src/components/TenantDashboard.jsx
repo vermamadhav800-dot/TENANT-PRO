@@ -435,7 +435,6 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
-                        <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">₹{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
@@ -815,3 +814,5 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    

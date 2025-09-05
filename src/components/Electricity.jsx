@@ -205,3 +205,5 @@ export default function Electricity({ appState, setAppState }) {
     </div>
   );
 }
+
+    

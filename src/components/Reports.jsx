@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet, Star, Lock, Database } from 'lucide-react';
+import { BarChart as BarChartIcon, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet, Star, Lock, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -356,3 +356,5 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
     </div>
   );
 }
+
+    
