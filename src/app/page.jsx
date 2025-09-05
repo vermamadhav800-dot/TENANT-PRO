@@ -93,12 +93,6 @@ export default function Home() {
             case 'auth/invalid-credential':
                 description = "Invalid email or password. Please check your credentials or create an account.";
                 break;
-            case 'auth/user-not-found':
-                description = "No account found with this email. Please register first.";
-                break;
-            case 'auth/wrong-password':
-                description = "Incorrect password. Please try again.";
-                break;
             case 'auth/email-already-in-use':
                 description = "This email address is already registered. Please log in instead.";
                 break;
