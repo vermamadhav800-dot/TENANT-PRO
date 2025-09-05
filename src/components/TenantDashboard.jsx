@@ -815,4 +815,3 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     );
 }
 
-    
