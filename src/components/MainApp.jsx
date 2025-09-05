@@ -20,6 +20,7 @@ import {
   Megaphone,
   Star,
   CheckCircle,
+  Lock,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -52,18 +53,20 @@ import NoticeBoard from "./NoticeBoard";
 import { differenceInDays, parseISO } from 'date-fns';
 import Upgrade from "./Upgrade";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "./ui/badge";
 
 const TABS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "insights", label: "Insights", icon: TrendingUp },
-  { id: "tenants", label: "Tenants", icon: Users },
-  { id: "rooms", label: "Rooms", icon: DoorOpen },
-  { id: "payments", label: "Payments", icon: CreditCard },
-  { id: "requests", label: "Requests", icon: Wrench },
-  { id: "electricity", label: "Electricity", icon: Zap },
-  { id: "expenses", label: "Expenses", icon: Wallet },
-  { id: "reports", label: "Reports", icon: BarChart },
-  { id: "notices", label: "Notices", icon: Megaphone },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard' },
+  { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro' },
+  { id: "tenants", label: "Tenants", icon: Users, plan: 'standard' },
+  { id: "rooms", label: "Rooms", icon: DoorOpen, plan: 'standard' },
+  { id: "payments", label: "Payments", icon: CreditCard, plan: 'standard' },
+  { id: "requests", label: "Requests", icon: Wrench, plan: 'standard' },
+  { id: "electricity", label: "Electricity", icon: Zap, plan: 'standard' },
+  { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro' },
+  { id: "reports", label: "Reports", icon: BarChart, plan: 'pro' },
+  { id: "notices", label: "Notices", icon: Megaphone, plan: 'standard' },
 ];
 
 function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
@@ -103,8 +106,7 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   };
 
   const currentTabInfo = TABS.find(t => t.id === activeTab) || {};
-  const currentTabLabel = activeTab === 'upgrade' ? 'Upgrade to Pro' : currentTabInfo.label;
-
+  const currentTabLabel = activeTab === 'upgrade' ? 'Upgrade Plan' : (currentTabInfo.label || 'Dashboard');
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
@@ -128,19 +130,36 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
 
 export default function MainApp({ onLogout, user, appState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { toast } = useToast();
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
   const currentPlan = appState.defaults.subscriptionPlan || 'standard';
+  const isPro = currentPlan === 'pro' || currentPlan === 'business';
+  const isBusiness = currentPlan === 'business';
 
+  const handleTabClick = (tab) => {
+    const isTabPro = tab.plan === 'pro' && !isPro && !isBusiness;
+    const isTabBusiness = tab.plan === 'business' && !isBusiness;
+
+    if (isTabPro || isTabBusiness) {
+      setActiveTab('upgrade');
+      toast({
+        variant: "destructive",
+        title: "Upgrade Required",
+        description: `The "${tab.label}" feature is only available on the ${isTabBusiness ? 'Business' : 'Pro'} plan.`
+      });
+    } else {
+      setActiveTab(tab.id);
+    }
+  }
 
   useEffect(() => {
     const { defaults = {}, tenants = [], payments = [], rooms = [] } = appState;
     const { reminderSettings = {} } = defaults;
     
-    if (!reminderSettings.enabled) return;
+    if (!reminderSettings.enabled || !isPro) return;
 
-    // Throttle the reminder check to once every 6 hours
     const lastCheck = new Date(appState.defaults.lastReminderCheck || 0);
     const now = new Date();
     if (now.getTime() - lastCheck.getTime() < 6 * 60 * 60 * 1000) {
@@ -157,7 +176,6 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
         const dueDate = parseISO(tenant.dueDate);
         const daysUntilDue = differenceInDays(dueDate, now);
 
-        // Calculate pending amount
         const room = rooms.find(r => r.number === tenant.unitNo);
         if (!room) return;
 
@@ -173,7 +191,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
         
         const pendingAmount = totalDue - paidThisMonth;
 
-        if (pendingAmount <= 0) return; // Skip if paid
+        if (pendingAmount <= 0) return;
 
         const hasRecentReminder = (appState.notifications || []).some(n => 
             n.tenantId === tenant.id && 
@@ -182,7 +200,6 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
 
         if (hasRecentReminder) return;
 
-        // Upcoming Reminder
         if (daysUntilDue > 0 && daysUntilDue <= reminderSettings.beforeDays) {
             newNotifications.push({
                 id: `${tenant.id}-upcoming-${now.getTime()}`,
@@ -193,7 +210,6 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
             });
         }
 
-        // Overdue Reminder
         if (daysUntilDue < 0) {
              newNotifications.push({
                 id: `${tenant.id}-overdue-${now.getTime()}`,
@@ -209,21 +225,15 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
       setAppState(prev => ({
         ...prev,
         notifications: [...(prev.notifications || []), ...newNotifications],
-        defaults: {
-            ...prev.defaults,
-            lastReminderCheck: now.toISOString(),
-        }
+        defaults: { ...prev.defaults, lastReminderCheck: now.toISOString() }
       }));
     } else {
        setAppState(prev => ({
         ...prev,
-        defaults: {
-            ...prev.defaults,
-            lastReminderCheck: now.toISOString(),
-        }
+        defaults: { ...prev.defaults, lastReminderCheck: now.toISOString() }
       }));
     }
-  }, [appState.tenants, appState.payments, appState.rooms, appState.defaults.reminderSettings]);
+  }, [appState.tenants, appState.payments, appState.rooms, appState.defaults.reminderSettings, isPro, setAppState]);
 
 
   return (
@@ -239,12 +249,19 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           </SidebarHeader>
           <SidebarContent className="p-2">
             <SidebarMenu>
-              {TABS.map((tab) => (
+              {TABS.map((tab) => {
+                const isTabPro = tab.plan === 'pro' && !isPro && !isBusiness;
+                const isTabBusiness = tab.plan === 'business' && !isBusiness;
+                const isLocked = isTabPro || isTabBusiness;
+                
+                return(
                 <SidebarMenuItem key={tab.id}>
                   <SidebarMenuButton
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => handleTabClick(tab)}
                     isActive={activeTab === tab.id}
                     tooltip={{ children: tab.label }}
+                    disabled={isLocked}
+                    className={cn(isLocked && "cursor-not-allowed")}
                   >
                     <tab.icon />
                     <span>{tab.label}</span>
@@ -253,9 +270,14 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                             {totalPendingRequests}
                         </span>
                     )}
+                    {isLocked && (
+                      <Badge variant="outline" className="ml-auto bg-amber-200/50 text-amber-600 border-amber-300 text-xs">
+                        Pro
+                      </Badge>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )})}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -268,13 +290,13 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
               ) : (
                 <div 
                   className={cn(
-                    "w-full text-center p-2 rounded-lg text-sm font-semibold",
+                    "w-full text-center p-2 rounded-lg text-sm font-semibold flex items-center justify-center",
                     currentPlan === 'pro' && "bg-blue-100 text-blue-800",
                     currentPlan === 'business' && "bg-purple-100 text-purple-800"
                   )}
                 >
-                  <CheckCircle className="inline-block mr-2 h-4 w-4" />
-                  {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  <span>{currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan</span>
                 </div>
               )}
             </div>
