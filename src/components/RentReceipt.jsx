@@ -71,7 +71,7 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                         <div className="border-y-2 border-dashed py-6 my-6 space-y-4">
                              <div className="flex justify-between items-center text-lg">
                                 <p className="text-muted-foreground">Rent for the period of {format(parseISO(payment.date), 'MMMM yyyy')}</p>
-                                <p className="font-semibold">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                <p className="font-semibold">{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <p className="text-muted-foreground">Paid via {payment.method} on {format(parseISO(payment.date), 'dd MMM, yyyy')}</p>
@@ -80,7 +80,7 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
 
                          <div className="flex justify-between items-center bg-primary/10 p-6 rounded-lg">
                             <p className="text-2xl font-bold text-primary uppercase">Total Paid</p>
-                            <p className="text-4xl font-bold text-primary">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-4xl font-bold text-primary">{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                     </CardContent>
                     <CardFooter className="bg-muted/50 p-4 border-t-2 text-center text-xs text-muted-foreground">
@@ -140,4 +140,3 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         </div>
     );
 }
-

@@ -110,7 +110,7 @@ export default function Electricity({ appState, setAppState }) {
 
     toast({
         title: "Bill Applied!",
-        description: `An amount of ₹${amountPerTenant.toFixed(2)} has been added to the bill of ${tenantsInRoom.length} tenant(s).`
+        description: `An amount of ${amountPerTenant.toFixed(2)} has been added to the bill of ${tenantsInRoom.length} tenant(s).`
     });
   };
 
@@ -143,9 +143,9 @@ export default function Electricity({ appState, setAppState }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Units (Month)" value={totalUnits.toFixed(2)} icon={Zap} color="primary" />
-        <StatCard title="Total Bill (Month)" value={`₹${totalBill.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={FileText} color="warning" />
-        <StatCard title="Average Rate" value={`₹${avgRate.toFixed(2)}`} icon={Calculator} color="success" />
-        <StatCard title="Avg. Bill/Room" value={`₹${avgPerRoom.toFixed(2)}`} icon={Home} color="danger" />
+        <StatCard title="Total Bill (Month)" value={`${totalBill.toLocaleString('en-IN', {minimumFractionDigits: 2})}`} icon={FileText} color="warning" />
+        <StatCard title="Average Rate" value={`${avgRate.toFixed(2)}`} icon={Calculator} color="success" />
+        <StatCard title="Avg. Bill/Room" value={`${avgPerRoom.toFixed(2)}`} icon={Home} color="danger" />
       </div>
 
       <Card>
@@ -163,7 +163,7 @@ export default function Electricity({ appState, setAppState }) {
                     <TableRow key={reading.id}>
                       <TableCell className="font-medium">{room?.number || "N/A"}</TableCell>
                       <TableCell className="font-semibold text-blue-600">{reading.unitsConsumed.toFixed(2)}</TableCell>
-                      <TableCell className="font-semibold text-green-600">₹{reading.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                      <TableCell className="font-semibold text-green-600">{reading.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(reading.date).toLocaleDateString()}</TableCell>
                       <TableCell>
                         {reading.applied ? (

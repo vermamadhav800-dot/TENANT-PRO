@@ -119,7 +119,7 @@ export default function Rooms({ appState, setAppState }) {
                 </CardHeader>
                 <CardContent className="space-y-2 flex-grow">
                    <div className="flex items-baseline text-3xl font-bold">
-                    ₹{room.rent.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    {room.rent.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     <span className="text-sm text-muted-foreground ml-1.5">/ month</span>
                   </div>
                 </CardContent>

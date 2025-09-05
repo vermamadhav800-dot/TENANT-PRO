@@ -99,7 +99,7 @@ export function getInsights(appState) {
        const daysOverdue = differenceInDays(today, dueDate);
        alerts.push({
         type: 'Overdue Payment',
-        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ₹${pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}.`,
+        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}.`,
         level: 'danger',
       });
     }
@@ -127,7 +127,7 @@ export function getInsights(appState) {
   if (roomPerformance.length > 0 && roomPerformance[0].revenue > 0) {
       alerts.push({
           type: 'Top Performing Room',
-          message: `Room ${roomPerformance[0].roomNumber} is your highest earner with a total revenue of ₹${roomPerformance[0].revenue.toLocaleString('en-IN')}.`,
+          message: `Room ${roomPerformance[0].roomNumber} is your highest earner with a total revenue of ${roomPerformance[0].revenue.toLocaleString('en-IN')}.`,
           level: 'success'
       });
   }

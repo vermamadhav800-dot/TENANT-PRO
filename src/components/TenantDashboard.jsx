@@ -157,24 +157,24 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState, adminD
                     <div className="grid grid-cols-2 gap-4 border-b pb-4">
                          <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><IndianRupee className="h-4 w-4"/> Base Rent</p>
-                            <p className="text-lg font-bold">₹{tenant.rentAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">{tenant.rentAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Other Charges</p>
-                            <p className="text-lg font-bold">₹{electricityBillShare.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">{electricityBillShare.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                          <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeCheck className="h-4 w-4 text-green-500"/> Amount Paid</p>
-                            <p className="text-lg font-bold text-green-600">₹{paidThisMonth.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold text-green-600">{paidThisMonth.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                          <div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1"><BadgeAlert className="h-4 w-4 text-red-500"/> Total Charges</p>
-                            <p className="text-lg font-bold">₹{totalCharges.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            <p className="text-lg font-bold">{totalCharges.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                     </div>
                     <div className="flex justify-between items-center pt-2">
                         <p className="text-lg font-semibold">Final Amount Due</p>
-                        <p className="text-3xl font-bold text-primary">₹{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        <p className="text-3xl font-bold text-primary">{amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
@@ -189,7 +189,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState, adminD
                                 <DialogHeader>
                                     <DialogTitle>Complete Your Payment</DialogTitle>
                                     <DialogDescription>
-                                       Step 1: Use the button below to pay <strong className="font-bold">₹{amountDue.toFixed(2)}</strong>.
+                                       Step 1: Use the button below to pay <strong className="font-bold">{amountDue.toFixed(2)}</strong>.
                                        Step 2: Take a screenshot of the confirmation.
                                        Step 3: Upload it here and submit for approval.
                                     </DialogDescription>
@@ -251,7 +251,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState, adminD
                                 tenantPayments.map(payment => (
                                     <TableRow key={payment.id}>
                                         <TableCell>{format(new Date(payment.date), 'dd MMMM, yyyy')}</TableCell>
-                                        <TableCell className="font-medium">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                        <TableCell className="font-medium">{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                         <TableCell>
                                             <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span>
                                         </TableCell>
@@ -333,7 +333,7 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                         <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₹{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
+                        <div className="text-2xl font-bold">{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>
