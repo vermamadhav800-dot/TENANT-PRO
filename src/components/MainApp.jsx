@@ -58,6 +58,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "./ui/badge";
 import Documents from "./Documents";
+import AIAssistant from "./AIAssistant";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard', group: 'main' },
@@ -102,6 +103,8 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
         return <Expenses {...props} />;
       case "documents":
         return <Documents {...props} />;
+      case "ai-assistant":
+        return <AIAssistant {...props} />;
       case "reports":
         return <Reports {...props} />;
       case "notices":

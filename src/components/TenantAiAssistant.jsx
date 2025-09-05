@@ -14,7 +14,7 @@ import AppLogo from './AppLogo';
 
 export default function TenantAiAssistant({ tenant, appState }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: `Hello ${tenant.name}! I'm your personal AI assistant. How can I help you today? You can ask me about your rent, due dates, property rules, or how to submit a request.` },
+    { role: 'assistant', content: `Hello ${tenant.name}! I'm Flow, your personal AI assistant. How can I help you today? You can ask me about your rent, due dates, property rules, or how to submit a request.` },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +62,7 @@ export default function TenantAiAssistant({ tenant, appState }) {
   };
 
   return (
-    <Card className="h-[calc(100vh-10rem)] flex flex-col glass-card">
+    <Card className="h-full flex flex-col glass-card">
       <CardHeader className="flex flex-row items-center gap-4">
         <AppLogo className="w-12 h-12" iconClassName="w-7 h-7" />
         <div>

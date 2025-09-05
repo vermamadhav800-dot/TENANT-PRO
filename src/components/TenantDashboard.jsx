@@ -723,7 +723,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             case 'notifications':
                 return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'ai-assistant':
-                return <TenantAiAssistant tenant={tenant} appState={appState} />;
+                return <div className="h-[calc(100vh-8rem)]"><TenantAiAssistant tenant={tenant} appState={appState} /></div>;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
@@ -822,7 +822,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                     </div>
                 </header>
 
-                <main className="container mx-auto p-4 md:p-6 space-y-8 animate-fade-in">
+                <main className="container mx-auto p-4 md:p-6 space-y-8 animate-fade-in flex-1">
                     {renderContent()}
                 </main>
             </div>
