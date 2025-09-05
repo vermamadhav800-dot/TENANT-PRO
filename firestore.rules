@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users can read their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Allow owners to manage their own settings, rooms, tenants, payments,
+    // expenses, electricity readings, notices, approvals, and maintenance requests.
+    // The "ownerId" field in each document is checked against the logged-in user's ID.
+    match /{collection}/{docId} {
+      allow read, write, delete, create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+    }
+  }
+}
