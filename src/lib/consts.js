@@ -21,6 +21,7 @@ export const INITIAL_APP_STATE = {
       overdueDays: 3, // Every x days when overdue
     },
     lastReminderCheck: null,
+    subscriptionPlan: 'free', // 'free' or 'pro'
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet } from 'lucide-react';
+import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet, Star, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,12 +16,25 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 
-export default function Reports({ appState, setAppState }) {
-  const { tenants, payments, rooms, electricity } = appState;
+export default function Reports({ appState, setAppState, setActiveTab }) {
+  const { tenants, payments, rooms, electricity, defaults } = appState;
   const { toast } = useToast();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const reportTableRef = useState(null);
+  const isPro = defaults.subscriptionPlan === 'pro';
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
@@ -81,6 +94,10 @@ export default function Reports({ appState, setAppState }) {
   ];
 
   const handleExportPDF = () => {
+    if (!isPro) {
+        setIsUpgradeModalOpen(true);
+        return;
+    }
     const input = document.getElementById('report-table');
     if (!input) {
         toast({variant: "destructive", title: "Error", description: "Report table not found."})
@@ -104,6 +121,10 @@ export default function Reports({ appState, setAppState }) {
   };
 
   const handleExportCSV = () => {
+      if (!isPro) {
+        setIsUpgradeModalOpen(true);
+        return;
+      }
       const headers = ["Tenant Name", "Phone", "Room", "Total Due", "Amount Paid", "Pending", "Status"];
       const rows = tenantPaymentData.map(d => [
           d.tenant.name,
@@ -152,13 +173,19 @@ export default function Reports({ appState, setAppState }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={handleExportPDF}>
-                  <FileText className="mr-2 h-4 w-4"/>
-                  Export as PDF
+                <DropdownMenuItem onClick={handleExportPDF} disabled={!isPro}>
+                    <div className="flex items-center">
+                        <FileText className="mr-2 h-4 w-4"/>
+                        <span>Export as PDF</span>
+                        {!isPro && <Badge className="ml-2 bg-amber-500 text-white">Pro</Badge>}
+                    </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportCSV}>
-                  <Sheet className="mr-2 h-4 w-4"/>
-                  Export as CSV
+                <DropdownMenuItem onClick={handleExportCSV} disabled={!isPro}>
+                    <div className="flex items-center">
+                      <Sheet className="mr-2 h-4 w-4"/>
+                      <span>Export as CSV</span>
+                      {!isPro && <Badge className="ml-2 bg-amber-500 text-white">Pro</Badge>}
+                    </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -273,6 +300,30 @@ export default function Reports({ appState, setAppState }) {
             </ChartContainer>
         </CardContent>
       </Card>
+      
+      <AlertDialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <Lock className="text-amber-500" />
+                Pro Feature Locked
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This feature is only available on the Pro plan. Please upgrade your plan to unlock advanced data exports and other powerful features.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+                setIsUpgradeModalOpen(false);
+                setActiveTab('upgrade');
+            }}>
+              <Star className="mr-2 h-4 w-4"/>
+              Upgrade Now
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

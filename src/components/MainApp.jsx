@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Wrench,
   Megaphone,
+  Star,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -48,6 +49,7 @@ import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
 import { differenceInDays, parseISO } from 'date-fns';
+import Upgrade from "./Upgrade";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -67,10 +69,10 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const { setTheme, theme } = useTheme();
 
   const renderTabContent = () => {
-    const props = { appState, setAppState, user };
+    const props = { appState, setAppState, user, setActiveTab };
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard {...props} setActiveTab={setActiveTab} />;
+        return <Dashboard {...props} />;
       case "insights":
         return <Insights {...props} />;
       case "tenants":
@@ -91,20 +93,20 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
         return <NoticeBoard {...props} />;
       case "settings":
         return <AppSettings {...props} />;
+      case "upgrade":
+        return <Upgrade {...props} />;
       default:
-        return <Dashboard {...props} setActiveTab={setActiveTab} />;
+        return <Dashboard {...props} />;
     }
   };
 
-  const pendingApprovalsCount = (appState.pendingApprovals || []).length;
-  const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
-  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
+  const currentTab = TABS.find(t => t.id === activeTab) || { label: 'Upgrade to Pro' };
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         {isMobile && <SidebarTrigger />}
-        <h1 className="text-2xl font-semibold capitalize">{TABS.find(t => t.id === activeTab)?.label}</h1>
+        <h1 className="text-2xl font-semibold capitalize">{currentTab.label}</h1>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -251,6 +253,14 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
+            {appState.defaults.subscriptionPlan === 'free' && (
+              <div className="p-2">
+                 <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
+                  <Star className="mr-2 h-4 w-4" />
+                  Upgrade to Pro
+                </Button>
+              </div>
+            )}
              <div className="flex items-center gap-3 p-2 border-t">
                <Avatar className="h-9 w-9">
                   <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
