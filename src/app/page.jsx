@@ -27,6 +27,10 @@ export default function Home() {
   const handleAuth = (credentials, action) => {
     if (action === 'login') {
       if (credentials.role === 'owner') {
+        if (!appState.MOCK_USER_INITIAL) {
+            toast({ variant: "destructive", title: "Login Error", description: "No owner account found. Please register first." });
+            return false;
+        }
         if (credentials.username === appState.MOCK_USER_INITIAL.username && credentials.password === appState.MOCK_USER_INITIAL.password) {
           setAuth({ user: appState.MOCK_USER_INITIAL, role: 'owner' });
           toast({ title: "Login Successful", description: "Welcome back!" });
@@ -48,7 +52,7 @@ export default function Home() {
       };
       setAppState(prev => ({
         ...prev,
-        MOCK_USER_INITIAL: newOwner,
+        MOCK_USER_INITIAL: newOwner, // This is the corrected part
         defaults: {
           ...prev.defaults,
           propertyName: credentials.propertyName,
