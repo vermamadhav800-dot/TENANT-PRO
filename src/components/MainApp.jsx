@@ -299,8 +299,8 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           <SidebarFooter>
              <div className="p-2">
               {currentPlan === 'standard' ? (
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg hover:shadow-blue-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
-                  <Star className="mr-2 h-4 w-4" />
+                <Button className="w-full font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-500 shadow-lg shadow-yellow-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/50 hover:scale-105" onClick={() => setActiveTab('upgrade')}>
+                  <Star className="mr-2 h-4 w-4 text-black" />
                   Upgrade Plan
                 </Button>
               ) : (
