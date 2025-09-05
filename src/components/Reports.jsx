@@ -15,7 +15,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from "@/hooks/use-toast";
 
-export default function Reports({ appState }) {
+export default function Reports({ appState, setAppState }) {
   const { tenants, payments, rooms, electricity } = appState;
   const { toast } = useToast();
 

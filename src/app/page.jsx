@@ -7,155 +7,97 @@ import Auth from "@/components/Auth";
 import MainApp from "@/components/MainApp";
 import TenantDashboard from "@/components/TenantDashboard";
 import { useToast } from "@/hooks/use-toast";
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { LoaderCircle } from "lucide-react";
-
+import { useLocalStorage } from "@/lib/hooks";
+import { INITIAL_APP_STATE } from "@/lib/consts";
 
 export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
-  const [user, setUser] = useState(undefined); // undefined: auth state unknown, null: logged out, object: logged in
-  const [userData, setUserData] = useState(null); // User data from Firestore
-  const [role, setRole] = useState(null); // 'owner' or 'tenant'
+  const [auth, setAuth] = useLocalStorage("auth", { user: null, role: null });
+  const [appState, setAppState] = useLocalStorage("appState", INITIAL_APP_STATE);
   const { toast } = useToast();
 
   useEffect(() => {
     const startupTimer = setTimeout(() => {
       setIsStartupLoading(false);
-    }, 2000);
+    }, 2000); 
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Give Firestore a moment to initialize and connect.
-        // This is a robust way to prevent the "client is offline" race condition.
-        setTimeout(async () => {
-          try {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (userDoc.exists()) {
-              const data = userDoc.data();
-              setUserData(data);
-              setRole(data.role);
-              setUser(user); // Set user state only after data is successfully fetched
-            } else {
-              // User exists in Auth, but not in Firestore. This is an error state.
-              console.error("User document not found in Firestore for UID:", user.uid);
-              toast({ variant: "destructive", title: "User Data Missing", description: "Your user profile is incomplete. Please contact support." });
-              await signOut(auth); // Log out to prevent being stuck.
-            }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            toast({ variant: "destructive", title: "Could not load data", description: "There was an issue loading your profile. Please try again." });
-            await signOut(auth);
-          }
-        }, 500); // A 500ms delay is usually sufficient.
-      } else {
-        setUser(null);
-        setUserData(null);
-        setRole(null);
+    return () => clearTimeout(startupTimer);
+  }, []);
+
+  const handleAuth = (credentials, action) => {
+    if (action === 'login') {
+      if (credentials.role === 'owner') {
+        if (credentials.username === appState.MOCK_USER_INITIAL.username && credentials.password === appState.MOCK_USER_INITIAL.password) {
+          setAuth({ user: appState.MOCK_USER_INITIAL, role: 'owner' });
+          toast({ title: "Login Successful", description: "Welcome back!" });
+          return true;
+        }
+      } else { // Tenant login
+        const tenant = appState.tenants.find(t => t.phone === credentials.username);
+        if (tenant) {
+          setAuth({ user: tenant, role: 'tenant' });
+          toast({ title: "Login Successful", description: `Welcome, ${tenant.name}!` });
+          return true;
+        }
       }
-    });
-
-    return () => {
-      clearTimeout(startupTimer);
-      unsubscribe();
-    };
-  }, [toast]);
-
-
-  const handleAuth = async (credentials, action) => {
-    try {
-        if (action === 'login') {
-            await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
-            // The onAuthStateChanged listener will handle the rest.
-            toast({ title: "Login Successful", description: "Welcome back!" });
-            return true;
-        } else { // Register
-            const userCredential = await createUserWithEmailAndPassword(auth, credentials.username, credentials.password);
-            
-            const newUser = {
-                uid: userCredential.user.uid,
-                name: credentials.name,
-                email: credentials.username,
-                role: 'owner',
-            };
-            
-            await setDoc(doc(db, "users", userCredential.user.uid), newUser);
-            
-            await setDoc(doc(db, "settings", userCredential.user.uid), {
-                ownerId: userCredential.user.uid,
-                propertyName: credentials.propertyName,
-                propertyAddress: credentials.propertyAddress,
-                electricityRatePerUnit: 8,
-                upiId: '',
-            });
-
-            // The onAuthStateChanged listener will pick this up.
-            toast({ title: "Registration Successful", description: "Welcome! Your property is set up." });
-            return true;
+    } else { // Register
+      const newOwner = {
+        name: credentials.name,
+        username: credentials.username,
+        password: credentials.password,
+      };
+      setAppState(prev => ({
+        ...prev,
+        MOCK_USER_INITIAL: newOwner,
+        defaults: {
+          ...prev.defaults,
+          propertyName: credentials.propertyName,
+          propertyAddress: credentials.propertyAddress,
         }
-    } catch (error) {
-        console.error("Firebase Auth Error:", error.code, error.message);
-        let description = "An unexpected error occurred. Please try again.";
-        switch (error.code) {
-            case 'auth/invalid-credential':
-                description = "Invalid email or password. Please check your credentials or create an account.";
-                break;
-            case 'auth/email-already-in-use':
-                description = "This email address is already registered. Please log in instead.";
-                break;
-            case 'auth/weak-password':
-                description = "The password is too weak. Please use at least 6 characters.";
-                break;
-            case 'auth/invalid-email':
-                 description = "Please enter a valid email address.";
-                 break;
-            default:
-                description = error.message;
-                break;
-        }
-        toast({ variant: "destructive", title: "Authentication Failed", description });
-        return false;
+      }));
+      setAuth({ user: newOwner, role: 'owner' });
+      toast({ title: "Registration Successful", description: "Welcome! Your property is set up." });
+      return true;
     }
+
+    toast({ variant: "destructive", title: "Authentication Failed", description: "Invalid credentials. Please try again." });
+    return false;
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
+    setAuth({ user: null, role: null });
   };
   
   const renderContent = () => {
-      // If startup screen is active OR we haven't heard from Firebase auth yet
-      if (isStartupLoading || user === undefined) {
+      if (isStartupLoading) {
           return <StartupScreen />;
       }
       
-      // If we have a user and their data is loaded
-      if (user && userData) {
-          if (role === 'owner') {
+      if (auth.user) {
+          if (auth.role === 'owner') {
              return <MainApp 
-                user={user} 
-                userData={userData} 
+                appState={appState} 
+                setAppState={setAppState} 
                 onLogout={handleLogout} 
+                user={auth.user} 
               />;
           }
-          if (role === 'tenant') {
+          if (auth.role === 'tenant') {
+            const tenant = appState.tenants.find(t => t.id === auth.user.id);
+            if (!tenant) {
+              handleLogout(); // Tenant data was deleted, so log out.
+              return <Auth onAuth={handleAuth} />;
+            }
             return <TenantDashboard 
-                user={user} 
-                userData={userData} 
+                appState={appState} 
+                setAppState={setAppState}
+                tenant={tenant}
                 onLogout={handleLogout} 
             />;
           }
       }
 
-      // If there's no user, show the login form.
-      if (user === null) {
-          return <Auth onAuth={handleAuth} />;
-      }
-
-      // Fallback: A loading indicator for the brief moment between user object being set and userData being fetched.
-      return <StartupScreen />;
+      return <Auth onAuth={handleAuth} />;
   }
 
   return <>{renderContent()}</>;

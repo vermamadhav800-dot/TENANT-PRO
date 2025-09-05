@@ -47,9 +47,6 @@ import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
-import { useCollection, useDocument } from "@/lib/hooks";
-import { LoaderCircle } from 'lucide-react';
-
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -64,41 +61,12 @@ const TABS = [
   { id: "notices", label: "Notices", icon: Megaphone },
 ];
 
-function AppContent({ activeTab, setActiveTab, user, userData }) {
+function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
 
-  // Fetch all data collections for the logged-in owner
-  const { data: tenants, loading: tenantsLoading, error: tenantsError } = useCollection('tenants', user.uid);
-  const { data: rooms, loading: roomsLoading, error: roomsError } = useCollection('rooms', user.uid);
-  const { data: payments, loading: paymentsLoading, error: paymentsError } = useCollection('payments', user.uid);
-  const { data: electricity, loading: electricityLoading, error: electricityError } = useCollection('electricity', user.uid);
-  const { data: expenses, loading: expensesLoading, error: expensesError } = useCollection('expenses', user.uid);
-  const { data: settings, loading: settingsLoading, error: settingsError } = useDocument('settings', user.uid);
-  const { data: pendingApprovals, loading: approvalsLoading, error: approvalsError } = useCollection('approvals', user.uid);
-  const { data: maintenanceRequests, loading: maintenanceLoading, error: maintenanceError } = useCollection('maintenanceRequests', user.uid);
-  const { data: globalNotices, loading: noticesLoading, error: noticesError } = useCollection('notices', user.uid);
-  
-  const isLoading = tenantsLoading || roomsLoading || paymentsLoading || electricityLoading || expensesLoading || settingsLoading || approvalsLoading || maintenanceLoading || noticesLoading;
-  const anyError = tenantsError || roomsError || paymentsError || electricityError || expensesError || settingsError || approvalsError || maintenanceError || noticesError;
-
-  // The appState is now composed of data fetched from Firestore
-  const appState = {
-      tenants: tenants || [],
-      rooms: rooms || [],
-      payments: payments || [],
-      electricity: electricity || [],
-      expenses: expenses || [],
-      defaults: settings || {},
-      pendingApprovals: pendingApprovals || [],
-      maintenanceRequests: maintenanceRequests || [],
-      globalNotices: globalNotices || [],
-      MOCK_USER_INITIAL: userData // We still pass user data for display
-  }
-
   const renderTabContent = () => {
-    // The setAppState prop is no longer needed as hooks handle state changes directly
-    const props = { appState, user, userData };
+    const props = { appState, setAppState, user };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
@@ -126,9 +94,9 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
   };
-  
-  const pendingApprovalsCount = (pendingApprovals || []).filter(a => a.status === 'pending').length;
-  const pendingMaintenanceCount = (maintenanceRequests || []).filter(r => r.status === 'Pending').length;
+
+  const pendingApprovalsCount = (appState.pendingApprovals || []).length;
+  const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
 
   return (
@@ -145,32 +113,18 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
         </div>
       </header>
       <main className="flex-1 overflow-auto p-4 sm:p-6">
-        {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-                <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
-            </div>
-        ) : anyError ? (
-            <div className="flex justify-center items-center h-full text-red-500">
-                Error loading data. Please refresh the page.
-            </div>
-        ) : (
-            <div className="animate-fade-in">{renderTabContent()}</div>
-        )}
+        <div className="animate-fade-in">{renderTabContent()}</div>
       </main>
     </div>
   );
 }
 
-export default function MainApp({ onLogout, user, userData }) {
+export default function MainApp({ onLogout, user, appState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const pendingApprovalsCount = (appState.pendingApprovals || []).length;
+  const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
+  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
 
-  const { data: pendingApprovals, loading: approvalsLoading } = useCollection('approvals', user.uid);
-  const { data: maintenanceRequests, loading: maintenanceLoading } = useCollection('maintenanceRequests', user.uid);
-  
-  const totalPendingRequests = !approvalsLoading && !maintenanceLoading 
-    ? ((pendingApprovals || []).filter(a => a.status === 'pending').length + (maintenanceRequests || []).filter(r => r.status === 'Pending').length)
-    : 0;
-  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -193,7 +147,7 @@ export default function MainApp({ onLogout, user, userData }) {
                   >
                     <tab.icon />
                     <span>{tab.label}</span>
-                     {tab.id === 'requests' && totalPendingRequests > 0 && (
+                    {tab.id === 'requests' && totalPendingRequests > 0 && (
                         <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
                             {totalPendingRequests}
                         </span>
@@ -206,12 +160,12 @@ export default function MainApp({ onLogout, user, userData }) {
           <SidebarFooter>
              <div className="flex items-center gap-3 p-2 border-t">
                <Avatar className="h-9 w-9">
-                  <AvatarImage src={userData.photoURL || `https://i.pravatar.cc/150?u=${userData.email}`} alt={userData.name} />
-                  <AvatarFallback>{userData.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
+                  <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
               <div className="overflow-hidden">
-                <p className="text-sm font-medium truncate">{userData.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{userData.email}</p>
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.username}</p>
               </div>
             </div>
             <Separator className="my-1"/>
@@ -241,8 +195,9 @@ export default function MainApp({ onLogout, user, userData }) {
         <AppContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          appState={appState}
+          setAppState={setAppState}
           user={user}
-          userData={userData}
         />
       </div>
     </SidebarProvider>
