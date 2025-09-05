@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Sun, Moon, Palette } from 'lucide-react';
+import { Sun, Moon, Palette, KeyRound } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 export default function AppSettings({ appState, setAppState, user }) {
@@ -15,6 +15,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   const { theme, setTheme } = useTheme();
   const [defaults, setDefaults] = useState(appState.defaults);
   const [currentUser, setCurrentUser] = useState(user);
+  const [geminiApiKey, setGeminiApiKey] = useState(appState.defaults.geminiApiKey || '');
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -27,7 +28,11 @@ export default function AppSettings({ appState, setAppState, user }) {
   };
 
   const handleSave = () => {
-    setAppState(prev => ({ ...prev, defaults, MOCK_USER_INITIAL: { ...prev.MOCK_USER_INITIAL, ...currentUser } }));
+    setAppState(prev => ({ 
+      ...prev, 
+      defaults: { ...defaults, geminiApiKey }, 
+      MOCK_USER_INITIAL: { ...prev.MOCK_USER_INITIAL, ...currentUser } 
+    }));
     toast({
       title: "Settings Saved",
       description: "Your new settings have been applied.",
@@ -40,6 +45,32 @@ export default function AppSettings({ appState, setAppState, user }) {
         <h2 className="text-3xl font-bold font-headline">Settings</h2>
         <p className="text-muted-foreground">Manage your application and user settings.</p>
       </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>API Key Management</CardTitle>
+          <CardDescription>Enter your own Gemini API key to power AI features. You can get a key from Google AI Studio.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+            <div>
+                <Label htmlFor="geminiApiKey">Gemini API Key</Label>
+                <div className="flex items-center gap-2">
+                    <KeyRound className="h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        id="geminiApiKey" 
+                        name="geminiApiKey" 
+                        type="password"
+                        placeholder="Enter your Google AI Studio API Key"
+                        value={geminiApiKey}
+                        onChange={(e) => setGeminiApiKey(e.target.value)}
+                    />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                    Your key is stored locally in your browser's local storage and is not shared.
+                </p>
+            </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

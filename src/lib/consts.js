@@ -14,6 +14,7 @@ export const INITIAL_APP_STATE = {
     upiId: '',
     propertyAddress: '[Your Full Property Address]',
     propertyName: 'Happy Homes PG',
+    geminiApiKey: '',
   },
   MOCK_USER_INITIAL: {
     name: 'Owner',

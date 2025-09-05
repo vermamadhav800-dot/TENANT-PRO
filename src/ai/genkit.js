@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview This file initializes and configures the Genkit AI toolkit.
+ * @fileOverview This file initializes and a single instance of the Genkit AI toolkit.
  */
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
@@ -8,7 +8,7 @@ import {googleAI} from '@genkit-ai/googleai';
 export const ai = genkit({
   plugins: [
     googleAI({
-      // Specify the API version.
+      // The API key is read from the `GEMINI_API_KEY` environment variable.
       apiVersion: 'v1beta',
     }),
   ],
