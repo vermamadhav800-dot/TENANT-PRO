@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +20,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
+import QRCode from 'qrcode';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -65,11 +66,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [paymentScreenshot, setPaymentScreenshot] = useState(null);
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
     const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
+    const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
-    const { upiId: adminUpiId, qrCodeUrl: customQrCodeUrl } = appState.defaults || {};
-    const defaultQrCodeUrl = '/qr-code.png';
-    const qrCodeToDisplay = customQrCodeUrl || defaultQrCodeUrl;
-
+    const { upiId: adminUpiId } = appState.defaults || {};
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
@@ -150,6 +149,29 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             description: "Your payment has been submitted to the owner for verification. It will reflect once approved.",
         });
     };
+    
+    const generateQrCode = async () => {
+        if (!adminUpiId || amountDue <= 0) {
+            setQrCodeDataUrl('');
+            return;
+        };
+
+        const upiLink = `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(ownerDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}`;
+
+        try {
+            const url = await QRCode.toDataURL(upiLink, { errorCorrectionLevel: 'M' });
+            setQrCodeDataUrl(url);
+        } catch (err) {
+            console.error(err);
+            setQrCodeDataUrl('');
+            toast({ variant: 'destructive', title: 'QR Code Error', description: 'Could not generate QR code.' });
+        }
+    };
+
+    const openQrView = () => {
+        generateQrCode();
+        setPaymentView('qr');
+    }
 
     if (showReceipt) {
         return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} appState={appState} />;
@@ -168,7 +190,10 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4 text-center">
-                        <img src={qrCodeToDisplay} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" data-ai-hint="qr code"/>
+                        {qrCodeDataUrl ? 
+                            <img src={qrCodeDataUrl} alt="Dynamic Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" />
+                            : <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">Generating QR...</div>
+                        }
                         <p className="font-bold text-xl">Amount: {amountDue.toFixed(2)}</p>
                         <Button variant="link" onClick={() => setPaymentView('default')}>Back to other options</Button>
                     </div>
@@ -196,13 +221,13 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                                 </Button>
                             </a>
                         ) : <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground">UPI App payment not configured.</div>}
-                        <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
+                        <Button size="lg" variant="outline" className="w-full h-full" onClick={openQrView} disabled={!adminUpiId}>
                            <QrCode className="mr-2 h-5 w-5" />
                            Pay with QR Code
                        </Button>
                     </div>
                     {(!adminUpiId) && (
-                         <p className="text-amber-600 text-center text-sm bg-amber-50 p-2 rounded-md">The owner has not configured UPI app payments yet.</p>
+                         <p className="text-amber-600 text-center text-sm bg-amber-50 p-2 rounded-md">The owner has not configured a UPI ID in settings.</p>
                     )}
                     <div className="space-y-2 pt-4">
                         <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
