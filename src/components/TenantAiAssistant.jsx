@@ -31,8 +31,19 @@ export default function TenantAiAssistant({ tenant, appState }) {
     try {
       const response = await askTenantAssistant({
         query: input,
-        tenantData: tenant,
-        propertyData: appState.defaults,
+        tenantData: {
+          name: tenant.name,
+          unitNo: tenant.unitNo,
+          rentAmount: tenant.rentAmount,
+          dueDate: tenant.dueDate,
+          leaseStartDate: tenant.leaseStartDate,
+          leaseEndDate: tenant.leaseEndDate,
+        },
+        propertyData: {
+          propertyName: appState.defaults.propertyName,
+          propertyAddress: appState.defaults.propertyAddress,
+          upiId: appState.defaults.upiId,
+        },
         ownerName: appState.MOCK_USER_INITIAL.name,
       });
 

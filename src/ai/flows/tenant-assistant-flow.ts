@@ -85,7 +85,7 @@ const tenantAssistantFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const { text } = await prompt(input);
+    const { text } = await prompt.generate({input});
     return text;
   }
 );
