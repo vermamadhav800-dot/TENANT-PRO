@@ -1,23 +1,40 @@
 
 "use client";
 
-import { Printer, ArrowLeft } from 'lucide-react';
+import { useRef } from 'react';
+import { Download, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
 import AppLogo from './AppLogo';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 
 export default function RentReceipt({ receiptDetails, onBack, appState }) {
     const { payment, tenant } = receiptDetails;
     const { defaults = {}, MOCK_USER_INITIAL = {} } = appState;
     const adminDetails = MOCK_USER_INITIAL;
+    const receiptRef = useRef();
 
-    const handlePrint = () => {
-        window.print();
+    const handleDownload = () => {
+        const input = receiptRef.current;
+        if (!input) return;
+
+        html2canvas(input, { scale: 2 }).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: [canvas.width, canvas.height]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`rent-receipt-${payment.id}.pdf`);
+        });
     };
 
     return (
-        <div className="space-y-4 no-print">
+        <div className="space-y-4">
              <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" onClick={onBack}>
                     <ArrowLeft className="h-4 w-4" />
@@ -29,16 +46,15 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
             </div>
 
             <div className="flex justify-end max-w-2xl mx-auto">
-                 <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print or Save as PDF
+                 <Button onClick={handleDownload}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
                 </Button>
             </div>
             
-            {/* The actual printable receipt */}
-            <div className="printable-area max-w-2xl mx-auto p-4 bg-background">
+            <div ref={receiptRef} className="printable-area max-w-2xl mx-auto p-4 bg-background">
                 <Card className="border shadow-none">
-                    <CardHeader className="p-6 border-b">
+                    <CardHeader className="p-6 border-b bg-muted/30">
                         <div className="flex justify-between items-center">
                              <div>
                                 <h1 className="text-2xl font-bold text-black">RENT BILL</h1>
@@ -65,12 +81,12 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
 
                         <div className="border-t border-b py-4">
                              <div className="flex justify-between items-center">
-                                <p className="text-black">Rent for {format(parseISO(payment.date), 'MMMM yyyy')}</p>
+                                <p className="text-black">Rent for the period of {format(parseISO(payment.date), 'MMMM yyyy')}</p>
                                 <p className="font-semibold text-black">{payment.amount.toLocaleString()}</p>
                             </div>
                         </div>
 
-                         <div className="flex justify-between items-center bg-muted p-4 rounded-md">
+                         <div className="flex justify-between items-center bg-muted/50 p-4 rounded-md">
                             <p className="text-lg font-bold text-black">Total Paid</p>
                             <p className="text-2xl font-bold text-black">{payment.amount.toLocaleString()}</p>
                         </div>
@@ -81,53 +97,6 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                     </CardContent>
                 </Card>
             </div>
-
-
-            <style jsx global>{`
-                @media print {
-                    body {
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        background-color: #ffffff !important;
-                    }
-                    .no-print {
-                        display: none !important;
-                    }
-                    .printable-area {
-                        display: block !important;
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: auto;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        background: #ffffff !important;
-                    }
-                    .printable-area * {
-                        color: #000000 !important;
-                        background-color: transparent !important;
-                        box-shadow: none !important;
-                        text-shadow: none !important;
-                    }
-                    .printable-area .bg-muted {
-                        background-color: #f1f5f9 !important;
-                    }
-                    .printable-area .text-muted-foreground {
-                        color: #64748b !important;
-                    }
-                     .printable-area .text-black {
-                        color: #000000 !important;
-                    }
-                     .printable-area .font-semibold {
-                        font-weight: 600 !important;
-                    }
-                }
-                @page {
-                    size: A4;
-                    margin: 20mm;
-                }
-            `}</style>
         </div>
     );
 }
