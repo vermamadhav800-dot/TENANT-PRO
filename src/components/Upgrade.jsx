@@ -8,16 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import PaymentGateway from './PaymentGateway';
 
 const planFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
@@ -40,6 +31,7 @@ const plans = {
         description: 'Perfect for getting started with basic management needs.',
         cta: 'Your Current Plan',
         maxProperties: 1,
+        priceAmount: 0,
     },
     pro: {
         id: 'pro',
@@ -49,6 +41,7 @@ const plans = {
         description: 'For property owners who need advanced tools and automation.',
         cta: 'Upgrade to Pro',
         maxProperties: 1,
+        priceAmount: 499,
     },
     business: {
         id: 'business',
@@ -57,23 +50,39 @@ const plans = {
         priceSuffix: '/mo',
         description: 'The ultimate solution for managing multiple properties seamlessly.',
         cta: 'Upgrade to Business',
-        maxProperties: 10,
+        maxProperties: 1,
+        priceAmount: 999,
     }
 }
 
 export default function Upgrade({ appState, setAppState, setActiveTab }) {
     const { toast } = useToast();
     const currentPlanId = appState.defaults.subscriptionPlan || 'standard';
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [isGatewayOpen, setIsGatewayOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
 
 
     const handlePlanActionClick = (plan) => {
-        setSelectedPlan(plan);
-        setIsConfirmModalOpen(true);
+        if (plan.id === 'standard') { // Downgrade to free
+            setAppState(prev => ({
+                ...prev,
+                defaults: {
+                    ...prev.defaults,
+                    subscriptionPlan: 'standard',
+                    maxProperties: 1,
+                }
+            }));
+            toast({
+                title: "Plan Changed Successfully!",
+                description: `You have changed to the Standard plan.`,
+            });
+        } else { // Upgrade
+            setSelectedPlan(plan);
+            setIsGatewayOpen(true);
+        }
     };
 
-    const confirmPlanChange = () => {
+    const handlePaymentSuccess = () => {
         if (!selectedPlan) return;
 
         setAppState(prev => ({
@@ -86,15 +95,13 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
         }));
 
         toast({
-            title: "Plan Changed Successfully!",
+            title: "Payment Successful & Plan Upgraded!",
             description: `You are now on the ${selectedPlan.name} plan.`,
         });
 
-        setIsConfirmModalOpen(false);
+        setIsGatewayOpen(false);
         setSelectedPlan(null);
-        if (selectedPlan.id !== 'standard') {
-            setActiveTab('dashboard');
-        }
+        setActiveTab('dashboard');
     }
     
     const getActionForPlan = (plan, isCurrent) => {
@@ -107,11 +114,10 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
             };
         }
         
-        // If current plan is higher than this plan, it's a downgrade
         const planOrder = { standard: 1, pro: 2, business: 3 };
         if (planOrder[currentPlanId] > planOrder[plan.id]) {
              return {
-                text: "Change Plan",
+                text: "Downgrade Plan",
                 variant: "secondary",
                 disabled: false,
                 onClick: () => handlePlanActionClick(plan),
@@ -119,7 +125,6 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
             };
         }
 
-        // Otherwise, it's an upgrade
         return {
             text: plan.cta,
             variant: "default",
@@ -152,13 +157,14 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                     <ul className="space-y-4 text-sm">
                         {planFeatures.map((item, i) => {
                             const FeatureIcon = item.icon || Check;
+                            const isAvailable = item[plan.id] ?? false;
                             return(
                                 <li key={i} className="flex items-center gap-3">
-                                    {item[plan.id] ? 
+                                    {isAvailable ? 
                                         <FeatureIcon className="h-5 w-5 text-green-500" /> : 
                                         <X className="h-5 w-5 text-muted-foreground" />
                                     }
-                                    <span className={cn(!item[plan.id] && "text-muted-foreground")}>
+                                    <span className={cn(!isAvailable && "text-muted-foreground")}>
                                         {item.feature}
                                     </span>
                                 </li>
@@ -173,10 +179,9 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                         onClick={action.onClick} 
                         disabled={action.disabled}
                     >
-                        {action.icon && action.text !== "Upgrade to Pro" && action.icon}
+                        {action.icon && action.text !== "Upgrade to Pro" && action.text !== "Upgrade to Business" && action.icon}
                         {action.text}
-                        {action.icon && action.text === "Upgrade to Pro" && action.icon}
-                        {action.icon && action.text === "Upgrade to Business" && action.icon}
+                        {(action.text === "Upgrade to Pro" || action.text === "Upgrade to Business") && action.icon}
                     </Button>
                 </CardFooter>
             </Card>
@@ -194,24 +199,14 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                {Object.values(plans).map(plan => renderPlanCard(plan))}
             </div>
 
-            <AlertDialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
-                <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Plan Change</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        You are about to change your plan to <strong>{selectedPlan?.name}</strong>
-                        {selectedPlan?.price !== 'Free' && ` for ${selectedPlan?.price}${selectedPlan?.priceSuffix}`}. 
-                        This action will simulate a successful transaction and update your subscription.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setSelectedPlan(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmPlanChange}>
-                        Confirm & Proceed
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {selectedPlan && (
+                <PaymentGateway
+                    isOpen={isGatewayOpen}
+                    onOpenChange={setIsGatewayOpen}
+                    plan={selectedPlan}
+                    onPaymentSuccess={handlePaymentSuccess}
+                />
+            )}
         </div>
     );
 }
