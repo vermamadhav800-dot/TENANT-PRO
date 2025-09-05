@@ -99,4 +99,3 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         </div>
     );
 }
-

@@ -11,7 +11,7 @@ export const INITIAL_APP_STATE = {
     electricityRatePerUnit: 8,
     upiId: '',
     propertyAddress: '[Your Full Property Address]',
-    propertyName: '[Your Building Name]',
+    propertyName: 'jai baba lal ji',
   },
 };
 
