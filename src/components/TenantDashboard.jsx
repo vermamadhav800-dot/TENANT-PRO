@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -102,14 +102,23 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     useEffect(() => {
         if(amountDue > 0) {
             setPaymentAmount(amountDue.toFixed(2));
+        } else {
+            setPaymentAmount('');
         }
     }, [amountDue]);
 
-    const tenantPayments = useMemo(() => {
-        return payments
+    const combinedPayments = useMemo(() => {
+        const approved = payments
             .filter(p => p.tenantId === tenant.id)
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
-    }, [payments, tenant.id]);
+            .map(p => ({...p, status: 'Approved'}));
+
+        const pending = (appState.pendingApprovals || [])
+            .filter(p => p.tenantId === tenant.id)
+            .map(p => ({...p, status: 'Processing'}));
+
+        return [...approved, ...pending].sort((a,b) => new Date(b.date) - new Date(a.date));
+    }, [payments, appState.pendingApprovals, tenant.id]);
+
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
@@ -319,21 +328,33 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Amount</TableHead>
-                                <TableHead>Method</TableHead>
+                                <TableHead>Status / Method</TableHead>
                                 <TableHead className="text-right">Receipt</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {tenantPayments.length > 0 ? (
-                                tenantPayments.map(payment => (
+                            {combinedPayments.length > 0 ? (
+                                combinedPayments.map(payment => (
                                     <TableRow key={payment.id}>
                                         <TableCell>{format(new Date(payment.date), 'dd MMMM, yyyy')}</TableCell>
                                         <TableCell className="font-medium">{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                         <TableCell>
-                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span>
+                                            {payment.status === 'Processing' ? (
+                                                <span className="flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                   <Clock className="mr-2 h-3 w-3" />
+                                                   Processing
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="outline" size="sm" onClick={() => setShowReceipt({ payment, tenant, room })}>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                onClick={() => setShowReceipt({ payment, tenant, room })}
+                                                disabled={payment.status === 'Processing'}
+                                            >
                                                 <FileText className="h-4 w-4 mr-2" /> View
                                             </Button>
                                         </TableCell>
