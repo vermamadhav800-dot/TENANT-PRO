@@ -59,18 +59,21 @@ import { Badge } from "./ui/badge";
 import Documents from "./Documents";
 
 const TABS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard' },
-  { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro' },
-  { id: "tenants", label: "Tenants", icon: Users, plan: 'standard' },
-  { id: "rooms", label: "Rooms", icon: DoorOpen, plan: 'standard' },
-  { id: "payments", label: "Payments", icon: CreditCard, plan: 'standard' },
-  { id: "requests", label: "Requests", icon: Wrench, plan: 'standard' },
-  { id: "electricity", label: "Electricity", icon: Zap, plan: 'standard' },
-  { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro' },
-  { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business' },
-  { id: "reports", label: "Reports", icon: BarChart, plan: 'pro' },
-  { id: "notices", label: "Notices", icon: Megaphone, plan: 'standard' },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard', group: 'main' },
+  { id: "tenants", label: "Tenants", icon: Users, plan: 'standard', group: 'management' },
+  { id: "rooms", label: "Rooms", icon: DoorOpen, plan: 'standard', group: 'management' },
+  { id: "payments", label: "Payments", icon: CreditCard, plan: 'standard', group: 'management' },
+  { id: "requests", label: "Requests", icon: Wrench, plan: 'standard', group: 'operations' },
+  { id: "notices", label: "Notices", icon: Megaphone, plan: 'standard', group: 'operations' },
+  { id: "electricity", label: "Electricity", icon: Zap, plan: 'standard', group: 'operations' },
+  { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro', group: 'analytics' },
+  { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro', group: 'analytics' },
+  { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business', group: 'analytics' },
+  { id: "reports", label: "Reports", icon: BarChart, plan: 'pro', group: 'analytics' },
 ];
+
+const TAB_GROUPS = ['main', 'management', 'operations', 'analytics'];
+
 
 function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const { isMobile } = useSidebar();
@@ -254,37 +257,43 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
              <p className="text-xs text-center text-muted-foreground pb-2">Owner Panel</p>
           </SidebarHeader>
           <SidebarContent className="p-2">
-            <SidebarMenu>
-              {TABS.map((tab) => {
-                const planOrder = { standard: 1, pro: 2, business: 3 };
-                const currentPlanRank = planOrder[currentPlan] || 1;
-                const requiredPlanRank = planOrder[tab.plan] || 1;
-                const isLocked = currentPlanRank < requiredPlanRank;
-                
-                return(
-                <SidebarMenuItem key={tab.id}>
-                  <SidebarMenuButton
-                    onClick={() => handleTabClick(tab)}
-                    isActive={activeTab === tab.id}
-                    tooltip={{ children: tab.label }}
-                    disabled={isLocked}
-                    className={cn(isLocked && "cursor-not-allowed")}
-                  >
-                    <tab.icon />
-                    <span>{tab.label}</span>
-                    {tab.id === 'requests' && totalPendingRequests > 0 && (
-                        <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                            {totalPendingRequests}
-                        </span>
-                    )}
-                    {isLocked && (
-                      <Badge variant="outline" className="ml-auto bg-amber-200/50 text-amber-600 border-amber-300 text-xs">
-                        {tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)}
-                      </Badge>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )})}
+             <SidebarMenu>
+              {TAB_GROUPS.map((group, index) => (
+                <div key={group}>
+                  {index > 0 && <Separator className="my-2" />}
+                  {TABS.filter(tab => tab.group === group).map(tab => {
+                    const planOrder = { standard: 1, pro: 2, business: 3 };
+                    const currentPlanRank = planOrder[currentPlan] || 1;
+                    const requiredPlanRank = planOrder[tab.plan] || 1;
+                    const isLocked = currentPlanRank < requiredPlanRank;
+                    
+                    return (
+                      <SidebarMenuItem key={tab.id}>
+                        <SidebarMenuButton
+                          onClick={() => handleTabClick(tab)}
+                          isActive={activeTab === tab.id}
+                          tooltip={{ children: tab.label }}
+                          disabled={isLocked}
+                          className={cn(isLocked && "cursor-not-allowed")}
+                        >
+                          <tab.icon />
+                          <span>{tab.label}</span>
+                          {tab.id === 'requests' && totalPendingRequests > 0 && (
+                              <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                  {totalPendingRequests}
+                              </span>
+                          )}
+                          {isLocked && (
+                            <Badge variant="outline" className="ml-auto bg-amber-200/50 text-amber-600 border-amber-300 text-xs">
+                              {tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)}
+                            </Badge>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </div>
+              ))}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
