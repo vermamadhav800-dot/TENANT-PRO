@@ -37,6 +37,20 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
         });
         setActiveTab('dashboard');
     };
+    
+    const handleDowngrade = () => {
+        setAppState(prev => ({
+            ...prev,
+            defaults: {
+                ...prev.defaults,
+                subscriptionPlan: 'free',
+            }
+        }));
+        toast({
+            title: "Plan Changed",
+            description: "You are now on the Standard plan.",
+        });
+    };
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 p-4">
@@ -70,8 +84,8 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                             <div className="text-center mt-4">
                                 <span className="text-4xl font-bold">Free</span>
                             </div>
-                            <Button variant="outline" className="w-full mt-6" disabled={!isPro}>
-                                Your Current Plan
+                             <Button variant="outline" className="w-full mt-6" onClick={handleDowngrade} disabled={!isPro}>
+                                {isPro ? "Downgrade to Standard" : "Your Current Plan"}
                             </Button>
                             <Separator className="my-6" />
                              <ul className="space-y-5 text-center flex-grow">
