@@ -54,7 +54,7 @@ export default function Dashboard({ appState, setActiveTab }) {
         id: `payment-${p.id}`,
         type: 'Payment',
         date: p.date,
-        Icon: IndianRupee,
+        Icon: CreditCard,
         content: (
           <p>
             Received a payment of <strong>{p.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</strong> from{' '}

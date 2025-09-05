@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, Trash2, Zap, FileText, Calculator, Home, Check, IndianRupee } from 'lucide-react';
+import { Plus, Trash2, Zap, FileText, Calculator, Home, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -170,7 +170,7 @@ export default function Electricity({ appState, setAppState }) {
                             <span className="flex items-center text-green-600"><Check className="mr-2 h-4 w-4"/>Applied</span>
                         ) : (
                              <Button size="sm" variant="outline" onClick={() => handleApplyToBills(reading.id)}>
-                                <IndianRupee className="mr-2 h-4 w-4"/> Apply to Bills
+                                 Apply to Bills
                              </Button>
                         )}
                       </TableCell>

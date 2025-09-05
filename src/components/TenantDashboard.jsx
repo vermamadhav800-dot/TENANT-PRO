@@ -161,7 +161,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 border-b pb-4">
                          <div>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1"><IndianRupee className="h-4 w-4"/> Base Rent</p>
+                            <p className="text-sm text-muted-foreground">Base Rent</p>
                             <p className="text-lg font-bold">{tenant.rentAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                         <div>
@@ -187,7 +187,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                         <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
                              <DialogTrigger asChild>
                                 <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
-                                    <IndianRupee className="mr-2 h-4 w-4" /> Pay Amount Due
+                                    Pay Amount Due
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
@@ -335,7 +335,6 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
-                        <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
