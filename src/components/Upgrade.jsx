@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight, Wallet, Zap, MinusCircle } from 'lucide-react';
+import { Check, Star, X, Building, FileText, FolderArchive, ArrowRight, Wallet, Zap, MinusCircle, BrainCircuit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,7 @@ const planFeatures = [
     { feature: "Expense Tracking", standard: false, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
+    { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true, icon: BrainCircuit },
     { feature: "Document & Lease Management", standard: false, pro: false, business: true },
     { feature: "Multiple Property Management", standard: false, pro: false, business: true },
 ];
@@ -149,17 +150,20 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                     </div>
                     <Separator />
                     <ul className="space-y-4 text-sm">
-                        {planFeatures.map((item, i) => (
-                            <li key={i} className="flex items-center gap-3">
-                                {item[plan.id] ? 
-                                    <Check className="h-5 w-5 text-green-500" /> : 
-                                    <X className="h-5 w-5 text-muted-foreground" />
-                                }
-                                <span className={cn(!item[plan.id] && "text-muted-foreground")}>
-                                    {item.feature}
-                                </span>
-                            </li>
-                        ))}
+                        {planFeatures.map((item, i) => {
+                            const FeatureIcon = item.icon || Check;
+                            return(
+                                <li key={i} className="flex items-center gap-3">
+                                    {item[plan.id] ? 
+                                        <FeatureIcon className="h-5 w-5 text-green-500" /> : 
+                                        <X className="h-5 w-5 text-muted-foreground" />
+                                    }
+                                    <span className={cn(!item[plan.id] && "text-muted-foreground")}>
+                                        {item.feature}
+                                    </span>
+                                </li>
+                            )
+                        })}
                     </ul>
                 </CardContent>
                 <CardFooter>
