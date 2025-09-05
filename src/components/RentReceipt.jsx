@@ -36,16 +36,16 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
             </div>
             
             {/* The actual printable receipt */}
-            <div className="max-w-2xl mx-auto printable-area p-4 bg-background">
+            <div className="printable-area max-w-2xl mx-auto p-4 bg-background">
                 <Card className="border shadow-none">
                     <CardHeader className="p-6 border-b">
                         <div className="flex justify-between items-center">
                              <div>
-                                <h1 className="text-2xl font-bold">RENT BILL</h1>
+                                <h1 className="text-2xl font-bold text-black">RENT BILL</h1>
                                 <p className="text-muted-foreground">Receipt No: {payment.id}</p>
                             </div>
                             <div className="text-right">
-                                <p className="font-semibold">{defaults.propertyName || '[Your Property Name]'}</p>
+                                <p className="font-semibold text-black">{defaults.propertyName || '[Your Property Name]'}</p>
                                 <p className="text-sm text-muted-foreground">{defaults.propertyAddress || '[Your Property Address]'}</p>
                             </div>
                         </div>
@@ -54,25 +54,25 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <h4 className="font-semibold text-muted-foreground mb-1">BILLED TO</h4>
-                                <p className="font-medium">{tenant.name}</p>
-                                <p>Room {tenant.unitNo}</p>
+                                <p className="font-medium text-black">{tenant.name}</p>
+                                <p className="text-black">Room {tenant.unitNo}</p>
                             </div>
                             <div className="text-right">
                                 <h4 className="font-semibold text-muted-foreground mb-1">PAYMENT DATE</h4>
-                                <p className="font-medium">{format(parseISO(payment.date), 'dd MMMM, yyyy')}</p>
+                                <p className="font-medium text-black">{format(parseISO(payment.date), 'dd MMMM, yyyy')}</p>
                             </div>
                         </div>
 
                         <div className="border-t border-b py-4">
                              <div className="flex justify-between items-center">
-                                <p>Rent for {format(parseISO(payment.date), 'MMMM yyyy')}</p>
-                                <p className="font-semibold">{payment.amount.toLocaleString()}</p>
+                                <p className="text-black">Rent for {format(parseISO(payment.date), 'MMMM yyyy')}</p>
+                                <p className="font-semibold text-black">{payment.amount.toLocaleString()}</p>
                             </div>
                         </div>
 
                          <div className="flex justify-between items-center bg-muted p-4 rounded-md">
-                            <p className="text-lg font-bold">Total Paid</p>
-                            <p className="text-2xl font-bold">{payment.amount.toLocaleString()}</p>
+                            <p className="text-lg font-bold text-black">Total Paid</p>
+                            <p className="text-2xl font-bold text-black">{payment.amount.toLocaleString()}</p>
                         </div>
                         
                         <p className="text-xs text-muted-foreground text-center pt-4">
@@ -86,38 +86,34 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
             <style jsx global>{`
                 @media print {
                     body {
-                        background-color: #fff !important;
-                    }
-                    body * {
-                        visibility: hidden;
-                    }
-                    .printable-area, .printable-area * {
-                        visibility: visible;
-                    }
-                    .printable-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        border: none;
-                        box-shadow: none;
-                        margin: 0;
-                        padding: 0;
-                        background-color: #fff !important;
-                        color: #000 !important;
-                        -webkit-print-color-adjust: exact; 
+                        -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
-                    .printable-area .text-primary, 
-                    .printable-area .text-muted-foreground,
+                    .no-print {
+                        display: none !important;
+                    }
+                    .printable-area {
+                        display: block !important;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: auto;
+                        padding: 0;
+                        margin: 0;
+                        background: #ffffff !important;
+                    }
                     .printable-area * {
-                        color: #000 !important;
+                        color: #000000 !important;
+                        background-color: transparent !important;
+                        box-shadow: none !important;
+                        text-shadow: none !important;
                     }
                     .printable-area .bg-muted {
                         background-color: #f1f5f9 !important;
                     }
-                    .no-print {
-                        display: none;
+                    .printable-area .text-muted-foreground {
+                        color: #555 !important;
                     }
                 }
                 @page {
