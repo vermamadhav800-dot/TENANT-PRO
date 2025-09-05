@@ -215,14 +215,14 @@ export default function Auth({ onAuth }) {
         if (authMode === 'login') {
             return (
                 <>
-                    <OwnerLoginForm onAuth={onAuth} role={role} />
+                    <OwnerLoginForm onAuth={onAuth} role="owner" />
                      <Button variant="link" className="w-full mt-4" onClick={() => setAuthMode('register')}>
                         Don't have an account? Create one
                     </Button>
                 </>
             );
         }
-        return <OwnerRegisterForm onAuth={onAuth} role={role} setAuthMode={setAuthMode} />;
+        return <OwnerRegisterForm onAuth={onAuth} role="owner" setAuthMode={setAuthMode} />;
     }
 
     return (
@@ -246,7 +246,7 @@ export default function Auth({ onAuth }) {
                             <Shield className="inline-block mr-2 h-4 w-4" /> I'm an Owner
                         </button>
                     </div>
-                    {role === 'owner' ? renderOwnerForm() : <TenantLoginForm onAuth={onAuth} role={role} />}
+                    {role === 'owner' ? renderOwnerForm() : <TenantLoginForm onAuth={onAuth} role="tenant" />}
                 </CardContent>
             </Card>
         </div>
