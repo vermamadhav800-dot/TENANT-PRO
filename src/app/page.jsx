@@ -89,8 +89,32 @@ export default function Home() {
             return true;
         }
     } catch (error) {
-        console.error("Firebase Auth Error:", error);
-        toast({ variant: "destructive", title: "Authentication Failed", description: error.message });
+        console.error("Firebase Auth Error:", error.code, error.message);
+        let description = "An unexpected error occurred. Please try again.";
+        switch (error.code) {
+            case 'auth/invalid-credential':
+                description = "Invalid email or password. Please check your credentials or create an account.";
+                break;
+            case 'auth/user-not-found':
+                description = "No account found with this email. Please register first.";
+                break;
+            case 'auth/wrong-password':
+                description = "Incorrect password. Please try again.";
+                break;
+            case 'auth/email-already-in-use':
+                description = "This email address is already registered. Please log in instead.";
+                break;
+            case 'auth/weak-password':
+                description = "The password is too weak. Please use at least 6 characters.";
+                break;
+            case 'auth/invalid-email':
+                 description = "Please enter a valid email address.";
+                 break;
+            default:
+                description = error.message;
+                break;
+        }
+        toast({ variant: "destructive", title: "Authentication Failed", description });
         return false;
     }
   };
