@@ -94,6 +94,9 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
 
             <style jsx global>{`
                 @media print {
+                    body {
+                        background-color: #fff !important;
+                    }
                     body * {
                         visibility: hidden;
                     }
@@ -109,6 +112,21 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                         box-shadow: none;
                         margin: 0;
                         padding: 0;
+                        background-color: #fff !important;
+                        color: #000 !important;
+                        -webkit-print-color-adjust: exact; 
+                        print-color-adjust: exact;
+                    }
+                    .printable-area .text-primary, 
+                    .printable-area .text-muted-foreground,
+                    .printable-area * {
+                        color: #000 !important;
+                    }
+                    .printable-area .bg-primary\\/10 {
+                        background-color: #e0e7ff !important; /* A light blue background for the total */
+                    }
+                    .printable-area .bg-muted\\/50 {
+                        background-color: #f1f5f9 !important; /* A light gray background for footer */
                     }
                     .no-print {
                         display: none;
@@ -122,3 +140,4 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         </div>
     );
 }
+
