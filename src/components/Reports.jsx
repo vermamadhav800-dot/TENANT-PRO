@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell } from 'lucide-react';
+import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell, FileText, Sheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,12 +12,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 export default function Reports({ appState, setAppState }) {
   const { tenants, payments, rooms, electricity } = appState;
   const { toast } = useToast();
+  const reportTableRef = useState(null);
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
@@ -76,28 +80,51 @@ export default function Reports({ appState, setAppState }) {
     { name: "This Month", collected: totalCollected, pending: totalPending }
   ];
 
-  const handleExport = () => {
-    const dataToExport = {
-      summary: {
-        totalCollected,
-        totalPending,
-        paidTenants: paidTenantsCount,
-        pendingTenants: pendingTenantsCount,
-      },
-      detailedStatus: tenantPaymentData,
-      tenants,
-      payments,
-      electricity,
-      rooms,
+  const handleExportPDF = () => {
+    const input = document.getElementById('report-table');
+    if (!input) {
+        toast({variant: "destructive", title: "Error", description: "Report table not found."})
+        return;
     };
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `estateflow-report-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        const width = pdfWidth - 20;
+        const height = width / ratio;
+
+        pdf.text("Monthly Rent Roll Report", 10, 10);
+        pdf.addImage(imgData, 'PNG', 10, 20, width, height);
+        pdf.save(`rent-roll-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+    });
   };
+
+  const handleExportCSV = () => {
+      const headers = ["Tenant Name", "Phone", "Room", "Total Due", "Amount Paid", "Pending", "Status"];
+      const rows = tenantPaymentData.map(d => [
+          d.tenant.name,
+          d.tenant.phone,
+          d.tenant.unitNo,
+          d.totalDue.toFixed(2),
+          d.paidAmount.toFixed(2),
+          d.pendingAmount.toFixed(2),
+          d.status.charAt(0).toUpperCase() + d.status.slice(1)
+      ].join(','));
+      
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `rent-roll-report-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
 
   const handleRemind = (tenantName) => {
     toast({
@@ -118,7 +145,23 @@ export default function Reports({ appState, setAppState }) {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold font-headline">Reports & Analytics</h2>
         <div className="flex gap-2">
-            <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export Data</Button>
+           <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Download className="mr-2 h-4 w-4" /> Export Data
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileText className="mr-2 h-4 w-4"/>
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  <Sheet className="mr-2 h-4 w-4"/>
+                  Export as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </div>
 
@@ -149,64 +192,66 @@ export default function Reports({ appState, setAppState }) {
             <CardTitle>Rent Roll: Detailed Payment Status</CardTitle>
         </CardHeader>
         <CardContent className="p-0 pt-4">
-             <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Tenant</TableHead>
-                        <TableHead>Room</TableHead>
-                        <TableHead>Total Due</TableHead>
-                        <TableHead>Amount Paid</TableHead>
-                        <TableHead>Pending</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {tenantPaymentData.length > 0 ? tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
-                         const CurrentStatusIcon = statusConfig[status].icon;
-                         const canRemind = status === 'pending' || status === 'overdue';
-                         return(
-                            <TableRow key={tenant.id}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="w-9 h-9 border">
-                                        <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
-                                        <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="font-medium">{tenant.name}</p>
-                                        <p className="text-sm text-muted-foreground">{tenant.phone}</p>
-                                    </div>
-                                </div>
-                            </TableCell>
-                            <TableCell>{tenant.unitNo}</TableCell>
-                            <TableCell>{totalDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                            <TableCell className="text-green-600 font-medium">{paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                            <TableCell className="font-semibold text-red-600">{pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                            <TableCell>
-                                <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
-                                    <CurrentStatusIcon className="h-4 w-4"/>
-                                    <span>{statusConfig[status].label}</span>
-                                </div>
-                            </TableCell>
-                             <TableCell className="text-right">
-                                {canRemind && (
-                                    <Button variant="outline" size="sm" onClick={() => handleRemind(tenant.name)}>
-                                        <Bell className="mr-2 h-4 w-4" /> Remind
-                                    </Button>
-                                )}
-                            </TableCell>
-                            </TableRow>
-                         )
-                    }) : (
+             <div id="report-table" className="overflow-x-auto">
+                <Table>
+                    <TableHeader>
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
-                                No tenant data to display for this month.
-                            </TableCell>
+                            <TableHead>Tenant</TableHead>
+                            <TableHead>Room</TableHead>
+                            <TableHead>Total Due</TableHead>
+                            <TableHead>Amount Paid</TableHead>
+                            <TableHead>Pending</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {tenantPaymentData.length > 0 ? tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
+                             const CurrentStatusIcon = statusConfig[status].icon;
+                             const canRemind = status === 'pending' || status === 'overdue';
+                             return(
+                                <TableRow key={tenant.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="w-9 h-9 border">
+                                            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} data-ai-hint="person face" />
+                                            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium">{tenant.name}</p>
+                                            <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>{tenant.unitNo}</TableCell>
+                                <TableCell>{totalDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell className="text-green-600 font-medium">{paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell className="font-semibold text-red-600">{pendingAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                <TableCell>
+                                    <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
+                                        <CurrentStatusIcon className="h-4 w-4"/>
+                                        <span>{statusConfig[status].label}</span>
+                                    </div>
+                                </TableCell>
+                                 <TableCell className="text-right">
+                                    {canRemind && (
+                                        <Button variant="outline" size="sm" onClick={() => handleRemind(tenant.name)}>
+                                            <Bell className="mr-2 h-4 w-4" /> Remind
+                                        </Button>
+                                    )}
+                                </TableCell>
+                                </TableRow>
+                             )
+                        }) : (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                                    No tenant data to display for this month.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </CardContent>
       </Card>
 
