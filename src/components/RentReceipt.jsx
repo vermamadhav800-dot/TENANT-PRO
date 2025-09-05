@@ -6,7 +6,6 @@ import { Download, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
-import AppLogo from './AppLogo';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -23,7 +22,7 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
 
         html2canvas(input, { 
             scale: 2,
-            removeContainer: true // This helps with issues related to complex CSS
+            removeContainer: true
         }).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
@@ -43,8 +42,8 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
-                    <h2 className="text-2xl font-bold">Rent Bill</h2>
-                    <p className="text-muted-foreground">Previewing bill for payment #{payment.id.slice(-6)}</p>
+                    <h2 className="text-2xl font-bold">Rent Receipt</h2>
+                    <p className="text-muted-foreground">Receipt #{payment.id.slice(-6)}</p>
                 </div>
             </div>
 
@@ -55,50 +54,47 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                 </Button>
             </div>
             
-            <div ref={receiptRef} className="printable-area max-w-2xl mx-auto p-4 bg-background">
-                <Card className="border shadow-none">
-                    <CardHeader className="p-6 border-b bg-muted/30">
-                        <div className="flex justify-between items-center">
-                             <div>
-                                <h1 className="text-2xl font-bold text-black">RENT BILL</h1>
-                                <p className="text-muted-foreground">Receipt No: {payment.id}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-semibold text-black">{defaults.propertyName || '[Your Property Name]'}</p>
-                                <p className="text-sm text-muted-foreground">{defaults.propertyAddress || '[Your Property Address]'}</p>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <h4 className="font-semibold text-muted-foreground mb-1">BILLED TO</h4>
-                                <p className="font-medium text-black">{tenant.name}</p>
-                                <p className="text-black">Room {tenant.unitNo}</p>
-                            </div>
-                            <div className="text-right">
-                                <h4 className="font-semibold text-muted-foreground mb-1">PAYMENT DATE</h4>
-                                <p className="font-medium text-black">{format(parseISO(payment.date), 'dd MMMM, yyyy')}</p>
-                            </div>
-                        </div>
+            <div ref={receiptRef} className="p-8 bg-white max-w-2xl mx-auto border rounded-lg">
+                <div className="space-y-4">
+                    <h3 className="text-xl font-medium text-gray-800">Hi {tenant.name},</h3>
+                    <p className="text-gray-600">
+                        Thank you for your payment. This email serves as your receipt. The payment is for rent covering the period of {format(parseISO(payment.date), 'MMMM yyyy')}.
+                    </p>
+                </div>
 
-                        <div className="border-t border-b py-4">
-                             <div className="flex justify-between items-center">
-                                <p className="text-black">Rent for the period of {format(parseISO(payment.date), 'MMMM yyyy')}</p>
-                                <p className="font-semibold text-black">{payment.amount.toLocaleString()}</p>
-                            </div>
-                        </div>
+                <div className="mt-6">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th className="p-3 bg-gray-100 border-b font-semibold text-gray-700">Invoice #</th>
+                                <th className="p-3 bg-gray-100 border-b font-semibold text-gray-700">Payment Date</th>
+                                <th className="p-3 bg-gray-100 border-b font-semibold text-gray-700 text-right">Amount Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td className="p-3 border-b border-gray-200 text-gray-800">{payment.id}</td>
+                                <td className="p-3 border-b border-gray-200 text-gray-800">{format(parseISO(payment.date), 'dd MMMM, yyyy')}</td>
+                                <td className="p-3 border-b border-gray-200 text-gray-800 text-right">{payment.amount.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan="2" className="p-3 font-semibold text-gray-800 text-right">Total:</td>
+                                <td className="p-3 font-semibold text-gray-800 text-right">{payment.amount.toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
-                         <div className="flex justify-between items-center bg-muted/50 p-4 rounded-md">
-                            <p className="text-lg font-bold text-black">Total Paid</p>
-                            <p className="text-2xl font-bold text-black">{payment.amount.toLocaleString()}</p>
-                        </div>
-                        
-                        <p className="text-xs text-muted-foreground text-center pt-4">
-                           This is a computer-generated bill and does not require a signature.
-                        </p>
-                    </CardContent>
-                </Card>
+                 <div className="mt-8 text-center">
+                    <p className="text-sm text-gray-500">
+                        If you have any questions, please contact us at {adminDetails.username}.
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Issued by: {defaults.propertyName || '[Your Property Name]'}
+                    </p>
+                 </div>
             </div>
         </div>
     );
