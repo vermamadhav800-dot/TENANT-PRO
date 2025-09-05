@@ -15,7 +15,6 @@ const OwnerLoginForm = ({ onAuth, role }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
@@ -27,7 +26,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
         }
         setIsLoading(true);
 
-        const loginSuccess = await onAuth({ username, password, role, rememberMe }, 'login');
+        const loginSuccess = await onAuth({ username, password, role }, 'login');
         
         if (!loginSuccess) {
             setIsLoading(false);
@@ -72,13 +71,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                 </div>
             </div>
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} disabled={isLoading} />
-                    <Label htmlFor="remember-me" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Remember me
-                    </Label>
-                </div>
+            <div className="flex items-center justify-end">
                 <a href="#" className="text-sm text-primary hover:underline">
                     Forgot password?
                 </a>
