@@ -53,6 +53,10 @@ export default function Home() {
         }
       }
     } else { // Register
+      if (appState.MOCK_USER_INITIAL) {
+        toast({ variant: "destructive", title: "Registration Error", description: "An owner account already exists. Please log in." });
+        return false;
+      }
       const newOwner = {
         name: credentials.name,
         username: credentials.username,
