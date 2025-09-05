@@ -57,7 +57,7 @@ export default function Home() {
   const handleAuth = async (credentials, action) => {
     try {
         if (action === 'login') {
-            const userCredential = await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+            await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
             toast({ title: "Login Successful", description: "Welcome back!" });
             return true;
         } else { // Register
