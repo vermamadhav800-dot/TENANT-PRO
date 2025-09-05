@@ -12,7 +12,9 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const GenerateNoticeInputSchema = z.string();
-export type GenerateNoticeInput = z.infer<typeof GenerateNoticeInputSchema>;
+/**
+ * @typedef {z.infer<typeof GenerateNoticeInputSchema>} GenerateNoticeInput
+ */
 
 const GenerateNoticeOutputSchema = z.object({
   title: z.string().describe('A clear, concise title for the notice.'),
@@ -22,17 +24,13 @@ const GenerateNoticeOutputSchema = z.object({
       'A professionally written, polite, and detailed message for the notice. It should be formatted with newlines for readability. Ensure it is written from the perspective of a property manager.'
     ),
 });
-export type GenerateNoticeOutput = z.infer<typeof GenerateNoticeOutputSchema>;
-
-export async function generateNotice(
-  input: GenerateNoticeInput
-): Promise<GenerateNoticeOutput> {
-  return generateNoticeFlow(input);
-}
+/**
+ * @typedef {z.infer<typeof GenerateNoticeOutputSchema>} GenerateNoticeOutput
+ */
 
 const prompt = ai.definePrompt({
   name: 'generateNoticePrompt',
-  input: {schema: GenerateNoticeInputSchema},
+  input: {schema: z.string().describe('The user\'s simple instruction for the notice content.')},
   output: {schema: GenerateNoticeOutputSchema},
   prompt: `You are an expert property manager. Your task is to write a clear, professional, and polite notice for tenants based on a simple instruction.
 
@@ -44,11 +42,22 @@ Generate a suitable title and a detailed message for the notice board. Ensure th
 const generateNoticeFlow = ai.defineFlow(
   {
     name: 'generateNoticeFlow',
-    inputSchema: GenerateNoticeInputSchema,
+    inputSchema: z.string(),
     outputSchema: GenerateNoticeOutputSchema,
   },
   async (input) => {
     const {output} = await prompt(input);
-    return output!;
+    return output;
   }
 );
+
+
+/**
+ * @param {GenerateNoticeInput} input
+ * @returns {Promise<GenerateNoticeOutput>}
+ */
+export async function generateNotice(
+  input
+) {
+  return generateNoticeFlow(input);
+}
