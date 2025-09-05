@@ -21,7 +21,10 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         const input = receiptRef.current;
         if (!input) return;
 
-        html2canvas(input, { scale: 2 }).then((canvas) => {
+        html2canvas(input, { 
+            scale: 2,
+            removeContainer: true // This helps with issues related to complex CSS
+        }).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
                 orientation: 'portrait',
@@ -100,3 +103,4 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         </div>
     );
 }
+
