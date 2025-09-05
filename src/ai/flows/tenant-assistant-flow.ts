@@ -29,7 +29,7 @@ const PropertyDataSchema = z.object({
 });
 
 // Define the main input schema for the flow
-export const TenantAssistantInputSchema = z.object({
+const TenantAssistantInputSchema = z.object({
   query: z.string().describe("The tenant's question or query."),
   tenantData: TenantDataSchema.describe("The data specific to the querying tenant."),
   propertyData: PropertyDataSchema.describe("General data about the property."),
