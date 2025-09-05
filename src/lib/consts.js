@@ -11,12 +11,12 @@ export const INITIAL_APP_STATE = {
     electricityRatePerUnit: 8,
     upiId: '',
     propertyAddress: '[Your Full Property Address]',
-    propertyName: 'jai baba lal ji',
+    propertyName: 'Happy Homes PG',
   },
 };
 
 export const MOCK_USER_INITIAL = {
-  name: 'jaibabalal',
-  username: 'jaibabalal',
-  password: 'jaibabalal123',
+  name: 'Admin',
+  username: 'admin',
+  password: 'password123',
 };
