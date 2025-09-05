@@ -357,3 +357,5 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     </SidebarProvider>
   );
 }
+
+    

@@ -18,6 +18,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   const [defaults, setDefaults] = useState(appState.defaults);
   const [currentUser, setCurrentUser] = useState(user);
   const [qrCodePreview, setQrCodePreview] = useState(appState.defaults.qrCodeUrl || null);
+  const isPro = appState.defaults.subscriptionPlan === 'pro' || appState.defaults.subscriptionPlan === 'business';
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -103,7 +104,7 @@ export default function AppSettings({ appState, setAppState, user }) {
        <Card>
         <CardHeader>
             <CardTitle>Automations</CardTitle>
-            <CardDescription>Configure automated features like payment reminders.</CardDescription>
+            <CardDescription>Configure automated features like payment reminders. <span className="text-amber-500 font-semibold">(Pro Feature)</span></CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -116,9 +117,10 @@ export default function AppSettings({ appState, setAppState, user }) {
                     name="enabled"
                     checked={defaults.reminderSettings?.enabled || false}
                     onCheckedChange={(checked) => handleReminderSettingsChange({ target: { name: 'enabled', type: 'checkbox', checked } })}
+                    disabled={!isPro}
                 />
             </div>
-            {defaults.reminderSettings?.enabled && (
+            {defaults.reminderSettings?.enabled && isPro && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-4 border-l-2 ml-2">
                     <div>
                         <Label htmlFor="beforeDays">Remind Before Due Date (Days)</Label>
@@ -143,6 +145,11 @@ export default function AppSettings({ appState, setAppState, user }) {
                          <p className="text-xs text-muted-foreground mt-1">A new reminder will be sent if payment is still overdue after this many days.</p>
                     </div>
                 </div>
+            )}
+             {!isPro && (
+              <div className="text-center text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                Upgrade to the Pro plan to unlock automated payment reminders.
+              </div>
             )}
         </CardContent>
       </Card>
@@ -253,3 +260,5 @@ export default function AppSettings({ appState, setAppState, user }) {
     </div>
   );
 }
+
+    
