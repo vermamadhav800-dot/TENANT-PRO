@@ -67,7 +67,7 @@ const AdminLoginForm = ({ onLogin, role }) => {
                     </button>
                 </div>
             </div>
-            <Button type="submit" className="w-full py-6 text-lg gradient-primary text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
                 {isLoading ? (
                     <>
                         <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
@@ -121,7 +121,7 @@ const TenantLoginForm = ({ onLogin, role }) => {
                     Your phone number is your key. The admin must register your number before you can log in.
                 </CardDescription>
             </div>
-            <Button type="submit" className="w-full py-6 text-lg gradient-primary text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
                 {isLoading ? (
                     <>
                         <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
@@ -140,10 +140,10 @@ export default function Auth({ onLogin }) {
     const [role, setRole] = useState('tenant');
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-sky-100 to-blue-200 p-4">
-            <Card className="w-full max-w-md shadow-2xl animate-fade-in-scale">
+        <div className="min-h-screen w-full flex items-center justify-center dark-bg-grid p-4">
+            <Card className="w-full max-w-md shadow-2xl animate-fade-in-scale glass-card">
                 <CardHeader className="text-center">
-                    <div className="w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-20 h-20 bg-gradient-to-r from-primary to-sky-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <Building2 className="text-white h-10 w-10" />
                     </div>
                     <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>

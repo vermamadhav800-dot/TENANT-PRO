@@ -4,10 +4,10 @@ import { Building2, LoaderCircle } from 'lucide-react';
 
 export default function StartupScreen() {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-sky-300 to-blue-500 flex items-center justify-center z-50">
+    <div className="fixed inset-0 dark-bg-grid flex items-center justify-center z-50">
       <div className="text-center">
         <div className="animate-fade-in-scale mb-8">
-          <div className="w-32 h-32 gradient-primary rounded-3xl flex items-center justify-center mx-auto animate-pulse">
+          <div className="w-32 h-32 bg-gradient-to-r from-primary to-sky-400 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
             <Building2 className="text-white h-16 w-16" />
           </div>
         </div>
