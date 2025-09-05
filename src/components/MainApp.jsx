@@ -47,7 +47,9 @@ import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
 import Approvals from "./Approvals";
 import NoticeBoard from "./NoticeBoard";
-import { useCollection } from "@/lib/hooks";
+import { useCollection, useDocument } from "@/lib/hooks";
+import { LoaderCircle } from 'lucide-react';
+
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -66,8 +68,36 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
 
+  // Fetch all data collections for the logged-in owner
+  const { data: tenants, loading: tenantsLoading } = useCollection('tenants', user.uid);
+  const { data: rooms, loading: roomsLoading } = useCollection('rooms', user.uid);
+  const { data: payments, loading: paymentsLoading } = useCollection('payments', user.uid);
+  const { data: electricity, loading: electricityLoading } = useCollection('electricity', user.uid);
+  const { data: expenses, loading: expensesLoading } = useCollection('expenses', user.uid);
+  const { data: settings, loading: settingsLoading } = useDocument('settings', user.uid);
+  const { data: pendingApprovals, loading: approvalsLoading } = useCollection('approvals', user.uid);
+  const { data: maintenanceRequests, loading: maintenanceLoading } = useCollection('maintenanceRequests', user.uid);
+  const { data: globalNotices, loading: noticesLoading } = useCollection('notices', user.uid);
+  
+  const isLoading = tenantsLoading || roomsLoading || paymentsLoading || electricityLoading || expensesLoading || settingsLoading || approvalsLoading || maintenanceLoading || noticesLoading;
+
+  // The appState is now composed of data fetched from Firestore
+  const appState = {
+      tenants: tenants || [],
+      rooms: rooms || [],
+      payments: payments || [],
+      electricity: electricity || [],
+      expenses: expenses || [],
+      defaults: settings || {},
+      pendingApprovals: pendingApprovals || [],
+      maintenanceRequests: maintenanceRequests || [],
+      globalNotices: globalNotices || [],
+      MOCK_USER_INITIAL: userData // We still pass user data for display
+  }
+
   const renderTabContent = () => {
-    const props = { user, userData };
+    // The setAppState prop is no longer needed as hooks handle state changes directly
+    const props = { appState, user, userData };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
@@ -95,18 +125,16 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
   };
-
-  const { data: pendingApprovals } = useCollection('approvals', user.uid);
-  const { data: maintenanceRequests } = useCollection('maintenanceRequests', user.uid);
-  const pendingApprovalsCount = pendingApprovals.filter(a => a.status === 'pending').length;
-  const pendingMaintenanceCount = maintenanceRequests.filter(r => r.status === 'Pending').length;
+  
+  const pendingApprovalsCount = (pendingApprovals || []).filter(a => a.status === 'pending').length;
+  const pendingMaintenanceCount = (maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         {isMobile && <SidebarTrigger />}
-        <h1 className="text-2xl font-semibold">{TABS.find(t => t.id === activeTab)?.label || 'Settings'}</h1>
+        <h1 className="text-2xl font-semibold capitalize">{TABS.find(t => t.id === activeTab)?.label}</h1>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -116,7 +144,13 @@ function AppContent({ activeTab, setActiveTab, user, userData }) {
         </div>
       </header>
       <main className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="animate-fade-in">{renderTabContent()}</div>
+        {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+                <LoaderCircle className="w-12 h-12 animate-spin text-primary" />
+            </div>
+        ) : (
+            <div className="animate-fade-in">{renderTabContent()}</div>
+        )}
       </main>
     </div>
   );
@@ -208,3 +242,5 @@ export default function MainApp({ onLogout, user, userData }) {
     </SidebarProvider>
   );
 }
+
+    

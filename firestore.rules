@@ -1,18 +1,35 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users can read their own user document
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+
+    // Helper function to check if a user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Allow owners to manage their own settings, rooms, tenants, payments,
-    // expenses, electricity readings, notices, approvals, and maintenance requests.
-    // The "ownerId" field in each document is checked against the logged-in user's ID.
+    // Helper function to check if the user is the owner of the document
+    function isOwner(ownerId) {
+      return request.auth.uid == ownerId;
+    }
+
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Only the user themselves can read or write their own user document
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Rules for all other collections (tenants, rooms, payments, etc.)
+    // We assume these collections have an 'ownerId' field
     match /{collection}/{docId} {
-      allow read, write, delete, create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      // A user can create a document if they are authenticated and the document includes their UID as ownerId
+      allow create: if isAuthenticated() && isOwner(request.resource.data.ownerId);
+
+      // A user can read, update, or delete a document if they are the owner of that document
+      allow read, update, delete: if isAuthenticated() && isOwner(resource.data.ownerId);
     }
   }
 }
+
+    

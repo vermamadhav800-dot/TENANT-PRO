@@ -141,14 +141,11 @@ export default function Home() {
               />;
           }
           if (role === 'tenant') {
-            // Find the specific tenant data from the full tenants list
-            const tenantData = appState.tenants.find(t => t.id === user.uid);
-            if(tenantData) {
-                 return <TenantDashboard 
-                    tenant={tenantData} 
-                    onLogout={handleLogout} 
-                />;
-            }
+            return <TenantDashboard 
+                user={user} 
+                userData={userData} 
+                onLogout={handleLogout} 
+            />;
           }
       }
 

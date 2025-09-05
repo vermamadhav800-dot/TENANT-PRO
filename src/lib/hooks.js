@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc } from 'firebase/firestore';
 
 // This hook is kept for potential future use, but is no longer central to state management
 // since Firebase is now the source of truth.
@@ -117,3 +117,5 @@ export function useDocument(collectionName, docId) {
 
     return { data, loading, error };
 }
+
+    

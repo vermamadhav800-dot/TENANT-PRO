@@ -14,12 +14,10 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } fro
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from "@/hooks/use-toast";
-import { INITIAL_APP_STATE } from '@/lib/consts';
 
-export default function Reports({ appState, setAppState }) {
+export default function Reports({ appState }) {
   const { tenants, payments, rooms, electricity } = appState;
   const { toast } = useToast();
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
@@ -100,16 +98,6 @@ export default function Reports({ appState, setAppState }) {
     a.click();
     URL.revokeObjectURL(url);
   };
-  
-  const handleDeleteAllData = () => {
-    setAppState(INITIAL_APP_STATE);
-    toast({
-      title: 'Success!',
-      description: 'All application data has been deleted.',
-      variant: 'destructive',
-    });
-    setIsDeleteAlertOpen(false);
-  };
 
   const handleRemind = (tenantName) => {
     toast({
@@ -131,23 +119,6 @@ export default function Reports({ appState, setAppState }) {
         <h2 className="text-3xl font-bold font-headline">Reports & Analytics</h2>
         <div className="flex gap-2">
             <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export Data</Button>
-            <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Delete All Data</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete all tenants, rooms, payments, expenses, and electricity records.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAllData}>Yes, delete everything</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
       </div>
 
