@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { useTheme } from "next-themes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { differenceInDays, parseISO, format, formatDistanceToNow } from 'date-fns';
 import AppLogo from './AppLogo';
 import { useToast } from "@/hooks/use-toast";
 import RentReceipt from './RentReceipt';
@@ -359,9 +359,66 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
     );
 };
 
+const Notifications = ({ tenant, appState, setAppState }) => {
+    const tenantNotifications = useMemo(() => {
+        return (appState.notifications || [])
+            .filter(n => n.tenantId === tenant.id)
+            .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }, [appState.notifications, tenant.id]);
+
+    const handleMarkAsRead = (notificationId) => {
+        setAppState(prev => ({
+            ...prev,
+            notifications: prev.notifications.map(n => 
+                n.id === notificationId ? { ...n, isRead: true } : n
+            )
+        }))
+    }
+
+    return (
+        <div className="space-y-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Messages and alerts from your property manager.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {tenantNotifications.length > 0 ? (
+                        <ul className="space-y-4">
+                            {tenantNotifications.map(notification => (
+                                <li key={notification.id} className={cn("p-4 rounded-lg flex items-start gap-4", notification.isRead ? 'bg-muted/50' : 'bg-primary/10 border border-primary/20')}>
+                                    <div className={cn("mt-1", notification.isRead ? 'text-muted-foreground' : 'text-primary')}>
+                                        <Bell className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-grow">
+                                        <p className={cn("font-medium", !notification.isRead && 'text-primary-foreground')}>{notification.message}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                        </p>
+                                    </div>
+                                    {!notification.isRead && (
+                                        <Button variant="ghost" size="sm" onClick={() => handleMarkAsRead(notification.id)}>Mark as Read</Button>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                         <div className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+                            <Bell className="mx-auto h-16 w-16 mb-4" />
+                            <h3 className="text-xl font-semibold mb-2">No Notifications</h3>
+                            <p>You have no new messages from the admin.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
 ];
 
@@ -369,7 +426,11 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { payments, rooms } = appState;
+    const { payments, rooms, notifications = [] } = appState;
+
+    const unreadNotificationsCount = useMemo(() => {
+        return notifications.filter(n => n.tenantId === tenant.id && !n.isRead).length;
+    }, [notifications, tenant.id]);
 
     const room = useMemo(() => {
         return rooms.find(r => r.number === tenant.unitNo);
@@ -381,6 +442,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
             case 'payments':
                 return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
+            case 'notifications':
+                return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
@@ -406,7 +469,12 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                         }}
                     >
                         <tab.icon className="h-5 w-5" />
-                        {tab.label}
+                        <span>{tab.label}</span>
+                         {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
+                            <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                {unreadNotificationsCount}
+                            </span>
+                        )}
                     </Button>
                 ))}
             </div>

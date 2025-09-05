@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, IndianRupee, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { differenceInDays, parseISO, format, isValid } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Textarea } from './ui/textarea';
 
 
 const TenantFormModal = ({
@@ -314,12 +315,71 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
   );
 };
 
+const NotificationModal = ({ tenant, isOpen, setIsOpen, setAppState }) => {
+    const { toast } = useToast();
+    const [message, setMessage] = useState('');
+
+    if(!tenant) return null;
+
+    const handleSend = () => {
+        if (!message.trim()) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Notification message cannot be empty.' });
+            return;
+        }
+
+        const newNotification = {
+            id: Date.now().toString(),
+            tenantId: tenant.id,
+            message: message,
+            createdAt: new Date().toISOString(),
+            isRead: false,
+        };
+        
+        setAppState(prev => ({
+            ...prev,
+            notifications: [...(prev.notifications || []), newNotification]
+        }));
+        
+        toast({ title: "Success", description: `Notification sent to ${tenant.name}.` });
+        setIsOpen(false);
+        setMessage('');
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Send Notification to {tenant.name}</DialogTitle>
+                    <DialogDescription>
+                        Type your message below. The tenant will see this in their notification panel.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Label htmlFor="notification-message" className="sr-only">Message</Label>
+                    <Textarea 
+                        id="notification-message"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="e.g., Please collect your package from the office..."
+                        rows={5}
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSend}>Send Notification</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 
 export default function Tenants({ appState, setAppState }) {
-  const { tenants, rooms, payments, electricity } = appState;
+  const { tenants, rooms, payments, electricity, notifications = [] } = appState;
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState(null);
 
   const availableUnits = useMemo(() => {
@@ -371,7 +431,7 @@ export default function Tenants({ appState, setAppState }) {
     if (!room) return { label: 'Awaiting', color: 'secondary' };
 
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
-    const roomElectricityBill = electricity
+    const roomElectricityBill = (electricity || [])
       .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
       .reduce((sum, e) => sum + e.totalAmount, 0);
     const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
@@ -404,6 +464,11 @@ export default function Tenants({ appState, setAppState }) {
     setSelectedTenant(tenant);
     setIsDeleteModalOpen(true);
   };
+
+  const handleNotifyTenant = (tenant) => {
+    setSelectedTenant(tenant);
+    setIsNotifyModalOpen(true);
+  }
 
   return (
     <div className="space-y-6">
@@ -488,6 +553,9 @@ export default function Tenants({ appState, setAppState }) {
                                 <DropdownMenuItem onClick={() => handleViewDetails(tenant)}>
                                   <ViewIcon className="mr-2 h-4 w-4" /> View Details
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleNotifyTenant(tenant)}>
+                                  <MessageSquare className="mr-2 h-4 w-4" /> Send Notification
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleOpenForm(tenant)}>
                                   <Edit className="mr-2 h-4 w-4" /> Edit Tenant
                                 </DropdownMenuItem>
@@ -518,6 +586,7 @@ export default function Tenants({ appState, setAppState }) {
       {isFormModalOpen && <TenantFormModal isOpen={isFormModalOpen} setIsOpen={setIsFormModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} />}
       {isDeleteModalOpen && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
       {isDetailsModalOpen && <TenantDetailsModal isOpen={isDetailsModalOpen} setIsOpen={setIsDetailsModalOpen} tenant={selectedTenant} room={rooms.find(r => r.number === selectedTenant?.unitNo) || null} />}
+      {isNotifyModalOpen && <NotificationModal isOpen={isNotifyModalOpen} setIsOpen={setIsNotifyModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ export const INITIAL_APP_STATE = {
   electricity: [],
   expenses: [],
   pendingApprovals: [],
+  notifications: [],
   defaults: {
     electricityRatePerUnit: 8,
     upiId: ''
