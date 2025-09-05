@@ -117,8 +117,8 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const currentTabLabel = activeTab === 'upgrade' ? 'Upgrade Plan' : (currentTabInfo.label || 'Dashboard');
 
   return (
-    <div className="flex-1 flex flex-col bg-muted/40">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <div className="flex-1 flex flex-col bg-background/90">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-white/10 bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         {isMobile && <SidebarTrigger />}
         <h1 className="text-2xl font-semibold capitalize">{currentTabLabel}</h1>
         <div className="ml-auto flex items-center gap-4">
@@ -284,7 +284,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                               </span>
                           )}
                           {isLocked && (
-                            <Badge variant="outline" className="ml-auto bg-amber-200/50 text-amber-600 border-amber-300 text-xs">
+                            <Badge variant="outline" className="ml-auto bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs">
                               {tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)}
                             </Badge>
                           )}
@@ -299,7 +299,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           <SidebarFooter>
              <div className="p-2">
               {currentPlan === 'standard' ? (
-                <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-violet-500 text-white shadow-lg hover:shadow-blue-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
                   <Star className="mr-2 h-4 w-4" />
                   Upgrade Plan
                 </Button>
@@ -307,8 +307,8 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                 <div 
                   className={cn(
                     "w-full text-center p-2 rounded-lg text-sm font-semibold flex items-center justify-center",
-                    currentPlan === 'pro' && "bg-blue-100 text-blue-800",
-                    currentPlan === 'business' && "bg-purple-100 text-purple-800"
+                    currentPlan === 'pro' && "bg-blue-500/20 text-blue-300",
+                    currentPlan === 'business' && "bg-violet-500/20 text-violet-300"
                   )}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />

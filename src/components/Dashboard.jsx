@@ -86,28 +86,28 @@ export default function Dashboard({ appState, setActiveTab }) {
 
   return (
     <div className="space-y-8">
-       <Card className="bg-gradient-to-tr from-primary to-sky-400 text-primary-foreground">
+       <Card className="bg-gradient-to-tr from-primary/80 to-secondary/80 text-primary-foreground border-0">
         <CardHeader>
           <CardTitle>This Month's Financial Summary</CardTitle>
           <CardDescription className="text-primary-foreground/80">A quick overview of your finances for the current month.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-lg"><TrendingUp className="h-6 w-6"/></div>
+            <div className="bg-white/10 p-3 rounded-lg"><TrendingUp className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Revenue</p>
               <p className="text-2xl font-bold">₹{monthlyRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-lg"><TrendingDown className="h-6 w-6"/></div>
+            <div className="bg-white/10 p-3 rounded-lg"><TrendingDown className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Expenses</p>
               <p className="text-2xl font-bold">₹{monthlyExpenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-lg"><Scale className="h-6 w-6"/></div>
+            <div className="bg-white/10 p-3 rounded-lg"><Scale className="h-6 w-6"/></div>
             <div>
               <p className="text-sm">Net Profit</p>
               <p className="text-2xl font-bold">₹{netProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
@@ -133,31 +133,31 @@ export default function Dashboard({ appState, setActiveTab }) {
         />
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button size="lg" onClick={() => setActiveTab('tenants')}>
+          <Button size="lg" onClick={() => setActiveTab('tenants')} className="btn-gradient-glow">
             <UserPlus className="mr-2 h-5 w-5" />
             Add Tenant
           </Button>
-          <Button size="lg" onClick={() => setActiveTab('rooms')} variant="secondary">
+          <Button size="lg" onClick={() => setActiveTab('rooms')} variant="outline">
             <DoorClosed className="mr-2 h-5 w-5" />
             Add Room
           </Button>
-          <Button size="lg" onClick={() => setActiveTab('payments')} variant="secondary">
+          <Button size="lg" onClick={() => setActiveTab('payments')} variant="outline">
             <CreditCard className="mr-2 h-5 w-5" />
             Record Payment
           </Button>
-          <Button size="lg" onClick={() => setActiveTab('expenses')} variant="secondary">
+          <Button size="lg" onClick={() => setActiveTab('expenses')} variant="outline">
             <Wallet className="mr-2 h-5 w-5" />
             Add Expense
           </Button>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
@@ -166,7 +166,7 @@ export default function Dashboard({ appState, setActiveTab }) {
             <ul className="space-y-4">
               {recentActivities.map(activity => (
                 <li key={activity.id} className="flex items-start gap-4">
-                  <div className="bg-muted p-2 rounded-full">
+                  <div className="bg-muted/50 p-3 rounded-full">
                     <activity.Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-grow">
@@ -190,5 +190,3 @@ export default function Dashboard({ appState, setActiveTab }) {
     </div>
   );
 }
-
-    

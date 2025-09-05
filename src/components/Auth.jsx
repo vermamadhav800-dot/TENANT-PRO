@@ -219,23 +219,23 @@ export default function Auth({ onAuth }) {
     }
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center dark-bg-grid p-4">
+        <div className="min-h-screen w-full flex items-center justify-center dark-bg-futuristic p-4">
             <Card className="w-full max-w-md shadow-2xl animate-fade-in-scale glass-card">
                 <CardHeader className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-r from-primary to-sky-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
                         <Building2 className="text-white h-10 w-10" />
                     </div>
-                    <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>
+                    <CardTitle className="text-3xl font-headline gradient-text">Welcome to EstateFlow</CardTitle>
                     <CardDescription>
                          Sign in or create an account to continue
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 gap-2 bg-muted p-1 rounded-lg mb-6">
-                        <button onClick={() => { setRole('tenant'); setAuthMode('login'); }} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'tenant' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
+                    <div className="grid grid-cols-2 gap-2 bg-black/20 p-1 rounded-lg mb-6">
+                        <button onClick={() => { setRole('tenant'); setAuthMode('login'); }} className={cn("py-2.5 rounded-md text-sm font-medium transition-all duration-300", role === 'tenant' ? 'bg-card shadow-md' : 'text-muted-foreground hover:bg-white/5')}>
                             <User className="inline-block mr-2 h-4 w-4" /> I'm a Tenant
                         </button>
-                        <button onClick={() => setRole('owner')} className={cn("py-2.5 rounded-md text-sm font-medium transition-colors", role === 'owner' ? 'bg-background shadow' : 'text-muted-foreground hover:bg-background/50')}>
+                        <button onClick={() => setRole('owner')} className={cn("py-2.5 rounded-md text-sm font-medium transition-all duration-300", role === 'owner' ? 'bg-card shadow-md' : 'text-muted-foreground hover:bg-white/5')}>
                             <Shield className="inline-block mr-2 h-4 w-4" /> I'm an Owner
                         </button>
                     </div>

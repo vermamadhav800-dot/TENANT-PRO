@@ -30,7 +30,6 @@ const plans = {
         priceSuffix: '',
         description: 'Perfect for getting started with basic management needs.',
         cta: 'Your Current Plan',
-        maxProperties: 1,
         priceAmount: 0,
     },
     pro: {
@@ -40,7 +39,6 @@ const plans = {
         priceSuffix: '/mo',
         description: 'For property owners who need advanced tools and automation.',
         cta: 'Upgrade to Pro',
-        maxProperties: 1,
         priceAmount: 499,
     },
     business: {
@@ -48,9 +46,8 @@ const plans = {
         name: 'Business',
         price: '999',
         priceSuffix: '/mo',
-        description: 'The ultimate solution for managing multiple properties seamlessly.',
+        description: 'The ultimate solution for scaling your property business.',
         cta: 'Upgrade to Business',
-        maxProperties: 1,
         priceAmount: 999,
     }
 }
@@ -69,7 +66,6 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                 defaults: {
                     ...prev.defaults,
                     subscriptionPlan: 'standard',
-                    maxProperties: 1,
                 }
             }));
             toast({
@@ -90,7 +86,6 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
             defaults: {
                 ...prev.defaults,
                 subscriptionPlan: selectedPlan.id,
-                maxProperties: selectedPlan.maxProperties,
             }
         }));
 
@@ -137,12 +132,14 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
 
     const renderPlanCard = (plan) => {
         const isCurrent = plan.id === currentPlanId;
+        const isPro = plan.id === 'pro';
         const action = getActionForPlan(plan, isCurrent);
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col",
-                isCurrent ? "border-2 border-primary shadow-lg shadow-primary/20" : "border-gray-200 dark:border-gray-800"
+                "flex flex-col glass-card transition-all duration-300 hover:border-primary/80 hover:shadow-primary/20",
+                isCurrent && "border-2 border-primary shadow-lg shadow-primary/20",
+                isPro && !isCurrent && "border-2 border-transparent lg:scale-105"
             )}>
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
@@ -150,10 +147,10 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
                     <div className="text-center flex items-baseline justify-center">
-                        <span className="text-4xl font-extrabold">{plan.price}</span>
+                        <span className="text-4xl font-extrabold">₹{plan.price}</span>
                         {plan.price !== 'Free' && <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>}
                     </div>
-                    <Separator />
+                    <Separator className="bg-white/10"/>
                     <ul className="space-y-4 text-sm">
                         {planFeatures.map((item, i) => {
                             const FeatureIcon = item.icon || Check;
@@ -161,10 +158,10 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                             return(
                                 <li key={i} className="flex items-center gap-3">
                                     {isAvailable ? 
-                                        <FeatureIcon className="h-5 w-5 text-green-500" /> : 
-                                        <X className="h-5 w-5 text-muted-foreground" />
+                                        <FeatureIcon className="h-5 w-5 text-green-400" style={{filter: 'drop-shadow(0 0 5px currentColor)'}}/> : 
+                                        <X className="h-5 w-5 text-muted-foreground/50" />
                                     }
-                                    <span className={cn(!isAvailable && "text-muted-foreground")}>
+                                    <span className={cn(!isAvailable && "text-muted-foreground/60")}>
                                         {item.feature}
                                     </span>
                                 </li>
@@ -190,9 +187,9 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 p-4">
-            <div className="text-center">
-                <h1 className="text-4xl font-bold font-headline">Choose the plan that's right for you</h1>
-                <p className="text-muted-foreground mt-2">Unlock powerful features to manage your properties like a pro.</p>
+            <div className="text-center space-y-2">
+                <h1 className="text-4xl font-bold font-headline gradient-text">Choose the plan that’s right for you</h1>
+                <p className="text-muted-foreground text-lg">Unlock powerful features to manage your properties like a pro.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
@@ -210,5 +207,3 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
         </div>
     );
 }
-
-    

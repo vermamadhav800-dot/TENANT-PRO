@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 body {
-  font-family: 'PT Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 @layer base {
   :root {
-    --background: 240 10% 99%; /* Almost white */
+    --background: 240 10% 99%;
     --foreground: 240 10% 3.9%;
     
     --muted: 240 5% 96.1%;
@@ -20,75 +20,74 @@ body {
     --card: 240 10% 100%;
     --card-foreground: 240 10% 3.9%;
     
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
 
-    --primary: 210 90% 55%; /* Brighter, more vibrant blue */
+    --primary: 221 83% 53%; /* Bright Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96.1%;
-    --secondary-foreground: 240 10% 3.9%;
+    --secondary: 262 80% 58%; /* Violet */
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 160 51% 60%;
-    --accent-foreground: 240 10% 3.9%;
+    --accent: 180 85% 45%; /* Cyan */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --ring: 210 90% 55%;
-
+    --ring: 221 83% 53%;
     --radius: 0.75rem;
 
     --sidebar: 240 5% 96%;
     --sidebar-foreground: 240 10% 3.9%;
     --sidebar-border: 240 6% 88%;
-    --sidebar-accent: 210 90% 55%;
+    --sidebar-accent: 221 83% 53%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-ring: 210 90% 55%;
+    --sidebar-ring: 221 83% 53%;
 
-    --chart-1: 210 90% 55%;
-    --chart-2: 160 51% 60%;
-    --chart-3: 30 90% 60%;
-    --chart-4: 280 80% 65%;
-    --chart-5: 0 84% 60%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 262 80% 58%;
+    --chart-3: 180 85% 45%;
+    --chart-4: 330 80% 55%;
+    --chart-5: 40 90% 50%;
   }
  
   .dark {
-    --background: 240 10% 4%; /* Near black */
-    --foreground: 0 0% 98%;
+    --background: 224 71% 4%; /* Near black/navy */
+    --foreground: 210 20% 98%;
 
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 216 12% 75%;
 
-    --popover: 240 10% 4%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 20% 98%;
 
-    --card: 240, 4%, 10%; /* Slightly lighter than background */
-    --card-foreground: 0 0% 98%;
+    --card: 220 20% 9%;
+    --card-foreground: 210 20% 98%;
 
-    --border: 240 4% 15%;
-    --input: 240 4% 15%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
 
-    --primary: 210 90% 55%;
+    --primary: 210 100% 50%; /* Neon Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 262 100% 60%; /* Neon Violet */
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 160 51% 60%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 180 100% 50%; /* Neon Cyan */
+    --accent-foreground: 224 71% 4%;
 
-    --destructive: 0 63% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
-    --ring: 210 90% 55%;
+    --ring: 210 100% 50%;
     
-    --sidebar: 240 10% 4%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-border: 240 4% 15%;
-    --sidebar-accent: 210 90% 55%;
+    --sidebar: 224 71% 6%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-border: 215 28% 12%;
+    --sidebar-accent: 210 100% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-ring: 210 90% 55%;
+    --sidebar-ring: 210 100% 50%;
   }
 }
  
@@ -103,21 +102,22 @@ body {
 
 @layer components {
   .glass-card {
-    @apply rounded-2xl border bg-card/50 shadow-lg backdrop-blur-xl;
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg shadow-black/20 transition-all duration-300;
   }
 
   .btn-gradient-glow {
-    @apply bg-gradient-to-r from-primary to-sky-400 text-white transition-all duration-300 hover:shadow-[0_0_20px_theme(colors.sky.500)] focus:ring-4 focus:ring-sky-500/50;
+    @apply bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 focus:ring-4 focus:ring-primary/50;
+  }
+  
+  .dark-bg-futuristic {
+    background-color: hsl(224, 71%, 4%);
+    background-image:
+      radial-gradient(at 20% 80%, hsla(262,100%,60%,0.2) 0px, transparent 50%),
+      radial-gradient(at 80% 20%, hsla(210,100%,50%,0.2) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, hsla(180,100%,50%,0.1) 0px, transparent 50%);
   }
 
-  .dark-bg-grid {
-    background-color: hsl(222 47% 11%);
-    background-image:
-      radial-gradient(circle at 25px 25px, hsl(222 47% 11%) 2%, hsla(222, 47%, 11%, 0) 100%),
-      radial-gradient(circle at 75px 75px, hsl(222 47% 11%) 2%, hsla(222, 47%, 11%, 0) 100%),
-      linear-gradient(hsla(222, 47%, 11%, 0.8) 1px, transparent 1px),
-      linear-gradient(90deg, hsla(222, 47%, 11%, 0.8) 1px, transparent 1px);
-    background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;
-    background-position: 0 0, 50px 50px, 0 0, 0 0;
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-400 text-transparent bg-clip-text;
   }
 }

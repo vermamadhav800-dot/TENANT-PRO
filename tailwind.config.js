@@ -18,8 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['PT Sans', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        headline: ['Inter', 'sans-serif'],
+        sans: ['Inter', ...fontFamily.sans],
         code: ['monospace'],
       },
       colors: {
