@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -123,6 +124,18 @@ export default function AppSettings({ appState, setAppState, user }) {
               />
             </div>
           </div>
+           <div className="pt-4">
+              <Label htmlFor="qrCodeUrl">Payment QR Code Image URL</Label>
+              <Input
+                id="qrCodeUrl"
+                name="qrCodeUrl"
+                type="text"
+                placeholder="https://your-image-host.com/qr.png"
+                value={defaults.qrCodeUrl || ''}
+                onChange={handleDefaultsChange}
+              />
+               <p className="text-xs text-muted-foreground mt-1">Upload your QR code to a service like Imgur and paste the image link here.</p>
+            </div>
         </CardContent>
       </Card>
       

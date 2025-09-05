@@ -64,8 +64,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentScreenshot, setPaymentScreenshot] = useState(null);
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
+    const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
 
-    const adminUpiId = appState.defaults?.upiId;
+    const { upiId: adminUpiId, qrCodeUrl } = appState.defaults || {};
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
@@ -139,6 +140,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         setIsPaymentModalOpen(false);
         setPaymentScreenshot(null);
         setPaymentScreenshotPreview(null);
+        setPaymentView('default');
 
         toast({
             title: "Submitted for Approval!",
@@ -151,6 +153,82 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     }
 
     const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(ownerDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
+
+    const renderPaymentDialogContent = () => {
+        if (paymentView === 'qr') {
+            return (
+                <>
+                    <DialogHeader>
+                        <DialogTitle>Pay with QR Code</DialogTitle>
+                         <DialogDescription>
+                           Scan the code below, complete the payment, take a screenshot, and upload it for approval.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4 text-center">
+                        {qrCodeUrl ? (
+                            <img src={qrCodeUrl} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" data-ai-hint="qr code"/>
+                        ) : (
+                            <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">
+                                QR Code not set by owner.
+                            </div>
+                        )}
+                        <p className="font-bold text-xl">Amount: {amountDue.toFixed(2)}</p>
+                        <Button variant="link" onClick={() => setPaymentView('default')}>Back to other options</Button>
+                    </div>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Complete Your Payment</DialogTitle>
+                    <DialogDescription>
+                       Step 1: Use one of the options below to pay <strong className="font-bold">{amountDue.toFixed(2)}</strong>.
+                       Step 2: Take a screenshot of the confirmation.
+                       Step 3: Upload it here and submit for approval.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    {!adminUpiId && !qrCodeUrl ? (
+                        <p className="text-red-500 text-center">The owner has not configured any payment methods yet.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           {upiLink && (
+                             <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
+                                <Button size="lg" className="w-full h-full">
+                                    <ExternalLink className="mr-2 h-5 w-5" />
+                                    Pay via UPI App
+                                </Button>
+                            </a>
+                           )}
+                           {qrCodeUrl && (
+                                <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')}>
+                                    <QrCode className="mr-2 h-5 w-5" />
+                                    Pay with QR Code
+                                </Button>
+                           )}
+                        </div>
+                    )}
+                    <div className="space-y-2 pt-4">
+                        <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
+                        <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
+                        {paymentScreenshotPreview && (
+                            <div className="mt-2 text-center">
+                                <img src={paymentScreenshotPreview} alt="Payment screenshot preview" className="max-h-48 mx-auto rounded-md border" />
+                                <p className="text-xs text-muted-foreground mt-1">Screenshot ready for upload.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                 <DialogFooter>
+                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || (!upiLink && !qrCodeUrl)}>
+                        Submit for Approval
+                    </Button>
+                </DialogFooter>
+            </>
+        )
+    }
 
     return (
         <div className="space-y-6">
@@ -184,48 +262,17 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 </CardContent>
                 <CardFooter>
                      {amountDue > 0 ? (
-                        <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+                        <Dialog open={isPaymentModalOpen} onOpenChange={(isOpen) => {
+                            setIsPaymentModalOpen(isOpen);
+                            if (!isOpen) setPaymentView('default'); // Reset view on close
+                        }}>
                              <DialogTrigger asChild>
-                                <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
+                                <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId && !qrCodeUrl}>
                                     Pay Amount Due
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Complete Your Payment</DialogTitle>
-                                    <DialogDescription>
-                                       Step 1: Use the button below to pay <strong className="font-bold">{amountDue.toFixed(2)}</strong>.
-                                       Step 2: Take a screenshot of the confirmation.
-                                       Step 3: Upload it here and submit for approval.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                 <div className="py-4 space-y-4">
-                                    {!upiLink ? (
-                                        <p className="text-red-500 text-center">The owner has not configured their UPI ID for payments yet.</p>
-                                    ) : (
-                                        <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
-                                            <Button size="lg" className="w-full">
-                                                <ExternalLink className="mr-2 h-5 w-5" />
-                                                Proceed to UPI App
-                                            </Button>
-                                        </a>
-                                    )}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
-                                        <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
-                                        {paymentScreenshotPreview && (
-                                            <div className="mt-2 text-center">
-                                                <img src={paymentScreenshotPreview} alt="Payment screenshot preview" className="max-h-48 mx-auto rounded-md border" />
-                                                <p className="text-xs text-muted-foreground mt-1">Screenshot ready for upload.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink || !paymentScreenshot}>
-                                        Submit for Approval
-                                    </Button>
-                                </DialogFooter>
+                                {renderPaymentDialogContent()}
                             </DialogContent>
                         </Dialog>
                     ) : (
