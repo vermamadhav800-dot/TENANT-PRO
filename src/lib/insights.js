@@ -71,7 +71,7 @@ export function getInsights(appState) {
     
     // Lease Ending/Rent Due Soon Alert
     const daysUntilDue = differenceInDays(dueDate, today);
-    if (daysUntilDue > 0 && daysUntilDue <= 30) {
+    if (daysUntilDue > 0 && daysUntilDue <= 7) {
       alerts.push({
         type: 'Lease Ending Soon',
         message: `${tenant.name}'s rent is due in ${daysUntilDue} days.`,
@@ -101,7 +101,7 @@ export function getInsights(appState) {
        const daysOverdue = differenceInDays(today, dueDate);
        alerts.push({
         type: 'Overdue Payment',
-        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${pendingAmount.toFixed(2)}.`,
+        message: `${tenant.name} is overdue by ${daysOverdue} day(s). Pending: ${pendingAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}.`,
         level: 'danger',
       });
     }
@@ -158,3 +158,5 @@ export function getInsights(appState) {
     alerts: sortedAlerts.slice(0, 5), // Limit to 5 most relevant alerts
   };
 }
+
+    

@@ -72,7 +72,9 @@ export default function Reports({ appState, setAppState }) {
     .reduce((sum, p) => sum + p.amount, 0);
 
   const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
+  
   const paidTenantsCount = tenantPaymentData.filter(d => d.status === 'paid').length;
+  
   const pendingTenantsCount = tenantPaymentData.filter(d => d.status === 'pending' || d.status === 'overdue').length;
 
   const chartData = [
@@ -210,9 +212,9 @@ export default function Reports({ appState, setAppState }) {
                                 </div>
                             </TableCell>
                             <TableCell>{tenant.unitNo}</TableCell>
-                            <TableCell>{totalDue.toFixed(2)}</TableCell>
-                            <TableCell className="text-green-600 font-medium">{paidAmount.toFixed(2)}</TableCell>
-                            <TableCell className="font-semibold text-red-600">{pendingAmount.toFixed(2)}</TableCell>
+                            <TableCell>{totalDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                            <TableCell className="text-green-600 font-medium">{paidAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                            <TableCell className="font-semibold text-red-600">{pendingAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                             <TableCell>
                                 <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
                                     <CurrentStatusIcon className="h-4 w-4"/>
@@ -261,5 +263,7 @@ export default function Reports({ appState, setAppState }) {
     </div>
   );
 }
+
+    
 
     

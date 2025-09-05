@@ -72,17 +72,9 @@ export default function Payments({ appState, setAppState }) {
   const thisMonthCollection = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
   
   const totalPending = tenants.reduce((totalPending, tenant) => {
-    if (!tenant.dueDate || !parseISO(tenant.dueDate)) return totalPending;
-
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return totalPending;
 
-    // Only calculate pending for dues this month
-    const dueDate = parseISO(tenant.dueDate);
-    if (dueDate.getMonth() !== thisMonth || dueDate.getFullYear() !== thisYear) {
-      return totalPending;
-    }
-    
     // Calculate tenant's share of electricity bill for the month
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
     const roomElectricityBill = (electricity || [])
@@ -173,7 +165,7 @@ export default function Payments({ appState, setAppState }) {
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
                       <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
-                      <TableCell>{payment.amount.toLocaleString()}</TableCell>
+                      <TableCell>{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
                       <TableCell className="text-right">
@@ -207,3 +199,5 @@ export default function Payments({ appState, setAppState }) {
     </div>
   );
 }
+
+    

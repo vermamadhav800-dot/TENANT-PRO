@@ -311,9 +311,9 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
         if (amountDue <= 0) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
         
         const dueDate = tenant.dueDate ? parseISO(tenant.dueDate) : new Date();
-        const daysDiff = differenceInDays(dueDate, new Date());
+        const daysDiff = differenceInDays(new Date(), dueDate);
         
-        if (daysDiff < 0) return { label: 'Overdue', color: "text-red-500", Icon: BadgeAlert };
+        if (daysDiff > 0) return { label: 'Overdue', color: "text-red-500", Icon: BadgeAlert };
         
         return { label: 'Upcoming', color: "text-yellow-500", Icon: BadgeAlert };
     }, [tenant.dueDate, amountDue]);
@@ -539,5 +539,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    
 
     
