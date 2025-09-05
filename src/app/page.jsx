@@ -27,7 +27,7 @@ export default function Home() {
   const handleAuth = (credentials, action) => {
     if (action === 'login') {
       if (credentials.role === 'owner') {
-        if (!appState.MOCK_USER_INITIAL) {
+        if (!appState.MOCK_USER_INITIAL?.username) {
             toast({ variant: "destructive", title: "Login Error", description: "No owner account found. Please register first." });
             return false;
         }
@@ -45,7 +45,7 @@ export default function Home() {
         }
       }
     } else { // Register
-      if (appState.MOCK_USER_INITIAL) {
+      if (appState.MOCK_USER_INITIAL?.username) {
         toast({ variant: "destructive", title: "Registration Error", description: "An owner account already exists. Please log in." });
         return false;
       }
