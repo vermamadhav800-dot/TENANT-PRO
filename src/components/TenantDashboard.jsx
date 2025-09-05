@@ -64,10 +64,13 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentScreenshot, setPaymentScreenshot] = useState(null);
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
+    const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
 
-    const { upiId: adminUpiId, qrCodeUrl: adminQrCodeUrl } = appState.defaults || {};
+    const { upiId: adminUpiId } = appState.defaults || {};
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
+    const adminQrCodeUrl = appState.defaults?.qrCodeUrl;
+
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
@@ -96,6 +99,12 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
 
     }, [room, tenant, payments, appState.defaults]);
 
+    useEffect(() => {
+        if(amountDue > 0) {
+            setPaymentAmount(amountDue.toFixed(2));
+        }
+    }, [amountDue]);
+
     const tenantPayments = useMemo(() => {
         return payments
             .filter(p => p.tenantId === tenant.id)
@@ -123,11 +132,20 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             });
             return;
         }
+        if (!paymentAmount || Number(paymentAmount) <= 0) {
+            toast({
+                variant: "destructive",
+                title: "Invalid Amount",
+                description: "Please enter a valid payment amount.",
+            });
+            return;
+        }
+
 
         const newApprovalRequest = {
             id: Date.now().toString(),
             tenantId: tenant.id,
-            amount: amountDue, // Submit the remaining amount due for approval
+            amount: Number(paymentAmount),
             date: new Date().toISOString(),
             screenshotUrl: paymentScreenshotPreview, // In a real app, this would be an uploaded URL
         };
@@ -140,6 +158,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         setIsPaymentModalOpen(false);
         setPaymentScreenshot(null);
         setPaymentScreenshotPreview(null);
+        setPaymentAmount('');
         setPaymentView('default');
 
         toast({
@@ -169,7 +188,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <img src={adminQrCodeUrl} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" />
                             : <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">The owner has not provided a QR code.</div>
                         }
-                        <p className="font-bold text-xl">Amount: {amountDue.toFixed(2)}</p>
+                        <p className="font-bold text-xl">Amount Due: {amountDue.toFixed(2)}</p>
                         <Button variant="link" onClick={() => setPaymentView('default')}>Back to other options</Button>
                     </div>
                 </>
@@ -181,9 +200,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 <DialogHeader>
                     <DialogTitle>Complete Your Payment</DialogTitle>
                     <DialogDescription>
-                       Step 1: Use one of the options below to pay <strong className="font-bold">{amountDue.toFixed(2)}</strong>.
-                       Step 2: Take a screenshot of the confirmation.
-                       Step 3: Upload it here and submit for approval.
+                       Step 1: Use an option below or your preferred method to pay.
+                       Step 2: Enter the amount you paid and take a screenshot.
+                       Step 3: Upload the screenshot here and submit for approval.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
@@ -204,7 +223,19 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     {(!adminQrCodeUrl && !upiLink) && (
                          <p className="text-amber-600 text-center text-sm bg-amber-50 p-2 rounded-md">The owner has not configured any online payment methods.</p>
                     )}
+
                     <div className="space-y-2 pt-4">
+                        <Label htmlFor="payment-amount">Amount Paid</Label>
+                        <Input 
+                            id="payment-amount" 
+                            type="number" 
+                            value={paymentAmount}
+                            onChange={(e) => setPaymentAmount(e.target.value)}
+                            placeholder="e.g. 5000"
+                            required 
+                        />
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
                         <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
                         {paymentScreenshotPreview && (
@@ -216,7 +247,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot}>
+                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || !paymentAmount}>
                         Submit for Approval
                     </Button>
                 </DialogFooter>
@@ -755,3 +786,5 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    
