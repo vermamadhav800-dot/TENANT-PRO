@@ -14,7 +14,7 @@ export const INITIAL_APP_STATE = {
     propertyAddress: "123 Tech Park, Bangalore",
     electricityRatePerUnit: 8,
     upiId: "prakash@exampleupi",
-    qrCodeUrl: "https://i.imgur.com/8NnL2Gz.png",
+    // This is now a static asset, so the URL is removed from here
   },
   rooms: [
     { id: '1', number: '101', capacity: 2, rent: 14000 },

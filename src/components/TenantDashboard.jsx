@@ -66,7 +66,8 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
     const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
 
-    const { upiId: adminUpiId, qrCodeUrl } = appState.defaults || {};
+    const { upiId: adminUpiId } = appState.defaults || {};
+    const qrCodeUrl = '/qr-code.png';
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
