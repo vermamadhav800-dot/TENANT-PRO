@@ -308,19 +308,15 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
     }, [appState.electricity, appState.tenants, room, tenant, payments]);
 
     const rentStatus = useMemo(() => {
-        if (!tenant.dueDate) return { label: 'Upcoming', color: "text-gray-500", Icon: BadgeAlert };
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const dueDate = parseISO(tenant.dueDate);
-        
         if (amountDue <= 0) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
-
-        const daysDiff = differenceInDays(dueDate, today);
+        
+        const dueDate = tenant.dueDate ? parseISO(tenant.dueDate) : new Date();
+        const daysDiff = differenceInDays(dueDate, new Date());
+        
         if (daysDiff < 0) return { label: 'Overdue', color: "text-red-500", Icon: BadgeAlert };
-
+        
         return { label: 'Upcoming', color: "text-yellow-500", Icon: BadgeAlert };
-    }, [tenant, amountDue]);
+    }, [tenant.dueDate, amountDue]);
 
     return (
         <div className="space-y-6">
@@ -475,3 +471,5 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
+
+    

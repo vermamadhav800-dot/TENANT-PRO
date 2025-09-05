@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2 } from 'lucide-react';
+import { BarChart as BarChartIcon, IndianRupee, Users, Check, X, Download, CircleAlert, CircleCheck, CircleX, Trash2, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -24,34 +24,19 @@ export default function Reports({ appState, setAppState }) {
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
   
-  const thisMonthPayments = payments.filter(p => {
-    const paymentDate = new Date(p.date);
-    return paymentDate.getMonth() === thisMonth && paymentDate.getFullYear() === thisYear;
-  });
-
-  const totalCollected = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
-
   const tenantPaymentData = tenants.map(tenant => {
-    if (!tenant.dueDate || !parseISO(tenant.dueDate)) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
-
     const room = rooms.find(r => r.number === tenant.unitNo);
     if (!room) return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
 
-    const dueDate = parseISO(tenant.dueDate);
-
-    // Only consider bills for the current month in this report
-    if (dueDate.getMonth() !== thisMonth || dueDate.getFullYear() !== thisYear) {
-      return { tenant, totalDue: 0, paidAmount: 0, pendingAmount: 0, status: 'upcoming' };
-    }
-
+    // Calculate tenant's share of electricity bill for the month
     const tenantsInRoom = tenants.filter(t => t.unitNo === tenant.unitNo);
     const roomElectricityBill = (electricity || [])
       .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
       .reduce((sum, e) => sum + e.totalAmount, 0);
     const electricityShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
-
-    const totalDue = tenant.rentAmount + electricityShare;
     
+    const totalDue = tenant.rentAmount + electricityShare;
+
     const paidAmount = payments
       .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
       .reduce((sum, p) => sum + p.amount, 0);
@@ -60,13 +45,17 @@ export default function Reports({ appState, setAppState }) {
     
     let status = 'upcoming';
     if (totalDue > 0) { // Only evaluate status if there's something to be paid
-        if (pendingAmount <= 0) {
-            status = 'paid';
-        } else if (differenceInDays(new Date(), dueDate) > 0) {
-            status = 'overdue';
-        } else {
-            status = 'pending';
-        }
+      if (pendingAmount <= 0) {
+        status = 'paid';
+      } else {
+          // If there is any amount pending, it's either overdue or pending based on due date
+          const dueDate = tenant.dueDate ? parseISO(tenant.dueDate) : new Date();
+          if (differenceInDays(new Date(), dueDate) > 0) {
+              status = 'overdue';
+          } else {
+              status = 'pending';
+          }
+      }
     }
 
     return {
@@ -78,9 +67,13 @@ export default function Reports({ appState, setAppState }) {
     };
   });
   
+  const totalCollected = payments
+    .filter(p => new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
+    .reduce((sum, p) => sum + p.amount, 0);
+
   const totalPending = tenantPaymentData.reduce((sum, data) => sum + (data?.pendingAmount || 0), 0);
-  const paidTenantsCount = tenantPaymentData.filter(d => d?.status === 'paid').length;
-  const pendingTenantsCount = tenantPaymentData.filter(d => d?.status === 'pending' || d.status === 'overdue').length;
+  const paidTenantsCount = tenantPaymentData.filter(d => d.status === 'paid').length;
+  const pendingTenantsCount = tenantPaymentData.filter(d => d.status === 'pending' || d.status === 'overdue').length;
 
   const chartData = [
     { name: "This Month", collected: totalCollected, pending: totalPending }
@@ -119,11 +112,18 @@ export default function Reports({ appState, setAppState }) {
     setIsDeleteAlertOpen(false);
   };
 
+  const handleRemind = (tenantName) => {
+    toast({
+        title: "Reminder Sent!",
+        description: `A payment reminder has been sent to ${tenantName}.`
+    });
+  };
+
   const statusConfig = {
       paid: { icon: CircleCheck, color: "text-green-500", label: "Paid" },
       pending: { icon: CircleAlert, color: "text-yellow-500", label: "Pending" },
       overdue: { icon: CircleX, color: "text-red-500", label: "Overdue" },
-      upcoming: { icon: CircleAlert, color: "text-gray-500", label: "Upcoming" },
+      upcoming: { icon: CircleAlert, color: "text-gray-500", label: "N/A" },
   }
 
   return (
@@ -188,11 +188,13 @@ export default function Reports({ appState, setAppState }) {
                         <TableHead>Amount Paid</TableHead>
                         <TableHead>Pending</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {tenantPaymentData.length > 0 ? tenantPaymentData.filter(d => d.status !== 'upcoming').map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
+                    {tenantPaymentData.length > 0 ? tenantPaymentData.map(({tenant, totalDue, paidAmount, pendingAmount, status}) => {
                          const CurrentStatusIcon = statusConfig[status].icon;
+                         const canRemind = status === 'pending' || status === 'overdue';
                          return(
                             <TableRow key={tenant.id}>
                             <TableCell>
@@ -203,7 +205,7 @@ export default function Reports({ appState, setAppState }) {
                                     </Avatar>
                                     <div>
                                         <p className="font-medium">{tenant.name}</p>
-                                        <p className="text-sm text-muted-foreground">{tenant.username}</p>
+                                        <p className="text-sm text-muted-foreground">{tenant.phone}</p>
                                     </div>
                                 </div>
                             </TableCell>
@@ -217,11 +219,18 @@ export default function Reports({ appState, setAppState }) {
                                     <span>{statusConfig[status].label}</span>
                                 </div>
                             </TableCell>
+                             <TableCell className="text-right">
+                                {canRemind && (
+                                    <Button variant="outline" size="sm" onClick={() => handleRemind(tenant.name)}>
+                                        <Bell className="mr-2 h-4 w-4" /> Remind
+                                    </Button>
+                                )}
+                            </TableCell>
                             </TableRow>
                          )
                     }) : (
                         <TableRow>
-                            <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
                                 No tenant data to display for this month.
                             </TableCell>
                         </TableRow>
@@ -252,3 +261,5 @@ export default function Reports({ appState, setAppState }) {
     </div>
   );
 }
+
+    
