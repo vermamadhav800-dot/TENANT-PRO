@@ -100,13 +100,15 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
     }
   };
 
-  const currentTab = TABS.find(t => t.id === activeTab) || { label: 'Upgrade to Pro' };
+  const currentTabInfo = TABS.find(t => t.id === activeTab) || {};
+  const currentTabLabel = activeTab === 'upgrade' ? 'Upgrade to Pro' : currentTabInfo.label;
+
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         {isMobile && <SidebarTrigger />}
-        <h1 className="text-2xl font-semibold capitalize">{currentTab.label}</h1>
+        <h1 className="text-2xl font-semibold capitalize">{currentTabLabel}</h1>
         <div className="ml-auto flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -127,6 +129,8 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
+  const currentPlan = appState.defaults.subscriptionPlan || 'standard';
+
 
   useEffect(() => {
     const { defaults = {}, tenants = [], payments = [], rooms = [] } = appState;
@@ -253,7 +257,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            {appState.defaults.subscriptionPlan === 'free' && (
+            {currentPlan === 'standard' && (
               <div className="p-2">
                  <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
                   <Star className="mr-2 h-4 w-4" />
