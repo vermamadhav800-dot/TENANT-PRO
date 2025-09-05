@@ -12,7 +12,8 @@ import { INITIAL_APP_STATE } from "@/lib/consts";
 
 export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
-  const [auth, setAuth] = useLocalStorage("auth", { user: null, role: null });
+  // The 'auth' state now uses sessionStorage by default if 'Remember Me' isn't checked.
+  const [auth, setAuth, authPersistence] = useLocalStorage("auth", { user: null, role: null }, true);
   const [appState, setAppState] = useLocalStorage("appState", INITIAL_APP_STATE);
   const { toast } = useToast();
 
@@ -26,6 +27,13 @@ export default function Home() {
 
   const handleAuth = (credentials, action) => {
     if (action === 'login') {
+      // Logic for persisting session based on "Remember Me"
+      if (credentials.rememberMe) {
+          authPersistence.persist();
+      } else {
+          authPersistence.clear();
+      }
+
       if (credentials.role === 'owner') {
         if (!appState.MOCK_USER_INITIAL) {
             toast({ variant: "destructive", title: "Login Error", description: "No owner account found. Please register first." });
@@ -52,7 +60,7 @@ export default function Home() {
       };
       setAppState(prev => ({
         ...prev,
-        MOCK_USER_INITIAL: newOwner, // This is the corrected part
+        MOCK_USER_INITIAL: newOwner,
         defaults: {
           ...prev.defaults,
           propertyName: credentials.propertyName,
@@ -70,6 +78,8 @@ export default function Home() {
 
   const handleLogout = () => {
     setAuth({ user: null, role: null });
+    // Also clear localStorage persistence on logout
+    authPersistence.clear();
   };
   
   const renderContent = () => {

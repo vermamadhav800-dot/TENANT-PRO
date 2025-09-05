@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const OwnerLoginForm = ({ onAuth, role }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
@@ -24,10 +27,8 @@ const OwnerLoginForm = ({ onAuth, role }) => {
         }
         setIsLoading(true);
 
-        const loginSuccess = await onAuth({ username, password, role }, 'login');
+        const loginSuccess = await onAuth({ username, password, role, rememberMe }, 'login');
         
-        // This is the key change: if login fails, we stop the loading spinner.
-        // If it succeeds, the page will re-render to the MainApp anyway.
         if (!loginSuccess) {
             setIsLoading(false);
         }
@@ -70,6 +71,19 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                     </button>
                 </div>
             </div>
+
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} disabled={isLoading} />
+                    <Label htmlFor="remember-me" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Remember me
+                    </Label>
+                </div>
+                <a href="#" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                </a>
+            </div>
+
             <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
                 {isLoading ? (
                     <>
