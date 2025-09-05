@@ -86,8 +86,9 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
             <style jsx global>{`
                 @media print {
                     body {
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        background-color: #ffffff !important;
                     }
                     .no-print {
                         display: none !important;
@@ -99,8 +100,8 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                         left: 0;
                         width: 100%;
                         height: auto;
-                        padding: 0;
-                        margin: 0;
+                        padding: 0 !important;
+                        margin: 0 !important;
                         background: #ffffff !important;
                     }
                     .printable-area * {
@@ -113,7 +114,13 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                         background-color: #f1f5f9 !important;
                     }
                     .printable-area .text-muted-foreground {
-                        color: #555 !important;
+                        color: #64748b !important;
+                    }
+                     .printable-area .text-black {
+                        color: #000000 !important;
+                    }
+                     .printable-area .font-semibold {
+                        font-weight: 600 !important;
                     }
                 }
                 @page {
