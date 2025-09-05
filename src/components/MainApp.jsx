@@ -22,6 +22,7 @@ import {
   CheckCircle,
   Lock,
   FolderArchive,
+  BrainCircuit,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -69,6 +70,7 @@ const TABS = [
   { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro', group: 'analytics' },
   { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro', group: 'analytics' },
   { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business', group: 'analytics' },
+  { id: "ai-assistant", label: "AI Assistant", icon: BrainCircuit, plan: 'business', group: 'analytics' },
   { id: "reports", label: "Reports", icon: BarChart, plan: 'pro', group: 'analytics' },
 ];
 

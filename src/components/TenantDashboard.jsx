@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, BrainCircuit } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
+import TenantAiAssistant from './TenantAiAssistant';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -683,20 +684,22 @@ const TenantNoticeBoard = ({ appState }) => {
 
 
 const TABS = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
-    { id: 'notices', label: 'Notice Board', icon: Megaphone },
-    { id: 'support', label: 'Help & Support', icon: Wrench },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, plan: 'standard' },
+    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee, plan: 'standard' },
+    { id: 'notices', label: 'Notice Board', icon: Megaphone, plan: 'standard' },
+    { id: 'support', label: 'Help & Support', icon: Wrench, plan: 'standard' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, plan: 'standard' },
+    { id: 'ai-assistant', label: 'AI Assistant', icon: BrainCircuit, plan: 'business' },
+    { id: 'profile', label: 'Profile', icon: User, plan: 'standard' },
 ];
 
 export default function TenantDashboard({ appState, setAppState, tenant, onLogout }) {
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { payments, rooms, notifications = [] } = appState;
+    const { payments, rooms, notifications = [], defaults = {} } = appState;
     const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
+    const isBusinessPlan = defaults.subscriptionPlan === 'business';
 
 
     const unreadNotificationsCount = useMemo(() => {
@@ -719,6 +722,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <HelpAndSupport tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'notifications':
                 return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
+            case 'ai-assistant':
+                return <TenantAiAssistant tenant={tenant} appState={appState} />;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
@@ -733,25 +738,35 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
             <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {TABS.map(tab => (
-                    <Button
-                        key={tab.id}
-                        variant={activeTab === tab.id ? 'secondary' : 'ghost'}
-                        className="w-full justify-start gap-3"
-                        onClick={() => {
-                            setActiveTab(tab.id);
-                            setIsSidebarOpen(false);
-                        }}
-                    >
-                        <tab.icon className="h-5 w-5" />
-                        <span>{tab.label}</span>
-                         {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
-                            <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                {unreadNotificationsCount}
-                            </span>
-                        )}
-                    </Button>
-                ))}
+                {TABS.map(tab => {
+                    if (tab.plan === 'business' && !isBusinessPlan) {
+                        return null; // Don't render tab if it's a business feature and owner is not on business plan
+                    }
+                    return (
+                        <Button
+                            key={tab.id}
+                            variant={activeTab === tab.id ? 'secondary' : 'ghost'}
+                            className="w-full justify-start gap-3"
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                setIsSidebarOpen(false);
+                            }}
+                        >
+                            <tab.icon className="h-5 w-5" />
+                            <span>{tab.label}</span>
+                            {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
+                                <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                    {unreadNotificationsCount}
+                                </span>
+                            )}
+                            {tab.plan === 'business' && (
+                                <Badge variant="outline" className="ml-auto bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs">
+                                  Premium
+                                </Badge>
+                            )}
+                        </Button>
+                    );
+                })}
             </div>
             <div className="p-4 border-t mt-auto">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
@@ -814,4 +829,3 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
-
