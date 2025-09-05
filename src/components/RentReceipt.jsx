@@ -21,16 +21,39 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
         if (!input) return;
 
         html2canvas(input, { 
-            scale: 2,
-            removeContainer: true
+            scale: 2, // Higher scale for better quality
+            useCORS: true 
         }).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'pt',
-                format: [canvas.width, canvas.height]
+                format: 'a4' // Standard A4 size
             });
-            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const canvasAspectRatio = canvasWidth / canvasHeight;
+            const pdfAspectRatio = pdfWidth / pdfHeight;
+
+            let finalWidth, finalHeight;
+
+            // Fit to width
+            finalWidth = pdfWidth;
+            finalHeight = finalWidth / canvasAspectRatio;
+            
+            // If it's too high after fitting to width, then fit to height
+            if (finalHeight > pdfHeight) {
+                finalHeight = pdfHeight;
+                finalWidth = finalHeight * canvasAspectRatio;
+            }
+            
+            // Center the image
+            const x = (pdfWidth - finalWidth) / 2;
+            const y = (pdfHeight - finalHeight) / 2;
+
+            pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
             pdf.save(`rent-receipt-${payment.id}.pdf`);
         });
     };
@@ -47,14 +70,14 @@ export default function RentReceipt({ receiptDetails, onBack, appState }) {
                 </div>
             </div>
 
-            <div className="flex justify-end max-w-2xl mx-auto">
+            <div className="flex justify-end max-w-lg mx-auto">
                  <Button onClick={handleDownload}>
                     <Download className="mr-2 h-4 w-4" />
                     Download PDF
                 </Button>
             </div>
             
-            <div ref={receiptRef} className="p-8 bg-white max-w-2xl mx-auto border rounded-lg">
+            <div ref={receiptRef} className="p-8 bg-white max-w-lg mx-auto border rounded-lg text-black">
                 <div className="space-y-4">
                     <h3 className="text-xl font-medium text-gray-800">Hi {tenant.name},</h3>
                     <p className="text-gray-600">
