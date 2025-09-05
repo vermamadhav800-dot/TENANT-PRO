@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Sun, Moon, Palette, Upload } from 'lucide-react';
+import { Sun, Moon, Palette, Upload, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 export default function AppSettings({ appState, setAppState, user }) {
@@ -112,17 +112,27 @@ export default function AppSettings({ appState, setAppState, user }) {
                 onChange={handleDefaultsChange}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="upiId">Your UPI ID</Label>
-              <Input
-                id="upiId"
-                name="upiId"
-                type="text"
-                placeholder="e.g., yourname@okhdfcbank"
-                value={defaults.upiId || ''}
-                onChange={handleDefaultsChange}
-              />
-               <p className="text-xs text-muted-foreground mt-2">This is used to generate dynamic QR codes for payment.</p>
+              <div className="flex items-center gap-2">
+                  <Input
+                    id="upiId"
+                    name="upiId"
+                    type="text"
+                    placeholder="e.g., yourname@okhdfcbank"
+                    value={defaults.upiId || ''}
+                    onChange={handleDefaultsChange}
+                  />
+                  <Button 
+                    variant="destructive" 
+                    size="icon" 
+                    onClick={() => setDefaults(prev => ({...prev, upiId: ''}))}
+                    aria-label="Delete UPI ID"
+                  >
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
+              </div>
+               <p className="text-xs text-muted-foreground mt-2">This is used to generate dynamic QR codes for payment. Delete it to disable the QR code option.</p>
             </div>
           </div>
         </CardContent>
