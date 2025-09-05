@@ -15,7 +15,7 @@ import { LoaderCircle } from "lucide-react";
 
 export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
-  const [user, setUser] = useState(undefined); // undefined indicates auth state is not yet known
+  const [user, setUser] = useState(undefined); // undefined: auth state unknown, null: logged out, object: logged in
   const [userData, setUserData] = useState(null); // User data from Firestore
   const [role, setRole] = useState(null); // 'owner' or 'tenant'
   const { toast } = useToast();
@@ -25,22 +25,31 @@ export default function Home() {
       setIsStartupLoading(false);
     }, 2000);
 
+    // This listener handles all auth changes.
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserData(data);
-          setRole(data.role);
-        } else {
-          // This case might happen during registration right before doc is created.
-          // Or if a user exists in Auth but not in Firestore.
-          setRole(null); 
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              setUserData(data);
+              setRole(data.role);
+            } else {
+              setRole(null); 
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            // This can happen if firestore is not ready, log out to be safe
+            toast({ variant: "destructive", title: "Could not load data", description: "There was an issue loading your profile. Please try again."})
+            await signOut(auth);
+            setUser(null);
+            setUserData(null);
+            setRole(null);
         }
       } else {
-        setUser(null);
+        setUser(null); // Explicitly set to null when logged out
         setUserData(null);
         setRole(null);
       }
@@ -50,12 +59,13 @@ export default function Home() {
       clearTimeout(timer);
       unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const handleAuth = async (credentials, action) => {
     try {
         if (action === 'login') {
             await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+            // The onAuthStateChanged listener will handle the rest.
             toast({ title: "Login Successful", description: "Welcome back!" });
             return true;
         } else { // Register
@@ -68,10 +78,8 @@ export default function Home() {
                 role: 'owner',
             };
             
-            // Create user document in Firestore
             await setDoc(doc(db, "users", userCredential.user.uid), newUser);
             
-            // Create a default settings document for the new owner
             await setDoc(doc(db, "settings", userCredential.user.uid), {
                 ownerId: userCredential.user.uid,
                 propertyName: credentials.propertyName,
@@ -80,10 +88,8 @@ export default function Home() {
                 upiId: '',
             });
 
-            setUserData(newUser);
-            setRole('owner');
-
-            toast({ title: "Registration Successful", description: "Welcome! You can now manage your property." });
+            // The onAuthStateChanged listener will pick this up.
+            toast({ title: "Registration Successful", description: "Welcome! Your property is set up." });
             return true;
         }
     } catch (error) {
@@ -116,21 +122,31 @@ export default function Home() {
   };
   
   const renderContent = () => {
-      // Show startup screen if the timer hasn't finished or if we haven't heard from Firebase auth yet.
+      // If startup screen is active OR we haven't heard from Firebase auth yet
       if (isStartupLoading || user === undefined) {
           return <StartupScreen />;
       }
       
-      if (role === 'owner' && user && userData) {
-          return <MainApp 
-              user={user} // Firebase auth user
-              userData={userData} // Firestore user data
-              onLogout={handleLogout} 
-          />;
+      // If we have a user and their data is loaded
+      if (user && userData) {
+          if (role === 'owner') {
+             return <MainApp 
+                user={user} 
+                userData={userData} 
+                onLogout={handleLogout} 
+              />;
+          }
+          // Note: TenantDashboard would be rendered here if role === 'tenant'
+          // return <TenantDashboard ... />
       }
-      
-      // If there's no user and auth is resolved, show the login form.
-      return <Auth onAuth={handleAuth} />;
+
+      // If there's no user, show the login form.
+      if (user === null) {
+          return <Auth onAuth={handleAuth} />;
+      }
+
+      // Fallback: A loading indicator for the brief moment between user object being set and userData being fetched.
+      return <StartupScreen />;
   }
 
   return <>{renderContent()}</>;
