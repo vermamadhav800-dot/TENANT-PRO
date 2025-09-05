@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import AppLogo from "./AppLogo";
 
 const OwnerLoginForm = ({ onAuth, role }) => {
     const [username, setUsername] = useState("");
@@ -222,12 +223,10 @@ export default function Auth({ onAuth }) {
         <div className="min-h-screen w-full flex items-center justify-center dark-bg-futuristic p-4">
             <Card className="w-full max-w-md shadow-2xl animate-fade-in-scale glass-card">
                 <CardHeader className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
-                        <Building2 className="text-white h-10 w-10" />
-                    </div>
-                    <CardTitle className="text-3xl font-headline gradient-text">Welcome to EstateFlow</CardTitle>
+                    <AppLogo className="w-16 h-16 mx-auto mb-4" iconClassName="w-9 h-9"/>
+                    <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>
                     <CardDescription>
-                         Sign in or create an account to continue
+                         Your modern solution for property management.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
