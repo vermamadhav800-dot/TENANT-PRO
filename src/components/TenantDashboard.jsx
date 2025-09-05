@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import { differenceInDays, parseISO, format } from 'date-fns';
 import AppLogo from './AppLogo';
 import { useToast } from "@/hooks/use-toast";
 import RentReceipt from './RentReceipt';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 const TenantProfile = ({ tenant }) => (
     <div className="space-y-6">
@@ -55,7 +58,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const { toast } = useToast();
     const [showReceipt, setShowReceipt] = useState(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-    
+    const [paymentScreenshot, setPaymentScreenshot] = useState(null);
+    const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
+
     const adminUpiId = appState.defaults?.upiId;
     const adminName = appState.MOCK_USER_INITIAL?.name || "Property Manager";
 
@@ -65,29 +70,49 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             .sort((a, b) => new Date(b.date) - new Date(a.date));
     }, [payments, tenant.id]);
 
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPaymentScreenshot(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPaymentScreenshotPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleConfirmPayment = () => {
-        const newPayment = {
+        if (!paymentScreenshot) {
+            toast({
+                variant: "destructive",
+                title: "Screenshot Required",
+                description: "Please upload a screenshot of your payment confirmation.",
+            });
+            return;
+        }
+
+        const newApprovalRequest = {
             id: Date.now().toString(),
             tenantId: tenant.id,
             amount: tenant.rentAmount,
             date: new Date().toISOString(),
-            method: 'UPI',
+            screenshotUrl: paymentScreenshotPreview, // In a real app, this would be an uploaded URL
         };
 
         setAppState(prev => ({
             ...prev,
-            payments: [...prev.payments, newPayment]
+            pendingApprovals: [...(prev.pendingApprovals || []), newApprovalRequest]
         }));
         
         setIsPaymentModalOpen(false);
+        setPaymentScreenshot(null);
+        setPaymentScreenshotPreview(null);
 
         toast({
-            title: "Payment Recorded!",
-            description: "Your rent payment has been recorded. The admin will verify it shortly.",
+            title: "Submitted for Approval!",
+            description: "Your payment has been submitted to the admin for verification. It will reflect once approved.",
         });
-
-        // Optionally show receipt right after confirmation
-        setShowReceipt({ payment: newPayment, tenant, room });
     };
 
     if (showReceipt) {
@@ -123,25 +148,36 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                             <DialogHeader>
                                 <DialogTitle>Complete Your Payment</DialogTitle>
                                 <DialogDescription>
-                                   You will be redirected to your UPI app to pay <strong className="font-bold">{tenant.rentAmount.toFixed(2)}</strong>. After payment, click "I Have Paid" to record the transaction.
+                                   Step 1: Use the button below to pay <strong className="font-bold">{tenant.rentAmount.toFixed(2)}</strong>.
+                                   Step 2: Take a screenshot of the confirmation.
+                                   Step 3: Upload it here and submit for approval.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="text-center py-4">
+                             <div className="py-4 space-y-4">
                                 {!upiLink ? (
-                                    <p className="text-red-500">The admin has not configured their UPI ID for payments yet.</p>
+                                    <p className="text-red-500 text-center">The admin has not configured their UPI ID for payments yet.</p>
                                 ) : (
-                                    <a href={upiLink} target="_blank" rel="noopener noreferrer">
+                                    <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
                                         <Button size="lg" className="w-full">
                                             <ExternalLink className="mr-2 h-5 w-5" />
                                             Proceed to UPI App
                                         </Button>
                                     </a>
                                 )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="payment-screenshot">Upload Payment Screenshot</Label>
+                                    <Input id="payment-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
+                                    {paymentScreenshotPreview && (
+                                        <div className="mt-2 text-center">
+                                            <img src={paymentScreenshotPreview} alt="Payment screenshot preview" className="max-h-48 mx-auto rounded-md border" />
+                                            <p className="text-xs text-muted-foreground mt-1">Screenshot ready for upload.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
-                                 <p className="text-xs text-muted-foreground text-center sm:text-left">Your payment will be verified by the admin.</p>
-                                <Button onClick={handleConfirmPayment} className="w-full sm:w-auto" disabled={!upiLink}>
-                                    I Have Paid
+                            <DialogFooter>
+                                <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink}>
+                                    Submit for Approval
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -152,7 +188,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             <Card>
                 <CardHeader>
                     <CardTitle>Payment History</CardTitle>
-                    <CardDescription>A record of all your payments.</CardDescription>
+                    <CardDescription>A record of all your approved payments.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>

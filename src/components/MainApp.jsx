@@ -17,6 +17,7 @@ import {
   LoaderCircle,
   Wallet,
   TrendingUp,
+  BadgeCheck,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -44,6 +45,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { Separator } from "./ui/separator";
+import Approvals from "./Approvals";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -51,6 +53,7 @@ const TABS = [
   { id: "tenants", label: "Tenants", icon: Users },
   { id: "rooms", label: "Rooms", icon: DoorOpen },
   { id: "payments", label: "Payments", icon: CreditCard },
+  { id: "approvals", label: "Approvals", icon: BadgeCheck },
   { id: "electricity", label: "Electricity", icon: Zap },
   { id: "expenses", label: "Expenses", icon: Wallet },
   { id: "reports", label: "Reports", icon: BarChart },
@@ -79,6 +82,8 @@ function AppContent({
         return <Rooms {...props} />;
       case "payments":
         return <Payments {...props} />;
+      case "approvals":
+        return <Approvals {...props} />;
       case "electricity":
         return <Electricity {...props} />;
       case "expenses":
@@ -91,6 +96,9 @@ function AppContent({
         return <Dashboard {...props} setActiveTab={setActiveTab} />;
     }
   };
+
+  const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
+
 
   return (
     <div className="flex-1 flex flex-col bg-muted/40">
@@ -114,6 +122,7 @@ function AppContent({
 
 export default function MainApp({ appState, setAppState, onLogout, user }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
 
   if (!appState) {
     return (
@@ -146,6 +155,11 @@ export default function MainApp({ appState, setAppState, onLogout, user }) {
                   >
                     <tab.icon />
                     <span>{tab.label}</span>
+                     {tab.id === 'approvals' && pendingApprovalsCount > 0 && (
+                        <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                            {pendingApprovalsCount}
+                        </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

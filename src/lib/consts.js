@@ -5,8 +5,10 @@ export const INITIAL_APP_STATE = {
   payments: [],
   electricity: [],
   expenses: [],
+  pendingApprovals: [],
   defaults: {
     electricityRatePerUnit: 8,
+    upiId: ''
   },
 };
 
