@@ -16,7 +16,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
-    const handleAuthAction = (e) => {
+    const handleAuthAction = async (e) => {
         e.preventDefault();
         if (!username || !password) {
             toast({ variant: "destructive", title: "Error", description: "Please enter username and password." });
@@ -24,12 +24,13 @@ const OwnerLoginForm = ({ onAuth, role }) => {
         }
         setIsLoading(true);
 
-        setTimeout(() => {
-            const loginSuccess = onAuth({ username, password, role }, 'login');
-            if (!loginSuccess) {
-                setIsLoading(false);
-            }
-        }, 1000);
+        const loginSuccess = await onAuth({ username, password, role }, 'login');
+        
+        // This is the key change: if login fails, we stop the loading spinner.
+        // If it succeeds, the page will re-render to the MainApp anyway.
+        if (!loginSuccess) {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -44,6 +45,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                         onChange={(e) => setUsername(e.target.value)}
                         className="pl-10 py-6"
                         required
+                        disabled={isLoading}
                     />
                 </div>
             </div>
@@ -57,6 +59,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10 py-6"
                         required
+                        disabled={isLoading}
                     />
                     <button
                         type="button"
@@ -90,7 +93,7 @@ const OwnerRegisterForm = ({ onAuth, role, setAuthMode }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
-    const handleAuthAction = (e) => {
+    const handleAuthAction = async (e) => {
         e.preventDefault();
         if (!name || !username || !password || !propertyName || !propertyAddress) {
             toast({ variant: "destructive", title: "Error", description: "Please fill out all fields." });
@@ -98,9 +101,10 @@ const OwnerRegisterForm = ({ onAuth, role, setAuthMode }) => {
         }
         setIsLoading(true);
 
-        setTimeout(() => {
-            onAuth({ name, username, password, propertyName, propertyAddress, role }, 'register');
-        }, 1000);
+        const registerSuccess = await onAuth({ name, username, password, propertyName, propertyAddress, role }, 'register');
+        if (!registerSuccess) {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -142,7 +146,7 @@ const TenantLoginForm = ({ onAuth, role }) => {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
-    const handleAuthAction = (e) => {
+    const handleAuthAction = async (e) => {
         e.preventDefault();
         if (!phone) {
             toast({ variant: "destructive", title: "Error", description: "Please enter your phone number." });
@@ -150,12 +154,10 @@ const TenantLoginForm = ({ onAuth, role }) => {
         }
         setIsLoading(true);
 
-        setTimeout(() => {
-            const loginSuccess = onAuth({ username: phone, role }, 'login');
-            if (!loginSuccess) {
-                setIsLoading(false);
-            }
-        }, 1000);
+        const loginSuccess = await onAuth({ username: phone, role }, 'login');
+        if (!loginSuccess) {
+            setIsLoading(false);
+        }
     };
 
     return (
