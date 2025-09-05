@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,26 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const adminUpiId = appState.defaults?.upiId;
     const adminName = appState.MOCK_USER_INITIAL?.name || "Property Manager";
 
+    const { electricityBillShare, totalDue } = useMemo(() => {
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+
+        if (!room) return { electricityBillShare: 0, totalDue: tenant.rentAmount };
+
+        const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
+        const roomElectricityBill = (appState.electricity || [])
+            .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+            .reduce((sum, e) => sum + e.totalAmount, 0);
+
+        const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+        
+        return {
+            electricityBillShare: billShare,
+            totalDue: tenant.rentAmount + billShare
+        };
+
+    }, [appState.electricity, appState.tenants, room, tenant.rentAmount]);
+
     const tenantPayments = useMemo(() => {
         return payments
             .filter(p => p.tenantId === tenant.id)
@@ -95,7 +115,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         const newApprovalRequest = {
             id: Date.now().toString(),
             tenantId: tenant.id,
-            amount: tenant.rentAmount,
+            amount: totalDue,
             date: new Date().toISOString(),
             screenshotUrl: paymentScreenshotPreview, // In a real app, this would be an uploaded URL
         };
@@ -119,36 +139,42 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
         return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} />;
     }
 
-    const upiLink = adminUpiId ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminName)}&am=${tenant.rentAmount.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
+    const upiLink = adminUpiId ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminName)}&am=${totalDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
 
     return (
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Rent Details</CardTitle>
+                    <CardTitle>This Month's Bill</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Monthly Rent</p>
-                        <p className="text-2xl font-bold">{tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 border-b pb-4">
+                         <div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1"><IndianRupee className="h-4 w-4"/> Base Rent</p>
+                            <p className="text-lg font-bold">{tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-4 w-4"/> Electricity</p>
+                            <p className="text-lg font-bold">{electricityBillShare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Due Date</p>
-                        <p className="text-2xl font-bold">{tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMM, yyyy') : 'Not Set'}</p>
+                    <div className="flex justify-between items-center pt-2">
+                        <p className="text-lg font-semibold">Total Due</p>
+                        <p className="text-3xl font-bold text-primary">{totalDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
                          <DialogTrigger asChild>
                             <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
-                                <IndianRupee className="mr-2 h-4 w-4" /> Pay Rent Now
+                                <IndianRupee className="mr-2 h-4 w-4" /> Pay Total Bill
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Complete Your Payment</DialogTitle>
                                 <DialogDescription>
-                                   Step 1: Use the button below to pay <strong className="font-bold">{tenant.rentAmount.toFixed(2)}</strong>.
+                                   Step 1: Use the button below to pay <strong className="font-bold">{totalDue.toFixed(2)}</strong>.
                                    Step 2: Take a screenshot of the confirmation.
                                    Step 3: Upload it here and submit for approval.
                                 </DialogDescription>
@@ -176,7 +202,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink}>
+                                <Button onClick={handleConfirmPayment} className="w-full" disabled={!upiLink || !paymentScreenshot}>
                                     Submit for Approval
                                 </Button>
                             </DialogFooter>
@@ -231,7 +257,26 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     );
 };
 
-const TenantHome = ({ tenant, payments, room }) => {
+const TenantHome = ({ tenant, payments, room, appState }) => {
+    const { totalDue } = useMemo(() => {
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+
+        if (!room) return { totalDue: tenant.rentAmount };
+
+        const tenantsInRoom = appState.tenants.filter(t => t.unitNo === room.number);
+        const roomElectricityBill = (appState.electricity || [])
+            .filter(e => e.roomId === room.id && new Date(e.date).getMonth() === thisMonth && new Date(e.date).getFullYear() === thisYear)
+            .reduce((sum, e) => sum + e.totalAmount, 0);
+
+        const billShare = tenantsInRoom.length > 0 ? roomElectricityBill / tenantsInRoom.length : 0;
+        
+        return {
+            totalDue: tenant.rentAmount + billShare
+        };
+
+    }, [appState.electricity, appState.tenants, room, tenant.rentAmount]);
+
     const rentStatus = useMemo(() => {
         if (!tenant.dueDate) return { label: 'Upcoming', color: "text-gray-500", Icon: BadgeAlert };
 
@@ -245,13 +290,13 @@ const TenantHome = ({ tenant, payments, room }) => {
             .filter(p => p.tenantId === tenant.id && new Date(p.date).getMonth() === thisMonth && new Date(p.date).getFullYear() === thisYear)
             .reduce((sum, p) => sum + p.amount, 0);
 
-        if (paidThisMonth >= tenant.rentAmount) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
+        if (paidThisMonth >= totalDue) return { label: 'Paid', color: "text-green-500", Icon: BadgeCheck };
 
         const daysDiff = differenceInDays(dueDate, today);
         if (daysDiff < 0) return { label: 'Overdue', color: "text-red-500", Icon: BadgeAlert };
 
         return { label: 'Upcoming', color: "text-yellow-500", Icon: BadgeAlert };
-    }, [tenant, payments]);
+    }, [tenant, payments, totalDue]);
 
     return (
         <div className="space-y-6">
@@ -269,11 +314,11 @@ const TenantHome = ({ tenant, payments, room }) => {
                 </Card>
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Next Due Date</CardTitle>
+                        <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
                         <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</div>
+                        <div className="text-2xl font-bold">{totalDue ? totalDue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>
@@ -313,13 +358,13 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <TenantHome tenant={tenant} payments={payments} room={room} />;
+                return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
             case 'payments':
                 return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
-                return <TenantHome tenant={tenant} payments={payments} room={room} />;
+                return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
         }
     };
     
