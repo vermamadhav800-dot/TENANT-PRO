@@ -84,7 +84,7 @@ function PaymentApprovals({ appState, setAppState }) {
                         <CardContent className="space-y-4">
                             <div>
                                 <p className="text-sm text-muted-foreground">Amount</p>
-                                <p className="text-2xl font-bold">{approval.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                <p className="text-2xl font-bold">₹{approval.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Date Submitted</p>
@@ -235,5 +235,3 @@ export default function Approvals({ appState, setAppState }) {
     </div>
   );
 }
-
-    
