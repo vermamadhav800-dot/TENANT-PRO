@@ -58,7 +58,6 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "./ui/badge";
 import Documents from "./Documents";
-import AIAssistant from "./AIAssistant";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard', group: 'main' },
@@ -71,7 +70,7 @@ const TABS = [
   { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro', group: 'analytics' },
   { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro', group: 'analytics' },
   { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business', group: 'analytics' },
-  { id: "ai-assistant", label: "AI Assistant", icon: BrainCircuit, plan: 'business', group: 'analytics' },
+  // { id: "ai-assistant", label: "AI Assistant", icon: BrainCircuit, plan: 'business', group: 'analytics' },
   { id: "reports", label: "Reports", icon: BarChart, plan: 'pro', group: 'analytics' },
 ];
 
@@ -103,8 +102,8 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
         return <Expenses {...props} />;
       case "documents":
         return <Documents {...props} />;
-      case "ai-assistant":
-        return <AIAssistant {...props} />;
+      // case "ai-assistant":
+      //   return <AIAssistant {...props} />;
       case "reports":
         return <Reports {...props} />;
       case "notices":
