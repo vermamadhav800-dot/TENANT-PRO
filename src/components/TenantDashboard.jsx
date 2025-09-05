@@ -64,7 +64,7 @@ export default function TenantDashboard({ appState, tenant, onLogout }) {
                 <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
-                        <AvatarFallback>{tenant.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{tenant.name ? tenant.name.charAt(0).toUpperCase() : 'T'}</AvatarFallback>
                     </Avatar>
                      <div className="hidden sm:flex flex-col items-start">
                         <p className="text-sm font-medium">{tenant.name}</p>
@@ -80,7 +80,7 @@ export default function TenantDashboard({ appState, tenant, onLogout }) {
       </header>
 
       <main className="container mx-auto p-4 md:p-6 space-y-8 animate-fade-in">
-        <h1 className="text-3xl font-bold font-headline">Welcome back, {tenant.name.split(' ')[0]}!</h1>
+        <h1 className="text-3xl font-bold font-headline">Welcome back, {tenant.name ? tenant.name.split(' ')[0] : ''}!</h1>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="glass-card">
@@ -89,8 +89,8 @@ export default function TenantDashboard({ appState, tenant, onLogout }) {
                     <Home className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">Room {tenant.unitNo}</div>
-                    <p className="text-xs text-muted-foreground">Capacity: {room?.capacity}</p>
+                    <div className="text-2xl font-bold">Room {tenant.unitNo || 'Not Assigned'}</div>
+                    <p className="text-xs text-muted-foreground">Capacity: {room?.capacity || 'N/A'}</p>
                 </CardContent>
             </Card>
              <Card className="glass-card">
@@ -99,8 +99,8 @@ export default function TenantDashboard({ appState, tenant, onLogout }) {
                     <IndianRupee className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{tenant.rentAmount.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Due on: {format(parseISO(tenant.dueDate), 'dd MMMM yyyy')}</p>
+                    <div className="text-2xl font-bold">{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</div>
+                    <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                 </CardContent>
             </Card>
              <Card className="glass-card">
