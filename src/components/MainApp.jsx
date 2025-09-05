@@ -18,6 +18,7 @@ import {
   Wallet,
   TrendingUp,
   BadgeCheck,
+  Wrench,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -53,7 +54,7 @@ const TABS = [
   { id: "tenants", label: "Tenants", icon: Users },
   { id: "rooms", label: "Rooms", icon: DoorOpen },
   { id: "payments", label: "Payments", icon: CreditCard },
-  { id: "approvals", label: "Approvals", icon: BadgeCheck },
+  { id: "requests", label: "Requests", icon: Wrench },
   { id: "electricity", label: "Electricity", icon: Zap },
   { id: "expenses", label: "Expenses", icon: Wallet },
   { id: "reports", label: "Reports", icon: BarChart },
@@ -82,7 +83,7 @@ function AppContent({
         return <Rooms {...props} />;
       case "payments":
         return <Payments {...props} />;
-      case "approvals":
+      case "requests":
         return <Approvals {...props} />;
       case "electricity":
         return <Electricity {...props} />;
@@ -98,6 +99,8 @@ function AppContent({
   };
 
   const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
+  const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
+  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
 
 
   return (
@@ -123,6 +126,8 @@ function AppContent({
 export default function MainApp({ appState, setAppState, onLogout, user }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
+  const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
+  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
 
   if (!appState) {
     return (
@@ -155,9 +160,9 @@ export default function MainApp({ appState, setAppState, onLogout, user }) {
                   >
                     <tab.icon />
                     <span>{tab.label}</span>
-                     {tab.id === 'approvals' && pendingApprovalsCount > 0 && (
+                     {tab.id === 'requests' && totalPendingRequests > 0 && (
                         <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                            {pendingApprovalsCount}
+                            {totalPendingRequests}
                         </span>
                     )}
                   </SidebarMenuButton>

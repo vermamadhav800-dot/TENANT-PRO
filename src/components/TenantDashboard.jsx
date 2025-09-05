@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,10 @@ import { useToast } from "@/hooks/use-toast";
 import RentReceipt from './RentReceipt';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from './ui/badge';
+
 
 const TenantProfile = ({ tenant }) => (
     <div className="space-y-6">
@@ -411,9 +415,143 @@ const Notifications = ({ tenant, appState, setAppState }) => {
     )
 }
 
+const HelpAndSupport = ({ tenant, appState, setAppState }) => {
+    const { toast } = useToast();
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    
+    const handleSubmitRequest = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const description = formData.get('description');
+        const category = formData.get('category');
+
+        if (!description || !category) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Please fill out all fields.' });
+            return;
+        }
+
+        const newRequest = {
+            id: Date.now().toString(),
+            tenantId: tenant.id,
+            unitNo: tenant.unitNo,
+            category: category,
+            description: description,
+            status: 'Pending',
+            submittedAt: new Date().toISOString(),
+        };
+
+        setAppState(prev => ({
+            ...prev,
+            maintenanceRequests: [...(prev.maintenanceRequests || []), newRequest]
+        }));
+        
+        setIsRequestModalOpen(false);
+        toast({ title: 'Request Submitted', description: 'Your request has been sent to the property owner.' });
+    };
+
+    const tenantRequests = useMemo(() => {
+        return (appState.maintenanceRequests || [])
+            .filter(req => req.tenantId === tenant.id)
+            .sort((a,b) => new Date(b.submittedAt) - new Date(a.createdAt));
+    }, [appState.maintenanceRequests, tenant.id]);
+
+    const getStatusVariant = (status) => {
+        switch (status) {
+            case 'Pending': return 'warning';
+            case 'In Progress': return 'default';
+            case 'Resolved': return 'success';
+            default: return 'secondary';
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Help & Support</CardTitle>
+                        <CardDescription>Submit a maintenance request or complaint.</CardDescription>
+                    </div>
+                     <Dialog open={isRequestModalOpen} onOpenChange={setIsRequestModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button><Wrench className="mr-2 h-4 w-4" /> New Request</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>New Maintenance Request</DialogTitle>
+                                <DialogDescription>
+                                    Describe the issue you're facing. Your request will be sent to the owner.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmitRequest} className="py-4 space-y-4">
+                                <div>
+                                    <Label htmlFor="category">Category</Label>
+                                    <Select name="category" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Plumbing">Plumbing</SelectItem>
+                                            <SelectItem value="Electrical">Electrical</SelectItem>
+                                            <SelectItem value="Appliance">Appliance</SelectItem>
+                                            <SelectItem value="General">General Complaint</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div>
+                                    <Label htmlFor="description">Description</Label>
+                                    <Textarea id="description" name="description" placeholder="Please provide as much detail as possible..." rows={5} required/>
+                                 </div>
+                                 <DialogFooter>
+                                     <Button type="submit">Submit Request</Button>
+                                 </DialogFooter>
+                            </form>
+                        </DialogContent>
+                     </Dialog>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Category</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {tenantRequests.length > 0 ? (
+                                tenantRequests.map(req => (
+                                    <TableRow key={req.id}>
+                                        <TableCell>{format(new Date(req.submittedAt), 'dd MMM, yyyy')}</TableCell>
+                                        <TableCell>{req.category}</TableCell>
+                                        <TableCell className="max-w-xs truncate">{req.description}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={getStatusVariant(req.status)}>{req.status}</Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan="4" className="text-center h-24 text-muted-foreground">
+                                        You have no pending or past requests.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
+    { id: 'support', label: 'Help & Support', icon: Wrench },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
 ];
@@ -440,6 +578,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
             case 'payments':
                 return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
+            case 'support':
+                return <HelpAndSupport tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'notifications':
                 return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
             case 'profile':

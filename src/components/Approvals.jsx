@@ -15,118 +15,223 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function Approvals({ appState, setAppState }) {
-  const { pendingApprovals = [], tenants } = appState;
-  const { toast } = useToast();
-  const [selectedImage, setSelectedImage] = useState(null);
+function PaymentApprovals({ appState, setAppState }) {
+    const { pendingApprovals = [], tenants } = appState;
+    const { toast } = useToast();
+    const [selectedImage, setSelectedImage] = useState(null);
 
-  const handleApprove = (approvalId) => {
-    const approval = pendingApprovals.find(a => a.id === approvalId);
-    if (!approval) return;
+    const handleApprove = (approvalId) => {
+        const approval = pendingApprovals.find(a => a.id === approvalId);
+        if (!approval) return;
 
-    // 1. Create a new payment record
-    const newPayment = {
-      id: Date.now().toString(),
-      tenantId: approval.tenantId,
-      amount: approval.amount,
-      date: approval.date,
-      method: 'UPI', 
+        const newPayment = {
+            id: Date.now().toString(),
+            tenantId: approval.tenantId,
+            amount: approval.amount,
+            date: approval.date,
+            method: 'UPI', 
+        };
+
+        const updatedApprovals = pendingApprovals.filter(a => a.id !== approvalId);
+
+        setAppState(prev => ({
+            ...prev,
+            payments: [...prev.payments, newPayment],
+            pendingApprovals: updatedApprovals,
+        }));
+
+        toast({ title: "Payment Approved", description: "The payment has been successfully recorded." });
     };
 
-    // 2. Remove the request from pending approvals
-    const updatedApprovals = pendingApprovals.filter(a => a.id !== approvalId);
+    const handleReject = (approvalId) => {
+        setAppState(prev => ({
+            ...prev,
+            pendingApprovals: prev.pendingApprovals.filter(a => a.id !== approvalId),
+        }));
+        toast({ variant: "destructive", title: "Payment Rejected", description: "The approval request has been removed." });
+    };
 
-    // 3. Update the app state
-    setAppState(prev => ({
-      ...prev,
-      payments: [...prev.payments, newPayment],
-      pendingApprovals: updatedApprovals,
-    }));
+    if (pendingApprovals.length === 0) {
+        return (
+            <Card className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+                <Inbox className="mx-auto h-16 w-16 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Pending Payments</h3>
+                <p>There are no payment approvals to review right now.</p>
+            </Card>
+        );
+    }
 
-    toast({ title: "Payment Approved", description: "The payment has been successfully recorded." });
-  };
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pendingApprovals.map(approval => {
+                const tenant = tenants.find(t => t.id === approval.tenantId);
+                return (
+                    <Card key={approval.id} className="glass-card">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="w-11 h-11 border">
+                                    <AvatarImage src={tenant?.profilePhotoUrl} alt={tenant?.name} />
+                                    <AvatarFallback>{tenant?.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-lg">{tenant?.name || 'Unknown Tenant'}</CardTitle>
+                                    <CardDescription>Room {tenant?.unitNo}</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Amount</p>
+                                <p className="text-2xl font-bold">{approval.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Date Submitted</p>
+                                <p className="font-medium">{format(new Date(approval.date), 'dd MMM, yyyy - hh:mm a')}</p>
+                            </div>
+                            <div>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <img 
+                                            src={approval.screenshotUrl} 
+                                            alt="Payment Screenshot" 
+                                            className="w-full h-auto rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => setSelectedImage(approval.screenshotUrl)}
+                                        />
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-2xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Payment Screenshot</DialogTitle>
+                                        </DialogHeader>
+                                        <img src={selectedImage} alt="Payment Screenshot Full" className="w-full h-auto rounded-md" />
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        </CardContent>
+                        <CardContent className="grid grid-cols-2 gap-2 pt-0">
+                            <Button variant="destructive" onClick={() => handleReject(approval.id)}>
+                                <X className="mr-2 h-4 w-4" /> Reject
+                            </Button>
+                            <Button className="btn-gradient-glow" onClick={() => handleApprove(approval.id)}>
+                                <Check className="mr-2 h-4 w-4" /> Approve
+                            </Button>
+                        </CardContent>
+                    </Card>
+                );
+            })}
+        </div>
+    );
+}
 
-  const handleReject = (approvalId) => {
-    setAppState(prev => ({
-      ...prev,
-      pendingApprovals: prev.pendingApprovals.filter(a => a.id !== approvalId),
-    }));
-    toast({ variant: "destructive", title: "Payment Rejected", description: "The approval request has been removed." });
-  };
+
+function MaintenanceRequests({ appState, setAppState }) {
+    const { maintenanceRequests = [], tenants } = appState;
+    const { toast } = useToast();
+
+    const handleStatusChange = (requestId, newStatus) => {
+        setAppState(prev => ({
+            ...prev,
+            maintenanceRequests: prev.maintenanceRequests.map(req => 
+                req.id === requestId ? { ...req, status: newStatus } : req
+            ),
+        }));
+        toast({ title: "Status Updated", description: `Request status has been changed to ${newStatus}.` });
+    };
+    
+    if (maintenanceRequests.length === 0) {
+        return (
+            <Card className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+                <Inbox className="mx-auto h-16 w-16 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">All Clear!</h3>
+                <p>There are no maintenance requests at the moment.</p>
+            </Card>
+        );
+    }
+    
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {maintenanceRequests.map(request => {
+                const tenant = tenants.find(t => t.id === request.tenantId);
+                return (
+                    <Card key={request.id} className="glass-card">
+                         <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="w-11 h-11 border">
+                                    <AvatarImage src={tenant?.profilePhotoUrl} alt={tenant?.name} />
+                                    <AvatarFallback>{tenant?.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-lg">{tenant?.name || 'Unknown Tenant'}</CardTitle>
+                                    <CardDescription>Room {request?.unitNo}</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Category</p>
+                                <p className="font-semibold">{request.category}</p>
+                            </div>
+                             <div>
+                                <p className="text-sm text-muted-foreground">Description</p>
+                                <p>{request.description}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Submitted</p>
+                                <p className="font-medium">{format(new Date(request.submittedAt), 'dd MMM, yyyy - hh:mm a')}</p>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-2 pt-0">
+                           <div className="w-full">
+                                <p className="text-sm text-muted-foreground mb-1">Status: <span className="font-semibold">{request.status}</span></p>
+                                <select 
+                                    className="w-full p-2 border rounded-md"
+                                    value={request.status}
+                                    onChange={(e) => handleStatusChange(request.id, e.target.value)}
+                                >
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                </select>
+                            </div>
+                        </CardFooter>
+                    </Card>
+                )
+            })}
+        </div>
+    )
+}
+
+
+export default function Approvals({ appState, setAppState }) {
+  const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
+  const pendingMaintenanceCount = appState.maintenanceRequests?.length || 0;
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-3xl font-bold font-headline">Payment Approvals</h2>
-        <p className="text-muted-foreground">Review and confirm payments submitted by tenants.</p>
+        <h2 className="text-3xl font-bold font-headline">Requests & Approvals</h2>
+        <p className="text-muted-foreground">Manage payment approvals and maintenance requests.</p>
       </div>
 
-      {pendingApprovals.length === 0 ? (
-         <Card className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
-            <Inbox className="mx-auto h-16 w-16 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">All Caught Up!</h3>
-            <p>There are no pending payment approvals right now.</p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pendingApprovals.map(approval => {
-            const tenant = tenants.find(t => t.id === approval.tenantId);
-            return (
-              <Card key={approval.id} className="glass-card">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                     <Avatar className="w-11 h-11 border">
-                        <AvatarImage src={tenant?.profilePhotoUrl} alt={tenant?.name} />
-                        <AvatarFallback>{tenant?.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <CardTitle className="text-lg">{tenant?.name || 'Unknown Tenant'}</CardTitle>
-                        <CardDescription>Room {tenant?.unitNo}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Amount</p>
-                    <p className="text-2xl font-bold">{approval.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                  </div>
-                   <div>
-                    <p className="text-sm text-muted-foreground">Date Submitted</p>
-                    <p className="font-medium">{format(new Date(approval.date), 'dd MMM, yyyy - hh:mm a')}</p>
-                  </div>
-                  <div>
-                     <Dialog>
-                        <DialogTrigger asChild>
-                            <img 
-                                src={approval.screenshotUrl} 
-                                alt="Payment Screenshot" 
-                                className="w-full h-auto rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => setSelectedImage(approval.screenshotUrl)}
-                            />
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                             <DialogHeader>
-                                <DialogTitle>Payment Screenshot</DialogTitle>
-                            </DialogHeader>
-                            <img src={selectedImage} alt="Payment Screenshot Full" className="w-full h-auto rounded-md" />
-                        </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardContent>
-                <CardContent className="grid grid-cols-2 gap-2 pt-0">
-                    <Button variant="destructive" onClick={() => handleReject(approval.id)}>
-                        <X className="mr-2 h-4 w-4" /> Reject
-                    </Button>
-                    <Button className="btn-gradient-glow" onClick={() => handleApprove(approval.id)}>
-                        <Check className="mr-2 h-4 w-4" /> Approve
-                    </Button>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+      <Tabs defaultValue="payments" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="payments">
+                Payment Approvals
+                {pendingApprovalsCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{pendingApprovalsCount}</span>}
+            </TabsTrigger>
+            <TabsTrigger value="maintenance">
+                Maintenance
+                {pendingMaintenanceCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{pendingMaintenanceCount}</span>}
+            </TabsTrigger>
+        </TabsList>
+        <TabsContent value="payments" className="mt-6">
+            <PaymentApprovals appState={appState} setAppState={setAppState} />
+        </TabsContent>
+        <TabsContent value="maintenance" className="mt-6">
+            <MaintenanceRequests appState={appState} setAppState={setAppState} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
