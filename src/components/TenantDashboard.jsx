@@ -71,8 +71,9 @@ export default function TenantDashboard({ appState, tenant, onLogout }) {
                         <p className="text-xs text-muted-foreground">Tenant</p>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onLogout} aria-label="Log out">
-                    <LogOut className="w-5 h-5"/>
+                <Button variant="outline" size="sm" onClick={onLogout}>
+                    <LogOut className="w-4 h-4 mr-2"/>
+                    Log Out
                 </Button>
             </div>
         </div>
