@@ -328,22 +328,6 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><IdCard className="w-4 h-4 text-muted-foreground" /><span>Aadhaar: XXXX-XXXX-{(tenant.aadhaar || '').slice(-4)}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><CalendarIcon className="w-4 h-4 text-muted-foreground" /><span>Lease: {tenant.leaseStartDate ? format(parseISO(tenant.leaseStartDate), 'dd MMM yyyy') : 'N/A'} to {tenant.leaseEndDate ? format(parseISO(tenant.leaseEndDate), 'dd MMM yyyy') : 'N/A'}</span></div>
           </div>
-           <div className="border-t pt-4">
-            <h4 className="font-semibold mb-2">Uploaded Documents</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {tenant.aadhaarCardUrl ? (
-                    <Button asChild variant="outline">
-                        <a href={tenant.aadhaarCardUrl} target="_blank" rel="noopener noreferrer"><UploadCloud className="mr-2 h-4 w-4" />View Aadhaar</a>
-                    </Button>
-                ) : <div className="text-sm text-muted-foreground text-center col-span-1 p-2 rounded-md bg-muted/50">No Aadhaar</div>}
-
-                 {tenant.leaseAgreementUrl ? (
-                    <Button asChild variant="outline">
-                        <a href={tenant.leaseAgreementUrl} target="_blank" rel="noopener noreferrer"><FolderArchive className="mr-2 h-4 w-4" />View Lease</a>
-                    </Button>
-                 ) : <div className="text-sm text-muted-foreground text-center col-span-1 p-2 rounded-md bg-muted/50">No Lease</div>}
-            </div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
