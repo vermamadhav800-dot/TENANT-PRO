@@ -53,13 +53,13 @@ export default function RentReceipt({ receiptDetails, onBack }) {
                     <div className="border-t border-b py-4 my-4">
                         <div className="flex justify-between items-center">
                             <p className="text-muted-foreground">Rent for {format(parseISO(payment.date), 'MMMM yyyy')}</p>
-                            <p className="font-semibold">{payment.amount.toLocaleString()}</p>
+                            <p className="font-semibold">{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                         </div>
                     </div>
 
                      <div className="flex justify-between items-center text-xl font-bold">
                         <p>Total Paid</p>
-                        <p>{payment.amount.toLocaleString()}</p>
+                        <p>{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
 
                 </CardContent>

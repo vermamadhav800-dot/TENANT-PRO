@@ -17,8 +17,8 @@ export default function AppSettings({ appState, setAppState, user }) {
   const [currentUser, setCurrentUser] = useState(user);
 
   const handleDefaultsChange = (e) => {
-    const { name, value } = e.target;
-    setDefaults(prev => ({ ...prev, [name]: Number(value) }));
+    const { name, value, type } = e.target;
+    setDefaults(prev => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
   };
 
   const handleUserChange = (e) => {
@@ -72,19 +72,32 @@ export default function AppSettings({ appState, setAppState, user }) {
       
       <Card>
         <CardHeader>
-          <CardTitle>Default Values</CardTitle>
-          <CardDescription>Set default values for new entries to speed up data input.</CardDescription>
+          <CardTitle>Default & Payment Settings</CardTitle>
+          <CardDescription>Set default values and your payment details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="electricityRatePerUnit">Default Electricity Rate (per Unit)</Label>
-            <Input
-              id="electricityRatePerUnit"
-              name="electricityRatePerUnit"
-              type="number"
-              value={defaults.electricityRatePerUnit}
-              onChange={handleDefaultsChange}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="electricityRatePerUnit">Default Electricity Rate (per Unit)</Label>
+              <Input
+                id="electricityRatePerUnit"
+                name="electricityRatePerUnit"
+                type="number"
+                value={defaults.electricityRatePerUnit}
+                onChange={handleDefaultsChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="upiId">Your UPI ID</Label>
+              <Input
+                id="upiId"
+                name="upiId"
+                type="text"
+                placeholder="e.g., yourname@okhdfcbank"
+                value={defaults.upiId || ''}
+                onChange={handleDefaultsChange}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

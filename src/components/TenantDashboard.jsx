@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -51,10 +51,13 @@ const TenantProfile = ({ tenant }) => (
     </div>
 );
 
-const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
+const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const { toast } = useToast();
     const [showReceipt, setShowReceipt] = useState(null);
-    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    
+    const adminUpiId = appState.defaults?.upiId;
+    const adminName = appState.MOCK_USER_INITIAL?.name || "Property Manager";
 
     const tenantPayments = useMemo(() => {
         return payments
@@ -68,7 +71,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             tenantId: tenant.id,
             amount: tenant.rentAmount,
             date: new Date().toISOString(),
-            method: 'Paytm',
+            method: 'UPI',
         };
 
         setAppState(prev => ({
@@ -76,19 +79,22 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
             payments: [...prev.payments, newPayment]
         }));
         
-        setIsQrModalOpen(false);
+        setIsPaymentModalOpen(false);
 
         toast({
             title: "Payment Recorded!",
-            description: "Your rent payment has been recorded and a receipt has been generated.",
+            description: "Your rent payment has been recorded. The admin will verify it shortly.",
         });
 
+        // Optionally show receipt right after confirmation
         setShowReceipt({ payment: newPayment, tenant, room });
     };
 
     if (showReceipt) {
         return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} />;
     }
+
+    const upiLink = adminUpiId ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(adminName)}&am=${tenant.rentAmount.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
 
     return (
         <div className="space-y-6">
@@ -99,7 +105,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                 <CardContent className="grid grid-cols-2 gap-4">
                     <div>
                         <p className="text-sm text-muted-foreground">Monthly Rent</p>
-                        <p className="text-2xl font-bold">{tenant.rentAmount.toLocaleString()}</p>
+                        <p className="text-2xl font-bold">{tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Due Date</p>
@@ -107,30 +113,34 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+                    <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
                          <DialogTrigger asChild>
-                            <Button className="w-full sm:w-auto ml-auto btn-gradient-glow">
-                                <QrCode className="mr-2 h-4 w-4" /> Pay with Paytm
+                            <Button className="w-full sm:w-auto ml-auto btn-gradient-glow" disabled={!adminUpiId}>
+                                <IndianRupee className="mr-2 h-4 w-4" /> Pay Rent Now
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Pay with Paytm</DialogTitle>
+                                <DialogTitle>Complete Your Payment</DialogTitle>
                                 <DialogDescription>
-                                    Use your favorite payment app to scan this QR code and pay your rent. After paying, click the "I Have Paid" button below.
+                                   You will be redirected to your UPI app to pay <strong className="font-bold">{tenant.rentAmount.toFixed(2)}</strong>. After payment, click "I Have Paid" to record the transaction.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="flex justify-center p-4">
-                                <img 
-                                    src="https://placehold.co/256x256/png?text=Scan+QR" 
-                                    alt="Payment QR Code" 
-                                    width={256} 
-                                    height={256} 
-                                    className="rounded-lg"
-                                />
+                            <div className="text-center py-4">
+                                {!upiLink ? (
+                                    <p className="text-red-500">The admin has not configured their UPI ID for payments yet.</p>
+                                ) : (
+                                    <a href={upiLink} target="_blank" rel="noopener noreferrer">
+                                        <Button size="lg" className="w-full">
+                                            <ExternalLink className="mr-2 h-5 w-5" />
+                                            Proceed to UPI App
+                                        </Button>
+                                    </a>
+                                )}
                             </div>
-                            <DialogFooter>
-                                <Button onClick={handleConfirmPayment} className="w-full">
+                            <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
+                                 <p className="text-xs text-muted-foreground text-center sm:text-left">Your payment will be verified by the admin.</p>
+                                <Button onClick={handleConfirmPayment} className="w-full sm:w-auto" disabled={!upiLink}>
                                     I Have Paid
                                 </Button>
                             </DialogFooter>
@@ -159,7 +169,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room }) => {
                                 tenantPayments.map(payment => (
                                     <TableRow key={payment.id}>
                                         <TableCell>{format(new Date(payment.date), 'dd MMMM, yyyy')}</TableCell>
-                                        <TableCell className="font-medium">{payment.amount.toLocaleString()}</TableCell>
+                                        <TableCell className="font-medium">{payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                         <TableCell>
                                             <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span>
                                         </TableCell>
@@ -227,7 +237,7 @@ const TenantHome = ({ tenant, payments, room }) => {
                         <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{tenant.rentAmount ? tenant.rentAmount.toLocaleString() : 'N/A'}</div>
+                        <div className="text-2xl font-bold">{tenant.rentAmount ? tenant.rentAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'N/A'}</div>
                         <p className="text-xs text-muted-foreground">Due on: {tenant.dueDate ? format(parseISO(tenant.dueDate), 'dd MMMM yyyy') : 'Not Set'}</p>
                     </CardContent>
                 </Card>
@@ -269,7 +279,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             case 'dashboard':
                 return <TenantHome tenant={tenant} payments={payments} room={room} />;
             case 'payments':
-                return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} />;
+                return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
             case 'profile':
                 return <TenantProfile tenant={tenant} />;
             default:
@@ -283,7 +293,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 <AppLogo className="w-8 h-8" iconClassName="w-5 h-5" />
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {TABS.map(tab => (
                     <Button
                         key={tab.id}
@@ -298,7 +308,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                         {tab.label}
                     </Button>
                 ))}
-            </nav>
+            </div>
             <div className="p-4 border-t mt-auto">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
                     <LogOut className="w-5 h-5" />
@@ -318,11 +328,9 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             {/* Mobile Sidebar */}
             {isSidebarOpen && (
                  <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}>
-                     <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                        <SheetContent side="left" className="p-0 w-64">
-                           <SidebarContent />
-                        </SheetContent>
-                    </Sheet>
+                     <div className="fixed inset-y-0 left-0 w-64 bg-background z-40 animate-in slide-in-from-left duration-300">
+                        <SidebarContent />
+                     </div>
                 </div>
             )}
 
@@ -362,7 +370,3 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
         </div>
     );
 }
-
-    
-
-    
