@@ -36,13 +36,13 @@ export default function Home() {
         return false;
       }
     } else { // Tenant login
-      const tenant = appState.tenants.find(t => t.username === credentials.username && t.phone === credentials.password);
+      const tenant = appState.tenants.find(t => t.username === credentials.username && t.password === credentials.password);
       if (tenant) {
         setUser(tenant);
         setRole('tenant');
         return true;
       } else {
-        toast({ variant: "destructive", title: "Login Failed", description: "Invalid tenant credentials! Use your username and phone number." });
+        toast({ variant: "destructive", title: "Login Failed", description: "Invalid username or password for tenant." });
         return false;
       }
     }

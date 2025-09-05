@@ -8,8 +8,9 @@ export const INITIAL_APP_STATE = {
     { 
       id: "1", 
       name: "Madhav", 
-      phone: "madhav123", 
+      phone: "1234567890", 
       username: "madhav",
+      password: "madhav123",
       unitNo: "101",
       rentAmount: 6000,
       dueDate: new Date().toISOString(),
