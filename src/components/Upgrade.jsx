@@ -159,7 +159,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab }) {
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setSelectedPlan(null)}>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={confirmUpgrade}>
-                        Confirm & Pay
+                        Confirm &amp; Pay
                     </AlertDialogAction>
                 </AlertDialogFooter>
                 </AlertDialogContent>
