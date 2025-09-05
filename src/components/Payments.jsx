@@ -143,7 +143,7 @@ export default function Payments({ appState, setAppState }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Tenant</TableHead>
-                <TableHead>Unit No.</TableHead>
+                <TableHead>Room No.</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
