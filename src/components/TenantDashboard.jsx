@@ -222,7 +222,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || (!upiLink && !qrCodeUrl)}>
+                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || (!adminUpiId && !qrCodeUrl)}>
                         Submit for Approval
                     </Button>
                 </DialogFooter>
