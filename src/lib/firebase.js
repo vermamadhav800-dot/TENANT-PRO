@@ -6,13 +6,13 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "estateflow-et5gg.firebaseapp.com",
-  projectId: "estateflow-et5gg",
-  storageBucket: "estateflow-et5gg.appspot.com",
-  messagingSenderId: "952285514860",
-  appId: "1:952285514860:web:9c52b75a8915b2e95a98d3",
-  measurementId: "G-5G598XJ4V4"
+  "projectId": "estateflow-et5gg",
+  "appId": "1:892096739715:web:31c9655c0cdd90e66f1eb6",
+  "storageBucket": "estateflow-et5gg.appspot.com",
+  "apiKey": "AIzaSyCYUtTLCVHqoZjkHDGLW-lXlAyxuRE5nKQ",
+  "authDomain": "estateflow-et5gg.firebaseapp.com",
+  "messagingSenderId": "892096739715",
+  "measurementId": "G-5G598XJ4V4"
 };
 
 // Initialize Firebase
