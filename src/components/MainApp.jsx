@@ -139,15 +139,16 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const isBusiness = currentPlan === 'business';
 
   const handleTabClick = (tab) => {
-    const isTabPro = tab.plan === 'pro' && !isPro && !isBusiness;
-    const isTabBusiness = tab.plan === 'business' && !isBusiness;
+    const planOrder = { standard: 1, pro: 2, business: 3 };
+    const currentPlanRank = planOrder[currentPlan] || 1;
+    const requiredPlanRank = planOrder[tab.plan] || 1;
 
-    if (isTabPro || isTabBusiness) {
+    if (currentPlanRank < requiredPlanRank) {
       setActiveTab('upgrade');
       toast({
         variant: "destructive",
         title: "Upgrade Required",
-        description: `The "${tab.label}" feature is only available on the ${isTabBusiness ? 'Business' : 'Pro'} plan.`
+        description: `The "${tab.label}" feature is only available on the ${tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)} plan or higher.`
       });
     } else {
       setActiveTab(tab.id);
@@ -250,9 +251,10 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           <SidebarContent className="p-2">
             <SidebarMenu>
               {TABS.map((tab) => {
-                const isTabPro = tab.plan === 'pro' && !isPro && !isBusiness;
-                const isTabBusiness = tab.plan === 'business' && !isBusiness;
-                const isLocked = isTabPro || isTabBusiness;
+                const planOrder = { standard: 1, pro: 2, business: 3 };
+                const currentPlanRank = planOrder[currentPlan] || 1;
+                const requiredPlanRank = planOrder[tab.plan] || 1;
+                const isLocked = currentPlanRank < requiredPlanRank;
                 
                 return(
                 <SidebarMenuItem key={tab.id}>
@@ -272,7 +274,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                     )}
                     {isLocked && (
                       <Badge variant="outline" className="ml-auto bg-amber-200/50 text-amber-600 border-amber-300 text-xs">
-                        Pro
+                        {tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)}
                       </Badge>
                     )}
                   </SidebarMenuButton>
@@ -285,7 +287,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
               {currentPlan === 'standard' ? (
                 <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-amber-500/50 transition-shadow" onClick={() => setActiveTab('upgrade')}>
                   <Star className="mr-2 h-4 w-4" />
-                  Upgrade to Pro
+                  Upgrade Plan
                 </Button>
               ) : (
                 <div 
@@ -320,6 +322,16 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                   >
                     <Settings />
                     <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                   <SidebarMenuButton
+                    onClick={() => setActiveTab("upgrade")}
+                    isActive={activeTab === "upgrade"}
+                    tooltip={{ children: "Manage Plan" }}
+                  >
+                    <Star />
+                    <span>Manage Plan</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
