@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare, FolderArchive } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare, FolderArchive, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -46,7 +46,8 @@ const TenantFormModal = ({
   setAppState,
   availableUnits,
   rooms,
-  tenants
+  tenants,
+  appState,
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant?.profilePhotoUrl || null);
@@ -54,6 +55,7 @@ const TenantFormModal = ({
   const [leaseAgreementPreview, setLeaseAgreementPreview] = useState(tenant?.leaseAgreementUrl);
   const [selectedUnit, setSelectedUnit] = useState(tenant?.unitNo);
   const [calculatedRent, setCalculatedRent] = useState(0);
+  const isBusiness = appState.defaults.subscriptionPlan === 'business';
 
   const recalculateRentForRoom = (unitNo, allTenants) => {
       const room = rooms.find(r => r.number === unitNo);
@@ -209,20 +211,29 @@ const TenantFormModal = ({
           </div>
 
           <div className="border-t pt-4 space-y-4">
-             <h3 className="font-semibold">Documents (Business Feature)</h3>
+             <div className="flex items-center gap-2">
+                <h3 className="font-semibold">Documents</h3>
+                {!isBusiness && <Badge className="bg-purple-100 text-purple-700 border-purple-200">Business Feature</Badge>}
+             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="^d{12}$" title="Aadhaar must be 12 digits" /></div>
-                <div>
+                <div><Label htmlFor="aadhaar">Aadhaar Card Number</Label><Input id="aadhaar" name="aadhaar" defaultValue={tenant?.aadhaar} required pattern="\d{12}" title="Aadhaar must be 12 digits" /></div>
+                <div className="space-y-1">
                   <Label htmlFor="aadhaarCard">Aadhaar Card Upload</Label>
-                  <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setAadhaarCardPreview)} />
+                  <Input id="aadhaarCard" name="aadhaarCard" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setAadhaarCardPreview)} disabled={!isBusiness} />
                   {aadhaarCardPreview && <a href={aadhaarCardPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Aadhaar</a>}
                 </div>
              </div>
-             <div>
+             <div className="space-y-1">
                 <Label htmlFor="leaseAgreement">Lease Agreement Upload</Label>
-                <Input id="leaseAgreement" name="leaseAgreement" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setLeaseAgreementPreview)} />
+                <Input id="leaseAgreement" name="leaseAgreement" type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileChange(e, setLeaseAgreementPreview)} disabled={!isBusiness} />
                 {leaseAgreementPreview && <a href={leaseAgreementPreview} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-2 inline-block">View Uploaded Lease</a>}
              </div>
+             {!isBusiness && (
+                <div className="text-center text-sm p-3 bg-muted rounded-lg text-muted-foreground flex items-center justify-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Upgrade to Business plan to upload and manage documents.
+                </div>
+             )}
           </div>
 
           <DialogFooter className="pt-4 !mt-8">
@@ -614,7 +625,7 @@ export default function Tenants({ appState, setAppState }) {
       </div>
       )}
       
-      {isFormModalOpen && <TenantFormModal isOpen={isFormModalOpen} setIsOpen={setIsFormModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} />}
+      {isFormModalOpen && <TenantFormModal isOpen={isFormModalOpen} setIsOpen={setIsFormModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} appState={appState} />}
       {isDeleteModalOpen && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
       {isDetailsModalOpen && <TenantDetailsModal isOpen={isDetailsModalOpen} setIsOpen={setIsDetailsModalOpen} tenant={selectedTenant} room={rooms.find(r => r.number === selectedTenant?.unitNo) || null} />}
       {isNotifyModalOpen && <NotificationModal isOpen={isNotifyModalOpen} setIsOpen={setIsNotifyModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
