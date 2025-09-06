@@ -24,7 +24,7 @@ import TenantDocuments from './TenantDocuments';
 import Upgrade from './Upgrade';
 
 
-const TenantProfile = ({ tenant, setAppState }) => {
+const TenantProfile = ({ tenant, setOwnerState }) => {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const { toast } = useToast();
     
@@ -78,7 +78,7 @@ const TenantProfile = ({ tenant, setAppState }) => {
             submittedAt: new Date().toISOString(),
         };
 
-        setAppState(prev => ({
+        setOwnerState(prev => ({
             ...prev,
             updateRequests: [...(prev.updateRequests || []), newRequest]
         }));
@@ -184,7 +184,7 @@ const TenantProfile = ({ tenant, setAppState }) => {
     )
 };
 
-const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
+const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) => {
     const { toast } = useToast();
     const [showReceipt, setShowReceipt] = useState(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -195,9 +195,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const tenantPlan = tenant.subscriptionPlan || 'free';
     const canDownloadReceipts = tenantPlan === 'plus' || tenantPlan === 'premium';
 
-    const { upiId: adminUpiId } = appState.defaults || {};
-    const ownerDetails = appState.MOCK_USER_INITIAL || {};
-    const adminQrCodeUrl = appState.defaults?.qrCodeUrl;
+    const { upiId: adminUpiId } = ownerState.defaults || {};
+    const ownerDetails = ownerState.MOCK_USER_INITIAL || {};
+    const adminQrCodeUrl = ownerState.defaults?.qrCodeUrl;
 
 
     const { electricityBillShare, totalCharges, paidThisMonth, amountDue } = useMemo(() => {
@@ -225,7 +225,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             amountDue: finalAmountDue > 0 ? finalAmountDue : 0,
         };
 
-    }, [room, tenant, payments, appState.defaults]);
+    }, [room, tenant, payments, ownerState.defaults]);
 
     useEffect(() => {
         if(amountDue > 0) {
@@ -240,12 +240,12 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             .filter(p => p.tenantId === tenant.id)
             .map(p => ({...p, status: 'Approved'}));
 
-        const pending = (appState.pendingApprovals || [])
+        const pending = (ownerState.pendingApprovals || [])
             .filter(p => p.tenantId === tenant.id)
             .map(p => ({...p, status: 'Processing'}));
 
         return [...approved, ...pending].sort((a,b) => new Date(b.date) - new Date(a.date));
-    }, [payments, appState.pendingApprovals, tenant.id]);
+    }, [payments, ownerState.pendingApprovals, tenant.id]);
 
 
     const handleFileChange = (e) => {
@@ -287,7 +287,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
             screenshotUrl: paymentScreenshotPreview, // In a real app, this would be an uploaded URL
         };
 
-        setAppState(prev => ({
+        setOwnerState(prev => ({
             ...prev,
             pendingApprovals: [...(prev.pendingApprovals || []), newApprovalRequest]
         }));
@@ -305,7 +305,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     };
     
     if (showReceipt) {
-        return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} appState={appState} />;
+        return <RentReceipt receiptDetails={showReceipt} onBack={() => setShowReceipt(null)} appState={ownerState} />;
     }
 
     const upiLink = adminUpiId && amountDue > 0 ? `upi://pay?pa=${adminUpiId}&pn=${encodeURIComponent(ownerDetails.name)}&am=${amountDue.toFixed(2)}&tn=${encodeURIComponent(`Rent for ${format(new Date(), 'MMMM yyyy')} for Room ${tenant.unitNo}`)}` : null;
@@ -512,7 +512,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     );
 };
 
-const TenantHome = ({ tenant, payments, room, appState }) => {
+const TenantHome = ({ tenant, payments, room, ownerState }) => {
     const { amountDue } = useMemo(() => {
         const thisMonth = new Date().getMonth();
         const thisYear = new Date().getFullYear();
@@ -589,15 +589,15 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
     );
 };
 
-const Notifications = ({ tenant, appState, setAppState }) => {
+const Notifications = ({ tenant, ownerState, setOwnerState }) => {
     const tenantNotifications = useMemo(() => {
-        return (appState.notifications || [])
+        return (ownerState.notifications || [])
             .filter(n => n.tenantId === tenant.id)
             .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }, [appState.notifications, tenant.id]);
+    }, [ownerState.notifications, tenant.id]);
 
     const handleMarkAsRead = (notificationId) => {
-        setAppState(prev => ({
+        setOwnerState(prev => ({
             ...prev,
             notifications: prev.notifications.map(n => 
                 n.id === notificationId ? { ...n, isRead: true } : n
@@ -645,7 +645,7 @@ const Notifications = ({ tenant, appState, setAppState }) => {
     )
 }
 
-const HelpAndSupport = ({ tenant, appState, setAppState }) => {
+const HelpAndSupport = ({ tenant, ownerState, setOwnerState }) => {
     const { toast } = useToast();
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     
@@ -670,7 +670,7 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
             submittedAt: new Date().toISOString(),
         };
 
-        setAppState(prev => ({
+        setOwnerState(prev => ({
             ...prev,
             maintenanceRequests: [...(prev.maintenanceRequests || []), newRequest]
         }));
@@ -680,10 +680,10 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
     };
 
     const tenantRequests = useMemo(() => {
-        return (appState.maintenanceRequests || [])
+        return (ownerState.maintenanceRequests || [])
             .filter(req => req.tenantId === tenant.id)
             .sort((a,b) => new Date(b.submittedAt) - new Date(a.createdAt));
-    }, [appState.maintenanceRequests, tenant.id]);
+    }, [ownerState.maintenanceRequests, tenant.id]);
 
     const getStatusVariant = (status) => {
         switch (status) {
@@ -777,8 +777,8 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
     );
 };
 
-const TenantNoticeBoard = ({ appState }) => {
-    const { globalNotices = [] } = appState;
+const TenantNoticeBoard = ({ ownerState }) => {
+    const { globalNotices = [] } = ownerState;
     return (
         <div className="space-y-6">
             <Card className="glass-card">
@@ -823,18 +823,28 @@ const TABS = [
     { id: 'profile', label: 'Profile', icon: User, premium: false },
 ];
 
-export default function TenantDashboard({ appState, setAppState, tenant, onLogout }) {
+export default function TenantDashboard({ ownerState, setAppState, tenant, onLogout, ownerId }) {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { payments, rooms, notifications = [], defaults = {} } = appState;
-    const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
-    const currentTenant = appState.tenants.find(t => t.id === tenant.id) || tenant;
+    const { payments, rooms, notifications = [], defaults = {} } = ownerState;
+    const ownerDetails = ownerState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
+    const currentTenant = ownerState.tenants.find(t => t.id === tenant.id) || tenant;
     const tenantPlan = currentTenant.subscriptionPlan || 'free';
 
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
+    // Create a dedicated setter for this owner's state
+    const setOwnerState = (updater) => {
+        setAppState(prevAppState => {
+            const newOwnerState = typeof updater === 'function' ? updater(prevAppState[ownerId]) : updater;
+            return {
+                ...prevAppState,
+                [ownerId]: newOwnerState
+            };
+        });
+    };
 
     const unreadNotificationsCount = useMemo(() => {
         return notifications.filter(n => n.tenantId === tenant.id && !n.isRead).length;
@@ -854,7 +864,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     };
 
     const renderContent = () => {
-        const props = { tenant: currentTenant, appState, setAppState, payments, room };
+        const props = { tenant: currentTenant, ownerState, setOwnerState, payments, room };
         switch (activeTab) {
             case 'dashboard':
                 return <TenantHome {...props} />;
@@ -871,8 +881,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             case 'upgrade':
                 return <Upgrade 
                             userType="tenant" 
-                            appState={appState} 
-                            setAppState={setAppState} 
+                            appState={ownerState} 
+                            setAppState={setOwnerState} 
                             currentTenant={currentTenant}
                             onUpgradeSuccess={() => setActiveTab('dashboard')}
                         />;

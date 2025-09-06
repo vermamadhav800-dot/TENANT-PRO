@@ -79,12 +79,12 @@ const TABS = [
 const TAB_GROUPS = ['main', 'management', 'operations', 'analytics'];
 
 
-function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
+function AppContent({ activeTab, setActiveTab, ownerState, setOwnerState, user }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
 
   const renderTabContent = () => {
-    const props = { appState, setAppState, user, setActiveTab };
+    const props = { appState: ownerState, setAppState: setOwnerState, user, setActiveTab };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} />;
@@ -142,16 +142,27 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   );
 }
 
-export default function MainApp({ onLogout, user, appState, setAppState }) {
+export default function MainApp({ onLogout, user, ownerState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
   
-  const pendingApprovalsCount = (appState.pendingApprovals || []).length;
-  const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
-  const pendingUpdateRequestsCount = (appState.updateRequests || []).length;
+  // Create a dedicated setter for the specific owner's state
+  const setOwnerState = (updater) => {
+    setAppState(prevAppState => {
+        const newOwnerState = typeof updater === 'function' ? updater(prevAppState[user.username]) : updater;
+        return {
+            ...prevAppState,
+            [user.username]: newOwnerState
+        };
+    });
+  };
+
+  const pendingApprovalsCount = (ownerState.pendingApprovals || []).length;
+  const pendingMaintenanceCount = (ownerState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
+  const pendingUpdateRequestsCount = (ownerState.updateRequests || []).length;
   const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount + pendingUpdateRequestsCount;
 
-  const currentPlan = appState.defaults?.subscriptionPlan || 'standard';
+  const currentPlan = ownerState.defaults?.subscriptionPlan || 'standard';
   const isPro = currentPlan === 'pro' || currentPlan === 'business';
   const isBusiness = currentPlan === 'business';
 
@@ -174,12 +185,12 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
 
 
   useEffect(() => {
-    const { defaults = {}, tenants = [], payments = [], rooms = [] } = appState;
+    const { defaults = {}, tenants = [], payments = [], rooms = [] } = ownerState;
     const { reminderSettings = {} } = defaults;
     
     if (!reminderSettings.enabled || !isPro) return;
 
-    const lastCheck = new Date(appState.defaults.lastReminderCheck || 0);
+    const lastCheck = new Date(ownerState.defaults.lastReminderCheck || 0);
     const now = new Date();
     if (now.getTime() - lastCheck.getTime() < 6 * 60 * 60 * 1000) {
         return;
@@ -212,7 +223,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
 
         if (pendingAmount <= 0) return;
 
-        const hasRecentReminder = (appState.notifications || []).some(n => 
+        const hasRecentReminder = (ownerState.notifications || []).some(n => 
             n.tenantId === tenant.id && 
             new Date(n.createdAt).getTime() > now.getTime() - (reminderSettings.overdueDays * 24 * 60 * 60 * 1000)
         );
@@ -241,18 +252,18 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     });
 
     if (newNotifications.length > 0) {
-      setAppState(prev => ({
+      setOwnerState(prev => ({
         ...prev,
         notifications: [...(prev.notifications || []), ...newNotifications],
         defaults: { ...prev.defaults, lastReminderCheck: now.toISOString() }
       }));
     } else {
-       setAppState(prev => ({
+       setOwnerState(prev => ({
         ...prev,
         defaults: { ...prev.defaults, lastReminderCheck: now.toISOString() }
       }));
     }
-  }, [appState.tenants, appState.payments, appState.rooms, appState.defaults.reminderSettings, isPro, setAppState]);
+  }, [ownerState, setOwnerState, isPro]);
 
 
   return (
@@ -377,8 +388,8 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
         <AppContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          appState={appState}
-          setAppState={setAppState}
+          ownerState={ownerState}
+          setOwnerState={setOwnerState}
           user={user}
         />
       </div>

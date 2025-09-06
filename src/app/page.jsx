@@ -13,7 +13,8 @@ import { INITIAL_APP_STATE } from "@/lib/consts";
 export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
   const [auth, setAuth] = useLocalStorage("auth", { user: null, role: null });
-  const [appState, setAppState] = useLocalStorage("appState", INITIAL_APP_STATE);
+  // appState now stores data per owner, keyed by owner's username
+  const [appState, setAppState] = useLocalStorage("appState", {}); 
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,39 +28,57 @@ export default function Home() {
   const handleAuth = (credentials, action) => {
     if (action === 'login') {
       if (credentials.role === 'owner') {
-        if (!appState.MOCK_USER_INITIAL?.username) {
-            toast({ variant: "destructive", title: "Login Error", description: "No owner account found. Please register first." });
+        const ownerData = appState[credentials.username];
+        if (!ownerData) {
+            toast({ variant: "destructive", title: "Login Error", description: "No account found with this email. Please register first." });
             return false;
         }
-        if (credentials.username === appState.MOCK_USER_INITIAL.username && credentials.password === appState.MOCK_USER_INITIAL.password) {
-          setAuth({ user: appState.MOCK_USER_INITIAL, role: 'owner' });
+        if (credentials.password === ownerData.MOCK_USER_INITIAL.password) {
+          setAuth({ user: ownerData.MOCK_USER_INITIAL, role: 'owner' });
           toast({ title: "Login Successful", description: "Welcome back!" });
           return true;
         }
       } else { // Tenant login
-        const tenant = appState.tenants.find(t => t.phone === credentials.username);
-        if (tenant) {
-          setAuth({ user: tenant, role: 'tenant' });
-          toast({ title: "Login Successful", description: `Welcome, ${tenant.name}!` });
-          return true;
+        // Tenant login needs to check across all owners' data
+        for (const ownerKey in appState) {
+          const ownerData = appState[ownerKey];
+          const tenant = ownerData.tenants.find(t => t.phone === credentials.username);
+          if (tenant) {
+            // We need to know which owner this tenant belongs to for data updates
+            setAuth({ user: tenant, role: 'tenant', ownerId: ownerKey }); 
+            toast({ title: "Login Successful", description: `Welcome, ${tenant.name}!` });
+            return true;
+          }
         }
       }
-    } else { // Register
-      // REMOVED CHECK FOR EXISTING OWNER to allow registration anytime.
+    } else { // Register Owner
+      if (appState[credentials.username]) {
+         toast({ variant: "destructive", title: "Registration Failed", description: "An account with this email already exists." });
+         return false;
+      }
+
       const newOwner = {
         name: credentials.name,
         username: credentials.username,
         password: credentials.password,
       };
-      setAppState(prev => ({
-        ...prev,
+      
+      // Create a new data "box" for this owner
+      const newOwnerState = {
+        ...INITIAL_APP_STATE,
         MOCK_USER_INITIAL: newOwner,
         defaults: {
-          ...prev.defaults,
+          ...INITIAL_APP_STATE.defaults,
           propertyName: credentials.propertyName,
           propertyAddress: credentials.propertyAddress,
         }
+      };
+      
+      setAppState(prev => ({
+        ...prev,
+        [credentials.username]: newOwnerState
       }));
+
       setAuth({ user: newOwner, role: 'owner' });
       toast({ title: "Registration Successful", description: "Welcome! Your property is set up." });
       return true;
@@ -80,24 +99,38 @@ export default function Home() {
       
       if (auth.user) {
           if (auth.role === 'owner') {
+             // Pass only the data for the currently logged-in owner
+             const ownerData = appState[auth.user.username];
+             if (!ownerData) {
+                // Data for this owner was deleted, so log out.
+                handleLogout();
+                return <Auth onAuth={handleAuth} />;
+             }
              return <MainApp 
-                appState={appState} 
-                setAppState={setAppState} 
+                ownerState={ownerData} 
+                setAppState={setAppState} // Pass the main setter
                 onLogout={handleLogout} 
                 user={auth.user} 
               />;
           }
           if (auth.role === 'tenant') {
-            const tenant = appState.tenants.find(t => t.id === auth.user.id);
+            // Find the tenant and their owner's data
+            const ownerData = appState[auth.ownerId];
+            if (!ownerData) {
+              handleLogout(); // Owner data was deleted, log out tenant.
+              return <Auth onAuth={handleAuth} />;
+            }
+            const tenant = ownerData.tenants.find(t => t.id === auth.user.id);
             if (!tenant) {
               handleLogout(); // Tenant data was deleted, so log out.
               return <Auth onAuth={handleAuth} />;
             }
             return <TenantDashboard 
-                appState={appState} 
-                setAppState={setAppState}
+                ownerState={ownerData} 
+                setAppState={setAppState} // Pass the main setter
                 tenant={tenant}
                 onLogout={handleLogout} 
+                ownerId={auth.ownerId}
             />;
           }
       }
