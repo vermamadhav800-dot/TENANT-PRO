@@ -127,6 +127,7 @@ export default function AppSettings({ appState, setAppState, user }) {
 
   const handleConfirmImport = () => {
     if (dataToImport) {
+      // The imported data is the entire app state, so we set it directly.
       setAppState(dataToImport);
       toast({
         title: 'Import Successful',
@@ -140,6 +141,7 @@ export default function AppSettings({ appState, setAppState, user }) {
     }
     setIsImportAlertOpen(false);
     setDataToImport(null);
+    setImportText('');
   };
 
 
@@ -316,12 +318,12 @@ export default function AppSettings({ appState, setAppState, user }) {
        <Card>
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
-          <CardDescription>Import or export your application data. This is useful for backups and transfers.</CardDescription>
+          <CardDescription>Import your application data from a backup file. This is useful for backups and transfers.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <div>
-                <Label htmlFor="import-backup" className="font-semibold">Import from File</Label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Label htmlFor="import-backup" className="font-semibold">Option 1: Import from File (Desktop)</Label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-2">
                     <Button variant="outline" asChild className="w-full sm:w-auto">
                         <Label htmlFor="import-backup" className="cursor-pointer">
                             <FileJson className="mr-2 h-4 w-4" /> Select JSON File
@@ -332,7 +334,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                 </div>
             </div>
              <div className="border-t pt-6 space-y-2">
-                 <Label htmlFor="import-text" className="font-semibold">Import from Pasted Text (Mobile-friendly)</Label>
+                 <Label htmlFor="import-text" className="font-semibold">Option 2: Import from Text (Mobile)</Label>
                  <p className="text-sm text-muted-foreground">Copy the text from your JSON backup file and paste it here.</p>
                  <Textarea 
                     id="import-text"
@@ -393,3 +395,5 @@ export default function AppSettings({ appState, setAppState, user }) {
     </div>
   );
 }
+
+    
