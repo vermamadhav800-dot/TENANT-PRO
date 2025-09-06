@@ -26,7 +26,7 @@ import Upgrade from './Upgrade';
 
 const TenantProfile = ({ tenant }) => (
     <div className="space-y-6">
-        <Card>
+        <Card className="glass-card">
             <CardHeader>
                 <CardTitle>Personal Details</CardTitle>
                 <CardDescription>Your personal information on record.</CardDescription>
@@ -204,13 +204,13 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                         <p className="font-bold text-xl">Amount Due: ₹{amountDue.toFixed(2)}</p>
                         {upiLink && (
                             <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
-                                <Button size="lg" className="w-full">
+                                <Button size="lg" className="w-full btn-gradient-glow">
                                     <ExternalLink className="mr-2 h-5 w-5" />
-                                    Redirect to UPI App
+                                    Pay Now with UPI App
                                 </Button>
                             </a>
                         )}
-                        <Button variant="link" onClick={() => setPaymentView('default')}>Back</Button>
+                        <Button variant="link" onClick={() => setPaymentView('default')}>Back to Payment Options</Button>
                     </div>
                 </>
             );
@@ -221,24 +221,24 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 <DialogHeader>
                     <DialogTitle>Complete Your Payment</DialogTitle>
                     <DialogDescription>
-                       Step 1: Use an option below or your preferred method to pay.
-                       Step 2: Enter the amount you paid and take a screenshot.
-                       Step 3: Upload the screenshot here and submit for approval.
+                       Step 1: Use an option below or your preferred method to pay the amount due.
+                       Step 2: Enter the exact amount paid and take a screenshot of the confirmation.
+                       Step 3: Upload the screenshot here and submit for approval. Your payment will reflect after verification.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {upiLink ? (
-                            <a href={upiLink} target="_blank" rel="noopener noreferrer" className="w-full">
-                                <Button size="lg" className="w-full h-full">
+                             <Button size="lg" className="w-full h-full" asChild>
+                                <a href={upiLink} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="mr-2 h-5 w-5" />
                                     Pay via UPI App
-                                </Button>
-                            </a>
-                        ) : <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground">UPI App payment not configured.</div>}
+                                </a>
+                             </Button>
+                        ) : <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground flex items-center justify-center">UPI App payment not configured.</div>}
                         <Button size="lg" variant="outline" className="w-full h-full" onClick={() => setPaymentView('qr')} disabled={!adminQrCodeUrl}>
                            <QrCode className="mr-2 h-5 w-5" />
-                           Pay with QR Code
+                           Show QR Code
                        </Button>
                     </div>
                     {(!adminQrCodeUrl && !upiLink) && (
@@ -268,7 +268,7 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button onClick={handleConfirmPayment} className="w-full" disabled={!paymentScreenshot || !paymentAmount}>
+                    <Button onClick={handleConfirmPayment} className="w-full btn-gradient-glow" disabled={!paymentScreenshot || !paymentAmount}>
                         Submit for Approval
                     </Button>
                 </DialogFooter>
@@ -278,9 +278,9 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="glass-card">
                 <CardHeader>
-                    <CardTitle>This Month's Bill</CardTitle>
+                    <CardTitle>This Month's Bill Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 border-b pb-4">
@@ -329,10 +329,10 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                 </CardFooter>
             </Card>
 
-            <Card>
+            <Card className="glass-card">
                 <CardHeader>
                     <CardTitle>Payment History</CardTitle>
-                    <CardDescription>A record of all your approved payments.</CardDescription>
+                    <CardDescription>A record of all your submitted payments.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -441,6 +441,7 @@ const TenantHome = ({ tenant, payments, room, appState }) => {
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Next Due Amount</CardTitle>
+                        <IndianRupee className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">₹{amountDue ? amountDue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</div>
@@ -482,7 +483,7 @@ const Notifications = ({ tenant, appState, setAppState }) => {
 
     return (
         <div className="space-y-6">
-             <Card>
+             <Card className="glass-card">
                 <CardHeader>
                     <CardTitle>Notifications</CardTitle>
                     <CardDescription>Messages and alerts from your property manager.</CardDescription>
@@ -491,12 +492,12 @@ const Notifications = ({ tenant, appState, setAppState }) => {
                     {tenantNotifications.length > 0 ? (
                         <ul className="space-y-4">
                             {tenantNotifications.map(notification => (
-                                <li key={notification.id} className={cn("p-4 rounded-lg flex items-start gap-4", notification.isRead ? 'bg-muted/50' : 'bg-primary/10 border border-primary/20')}>
+                                <li key={notification.id} className={cn("p-4 rounded-lg flex items-start gap-4", notification.isRead ? 'bg-muted/20' : 'bg-primary/10 border border-primary/20')}>
                                     <div className={cn("mt-1", notification.isRead ? 'text-muted-foreground' : 'text-primary')}>
                                         <Bell className="h-5 w-5" />
                                     </div>
                                     <div className="flex-grow">
-                                        <p className={cn("font-medium", !notification.isRead && 'text-primary-foreground')}>{notification.message}</p>
+                                        <p className={cn("font-medium", !notification.isRead && 'text-foreground')}>{notification.message}</p>
                                         <p className="text-xs text-muted-foreground mt-1">
                                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                                         </p>
@@ -571,7 +572,7 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="glass-card">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Help & Support</CardTitle>
@@ -609,7 +610,7 @@ const HelpAndSupport = ({ tenant, appState, setAppState }) => {
                                     <Textarea id="description" name="description" placeholder="Please provide as much detail as possible..." rows={5} required/>
                                  </div>
                                  <DialogFooter>
-                                     <Button type="submit">Submit Request</Button>
+                                     <Button type="submit" className="btn-gradient-glow">Submit Request</Button>
                                  </DialogFooter>
                             </form>
                         </DialogContent>
@@ -656,7 +657,7 @@ const TenantNoticeBoard = ({ appState }) => {
     const { globalNotices = [] } = appState;
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="glass-card">
                 <CardHeader>
                     <CardTitle>Notice Board</CardTitle>
                     <CardDescription>Announcements from the property owner.</CardDescription>
@@ -759,12 +760,12 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     };
     
     const SidebarContent = () => (
-        <div className="flex flex-col h-full">
-            <div className="flex items-center gap-3 p-4 border-b">
+        <div className="flex flex-col h-full bg-card/80 backdrop-blur-xl">
+            <div className="flex items-center gap-3 p-4 border-b border-white/10">
                 <AppLogo className="w-8 h-8" iconClassName="w-5 h-5" />
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
-            <div className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div className="flex-1 p-2 space-y-1 overflow-y-auto">
                 {TABS.map(tab => {
                     const isLocked = tab.premium && !(tenantPlan === 'premium');
 
@@ -772,7 +773,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                         <Button
                             key={tab.id}
                             variant={activeTab === tab.id ? 'secondary' : 'ghost'}
-                            className="w-full justify-start gap-3"
+                            className="w-full justify-start gap-3 text-base h-11"
                             onClick={() => handleTabClick(tab)}
                             disabled={isLocked}
                         >
@@ -792,7 +793,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                     )
                 })}
             </div>
-            <div className="p-4 border-t mt-auto space-y-2">
+            <div className="p-2 border-t border-white/10 mt-auto space-y-2">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
                     <LogOut className="w-5 h-5" />
                     Log Out
@@ -802,16 +803,16 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     );
 
     return (
-        <div className="flex min-h-screen bg-muted/40">
+        <div className="flex min-h-screen w-full dark-bg-futuristic">
             {/* Desktop Sidebar */}
-            <aside className="hidden md:flex flex-col w-64 border-r bg-background">
+            <aside className="hidden md:flex flex-col w-64 border-r border-white/10">
                 <SidebarContent />
             </aside>
             
             {/* Mobile Sidebar */}
             {isSidebarOpen && (
                  <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)}>
-                     <div className="fixed inset-y-0 left-0 w-64 bg-background z-40 animate-in slide-in-from-left duration-300">
+                     <div className="fixed inset-y-0 left-0 w-64 z-40 animate-in slide-in-from-left duration-300">
                         <SidebarContent />
                      </div>
                 </div>
@@ -838,36 +839,36 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             </Dialog>
 
             <div className="flex-1 flex flex-col">
-                <header className="bg-background border-b sticky top-0 z-10">
-                    <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-                        <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-                                {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                            </Button>
-                            <h1 className="text-xl font-semibold hidden md:block">{TABS.find(t => t.id === activeTab)?.label}</h1>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                                <span className="sr-only">Toggle theme</span>
-                            </Button>
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={currentTenant.profilePhotoUrl} alt={currentTenant.name} />
-                                    <AvatarFallback>{currentTenant.name ? currentTenant.name.charAt(0).toUpperCase() : 'T'}</AvatarFallback>
-                                </Avatar>
-                                <div className="hidden sm:flex flex-col items-start">
-                                    <p className="text-sm font-medium">{currentTenant.name}</p>
-                                    <p className="text-xs text-muted-foreground">Tenant ({tenantPlan})</p>
-                                </div>
+                 <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-white/10 bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </Button>
+                        <h1 className="text-xl font-semibold hidden md:block">{TABS.find(t => t.id === activeTab)?.label}</h1>
+                    </div>
+                    <div className="ml-auto flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                                <AvatarImage src={currentTenant.profilePhotoUrl} alt={currentTenant.name} />
+                                <AvatarFallback>{currentTenant.name ? currentTenant.name.charAt(0).toUpperCase() : 'T'}</AvatarFallback>
+                            </Avatar>
+                            <div className="hidden sm:flex flex-col items-start">
+                                <p className="text-sm font-medium">{currentTenant.name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">Tenant ({tenantPlan})</p>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <main className="container mx-auto p-4 md:p-6 space-y-8 animate-fade-in flex-1">
-                    {renderContent()}
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8">
+                    <div className="animate-fade-in">
+                        {renderContent()}
+                    </div>
                 </main>
             </div>
         </div>
