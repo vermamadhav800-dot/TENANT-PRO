@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, X, Inbox } from 'lucide-react';
+import { Check, X, Inbox, UserCheck, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -124,6 +124,93 @@ function PaymentApprovals({ appState, setAppState }) {
     );
 }
 
+function UpdateRequests({ appState, setAppState }) {
+    const { updateRequests = [], tenants } = appState;
+    const { toast } = useToast();
+
+    const handleApprove = (requestId) => {
+        const request = updateRequests.find(r => r.id === requestId);
+        if (!request) return;
+
+        setAppState(prev => ({
+            ...prev,
+            tenants: prev.tenants.map(t => 
+                t.id === request.tenantId ? { ...t, ...request.requestedChanges } : t
+            ),
+            updateRequests: prev.updateRequests.filter(r => r.id !== requestId),
+        }));
+
+        toast({ title: "Update Approved", description: "Tenant details have been successfully updated." });
+    };
+    
+    const handleReject = (requestId) => {
+        setAppState(prev => ({
+            ...prev,
+            updateRequests: prev.updateRequests.filter(r => r.id !== requestId),
+        }));
+        toast({ variant: "destructive", title: "Update Rejected", description: "The update request has been removed." });
+    };
+
+    if (updateRequests.length === 0) {
+        return (
+            <Card className="text-center text-muted-foreground py-16 border-2 border-dashed rounded-2xl">
+                <Inbox className="mx-auto h-16 w-16 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Update Requests</h3>
+                <p>There are no pending profile update requests from tenants.</p>
+            </Card>
+        );
+    }
+    
+    return (
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {updateRequests.map(request => {
+                const tenant = tenants.find(t => t.id === request.tenantId);
+                const changes = Object.entries(request.requestedChanges).filter(([key, value]) => value !== tenant[key]);
+                
+                if (!tenant) return null;
+
+                return (
+                    <Card key={request.id} className="glass-card">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="w-11 h-11 border">
+                                    <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
+                                    <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                                    <CardDescription>Room {tenant.unitNo}</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           <p className="text-sm text-muted-foreground">Submitted: {format(new Date(request.submittedAt), 'dd MMM, yyyy')}</p>
+                           {changes.map(([key, value]) => (
+                               <div key={key}>
+                                   <p className="text-sm font-semibold capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+                                   <div className="flex items-center gap-2 text-sm">
+                                        <span className="text-muted-foreground line-through">{tenant[key]}</span>
+                                        <ArrowRight className="h-4 w-4 text-primary"/>
+                                        <span className="font-medium">{value}</span>
+                                   </div>
+                               </div>
+                           ))}
+                        </CardContent>
+                        <CardContent className="grid grid-cols-2 gap-2 pt-0">
+                            <Button variant="destructive" onClick={() => handleReject(request.id)}>
+                                <X className="mr-2 h-4 w-4" /> Reject
+                            </Button>
+                            <Button className="btn-gradient-glow" onClick={() => handleApprove(request.id)}>
+                                <Check className="mr-2 h-4 w-4" /> Approve
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )
+            })}
+         </div>
+    )
+}
+
 
 function MaintenanceRequests({ appState, setAppState }) {
     const { maintenanceRequests = [], tenants } = appState;
@@ -206,6 +293,7 @@ function MaintenanceRequests({ appState, setAppState }) {
 export default function Approvals({ appState, setAppState }) {
   const pendingApprovalsCount = appState.pendingApprovals?.length || 0;
   const pendingMaintenanceCount = appState.maintenanceRequests?.filter(r => r.status === 'Pending').length || 0;
+  const pendingUpdateRequestsCount = appState.updateRequests?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -215,7 +303,7 @@ export default function Approvals({ appState, setAppState }) {
       </div>
 
       <Tabs defaultValue="payments" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="payments">
                 Payment Approvals
                 {pendingApprovalsCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{pendingApprovalsCount}</span>}
@@ -224,12 +312,19 @@ export default function Approvals({ appState, setAppState }) {
                 Maintenance
                 {pendingMaintenanceCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{pendingMaintenanceCount}</span>}
             </TabsTrigger>
+            <TabsTrigger value="updates">
+                Update Requests
+                {pendingUpdateRequestsCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{pendingUpdateRequestsCount}</span>}
+            </TabsTrigger>
         </TabsList>
         <TabsContent value="payments" className="mt-6">
             <PaymentApprovals appState={appState} setAppState={setAppState} />
         </TabsContent>
         <TabsContent value="maintenance" className="mt-6">
             <MaintenanceRequests appState={appState} setAppState={setAppState} />
+        </TabsContent>
+        <TabsContent value="updates" className="mt-6">
+            <UpdateRequests appState={appState} setAppState={setAppState} />
         </TabsContent>
       </Tabs>
     </div>

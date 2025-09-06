@@ -101,6 +101,19 @@ export const INITIAL_APP_STATE = {
       screenshotUrl: 'https://placehold.co/600x400.png?text=Payment+Screenshot',
     }
   ],
+  updateRequests: [
+    {
+        id: 'ur1',
+        tenantId: 't2',
+        requestedChanges: {
+            name: 'Priya Sharma Singh',
+            phone: '0987654322',
+            username: 'priya.singh@example.com'
+        },
+        status: 'Pending',
+        submittedAt: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
+    }
+  ],
   maintenanceRequests: [
     {
       id: 'mr1',

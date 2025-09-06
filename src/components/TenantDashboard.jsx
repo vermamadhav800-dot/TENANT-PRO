@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive, Mail, Phone, Edit } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,41 +24,115 @@ import TenantDocuments from './TenantDocuments';
 import Upgrade from './Upgrade';
 
 
-const TenantProfile = ({ tenant }) => (
-    <div className="space-y-6">
-        <Card className="glass-card">
-            <CardHeader>
-                <CardTitle>Personal Details</CardTitle>
-                <CardDescription>Your personal information on record.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20">
-                        <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
-                        <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <h3 className="text-xl font-semibold">{tenant.name}</h3>
-                        <p className="text-muted-foreground">{tenant.username}</p>
+const TenantProfile = ({ tenant, setAppState }) => {
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const { toast } = useToast();
+    
+    const handleSubmitRequest = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        
+        const requestedChanges = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            username: formData.get('username'),
+        };
+
+        // Check if any change was actually made
+        if (
+            requestedChanges.name === tenant.name && 
+            requestedChanges.phone === tenant.phone && 
+            requestedChanges.username === tenant.username
+        ) {
+            toast({ variant: 'destructive', title: 'No Changes', description: 'You have not made any changes to your profile.' });
+            return;
+        }
+
+        const newRequest = {
+            id: Date.now().toString(),
+            tenantId: tenant.id,
+            requestedChanges,
+            status: 'Pending',
+            submittedAt: new Date().toISOString(),
+        };
+
+        setAppState(prev => ({
+            ...prev,
+            updateRequests: [...(prev.updateRequests || []), newRequest]
+        }));
+        
+        setIsUpdateModalOpen(false);
+        toast({ title: 'Request Submitted', description: 'Your profile update request has been sent to the owner for approval.' });
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card className="glass-card">
+                <CardHeader>
+                    <CardTitle>Personal Details</CardTitle>
+                    <CardDescription>Your personal information on record.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
+                            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h3 className="text-xl font-semibold">{tenant.name}</h3>
+                            <p className="text-muted-foreground">{tenant.username}</p>
+                        </div>
                     </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex flex-col">
-                        <span className="font-semibold">Phone Number</span>
-                        <span>{tenant.phone}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col">
+                            <span className="font-semibold">Phone Number</span>
+                            <span>{tenant.phone}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-semibold">Aadhaar Number</span>
+                            <span>XXXX-XXXX-{tenant.aadhaar.slice(-4)}</span>
+                        </div>
                     </div>
-                    <div className="flex flex-col">
-                        <span className="font-semibold">Aadhaar Number</span>
-                        <span>XXXX-XXXX-{tenant.aadhaar.slice(-4)}</span>
-                    </div>
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button variant="outline" className="ml-auto">Request Update</Button>
-            </CardFooter>
-        </Card>
-    </div>
-);
+                </CardContent>
+                <CardFooter>
+                    <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="ml-auto">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Request Update
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                             <DialogHeader>
+                                <DialogTitle>Request Profile Update</DialogTitle>
+                                <DialogDescription>
+                                    Your request will be sent to the owner for approval.
+                                </DialogDescription>
+                            </DialogHeader>
+                             <form onSubmit={handleSubmitRequest} className="py-4 space-y-4">
+                                <div>
+                                    <Label htmlFor="name">Full Name</Label>
+                                    <Input id="name" name="name" defaultValue={tenant.name} required />
+                                </div>
+                                <div>
+                                    <Label htmlFor="phone">Phone Number</Label>
+                                    <Input id="phone" name="phone" defaultValue={tenant.phone} required />
+                                </div>
+                                <div>
+                                    <Label htmlFor="username">Email</Label>
+                                    <Input id="username" name="username" type="email" defaultValue={tenant.username} required />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" className="btn-gradient-glow">Submit Request</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </CardFooter>
+            </Card>
+        </div>
+    )
+};
 
 const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const { toast } = useToast();
