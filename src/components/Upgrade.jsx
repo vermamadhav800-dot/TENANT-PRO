@@ -13,10 +13,11 @@ const ownerPlanFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
     { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: false, pro: true, business: true },
+    { feature: "Expense Tracking", standard: true, pro: false, business: false },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
-    { feature: "Full Data Backup", standard: false, pro: true, business: true },
+    { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true },
+    { feature: "All Pro Features", standard: false, pro: false, business: true},
     { feature: "Document & Lease Management", standard: false, pro: false, business: true },
     { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true },
 ];
@@ -132,19 +133,14 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         const isCurrent = plan.id === currentPlanId;
         const isHighlighted = plan.id === 'pro' || plan.id === 'plus';
 
-        let cardClass = "border-border";
-        if(plan.id === 'standard' || plan.id === 'free') cardClass = "border-blue-500/30";
-        if (isHighlighted) cardClass = "border-primary/80";
-        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-red-500/50";
-
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
-                cardClass,
-                isHighlighted && "ring-2 ring-primary/60"
+                "flex flex-col bg-slate-900/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-lg border border-white/10",
+                 isHighlighted && "ring-2 ring-primary/80 ring-offset-2 ring-offset-black",
+                 plan.id === 'business' && "ring-2 ring-amber-500/70 ring-offset-2 ring-offset-black"
             )}>
                  {isHighlighted && (
-                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
+                    <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
                  )}
                 <CardHeader className="text-center pt-8">
                     <CardTitle className="text-3xl font-bold">{plan.name}</CardTitle>
@@ -163,13 +159,13 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                     
                     <ul className="space-y-3 text-sm text-left">
                         {planFeatures.map((item, i) => {
-                            const planKey = Object.keys(item).find(key => key === plan.id);
-                            if (!planKey) return null;
+                             const planKey = Object.keys(item).find(key => key === plan.id);
+                             if (!planKey || !item[planKey]) return null;
 
                             return(
                                 <li key={i} className="flex items-center gap-3">
                                     <Check className="h-5 w-5 text-green-400 shrink-0"/>
-                                    <span className={cn("text-muted-foreground", item[planKey] && "text-foreground")}>
+                                    <span className="text-foreground">
                                         {item.feature}
                                     </span>
                                 </li>
@@ -188,7 +184,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         <div className="w-full min-h-screen dark-bg-futuristic text-white py-12">
             <div className="max-w-7xl mx-auto space-y-12 p-4">
                 <div className="text-center space-y-2">
-                    <h1 className="text-5xl font-bold font-headline gradient-text">Choose the plan that’s right for you</h1>
+                    <h1 className="text-5xl font-bold font-headline">Choose the plan that’s right for you</h1>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                         Unlock powerful features to manage your properties like a pro.
                     </p>
@@ -210,3 +206,4 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         </div>
     );
 }
+
