@@ -22,17 +22,21 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
 
     useEffect(() => {
         if (isOpen) {
-            setCountdown(10); // Reset countdown when dialog opens
+            setCountdown(10); 
             
-            // Play audio
-            if (audioRef.current) {
-                audioRef.current.currentTime = 0;
-                audioRef.current.play().catch(error => {
-                    // Autoplay might be blocked by the browser, which is a common restriction.
-                    // We can ignore this error silently as the user can still see the ad.
-                    console.log("Audio autoplay was prevented.", error);
-                });
-            }
+            const playAudio = async () => {
+                if (audioRef.current) {
+                    try {
+                        // Reset audio and play
+                        audioRef.current.currentTime = 0;
+                        await audioRef.current.play();
+                    } catch (error) {
+                        console.error("Audio autoplay was prevented by the browser.", error);
+                    }
+                }
+            };
+            
+            playAudio();
 
             const timer = setInterval(() => {
                 setCountdown(prev => {
@@ -46,7 +50,6 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
 
             return () => {
                 clearInterval(timer);
-                // Pause audio when component unmounts or dialog closes
                 if (audioRef.current) {
                     audioRef.current.pause();
                 }
@@ -60,11 +63,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
-                    {/* 
-                      This audio element will play the file from your `public` folder.
-                      Just make sure you have a file named `advertisement-audio.mp3` inside the `public` folder.
-                    */}
-                    <audio ref={audioRef} src="/advertisement-audio.mp3" preload="auto"></audio>
+                    <audio ref={audioRef} src={"PASTE_YOUR_BASE64_AUDIO_DATA_HERE"} preload="auto"></audio>
                     
                     <div className={cn(
                         "absolute top-4 right-4 z-10 transition-all duration-300"
