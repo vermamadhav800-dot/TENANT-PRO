@@ -4,25 +4,20 @@
 // In a real-world scenario, this data would be fetched from a database.
 
 export const INITIAL_APP_STATE = {
-  MOCK_USER_INITIAL: {
-    name: 'Prakash Kumar',
-    username: 'owner@example.com',
-    password: 'password',
-    photoURL: 'https://i.pravatar.cc/150?u=prakash'
-  },
+  MOCK_USER_INITIAL: null,
   defaults: {
-    propertyName: "Prakash's PG",
-    propertyAddress: "123 Tech Park, Bangalore",
+    propertyName: "My Property",
+    propertyAddress: "123 Main St, Anytown",
     electricityRatePerUnit: 8,
-    upiId: "prakash@exampleupi",
-    qrCodeUrl: "/qr-code.png",
+    upiId: "",
+    qrCodeUrl: null,
     reminderSettings: {
-      enabled: true,
+      enabled: false,
       beforeDays: 3, // Days before due date
       overdueDays: 3, // Every x days when overdue
     },
     lastReminderCheck: null,
-    subscriptionPlan: 'business', // 'standard', 'pro', or 'business'
+    subscriptionPlan: 'standard', // 'standard', 'pro', or 'business'
     maxProperties: 1, // Based on subscription
   },
   rooms: [
