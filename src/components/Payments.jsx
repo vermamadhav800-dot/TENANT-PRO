@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, Trash2, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Clock, Calendar, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StatCard from './StatCard';
 import { useToast } from "@/hooks/use-toast";
 import { differenceInDays, parseISO } from 'date-fns';
+import RentReceipt from './RentReceipt';
 
 
 export default function Payments({ appState, setAppState }) {
@@ -22,6 +23,7 @@ export default function Payments({ appState, setAppState }) {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState(null);
   const { toast } = useToast();
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   const handleAddPayment = (event) => {
     event.preventDefault();
@@ -91,10 +93,17 @@ export default function Payments({ appState, setAppState }) {
   }, 0);
 
 
+  if (selectedReceipt) {
+    return <RentReceipt receiptDetails={selectedReceipt} onBack={() => setSelectedReceipt(null)} appState={appState} />;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold font-headline">Payment Management</h2>
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <div className="space-y-1">
+          <h2 className="text-2xl md:text-3xl font-bold font-headline">Payment Management</h2>
+          <p className="text-muted-foreground">Record and track all incoming rent payments.</p>
+        </div>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Record Payment</Button>
@@ -143,7 +152,6 @@ export default function Payments({ appState, setAppState }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Tenant</TableHead>
-                <TableHead>Room No.</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
@@ -153,19 +161,22 @@ export default function Payments({ appState, setAppState }) {
             <TableBody>
               {payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No payments recorded yet.</TableCell>
+                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No payments recorded yet.</TableCell>
                 </TableRow>
               ) : (
                 payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(payment => {
                   const tenant = tenants.find(t => t.id === payment.tenantId);
+                  if (!tenant) return null;
                   return (
                     <TableRow key={payment.id}>
-                      <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"}</TableCell>
-                      <TableCell>{tenant?.unitNo || "N/A"}</TableCell>
+                      <TableCell className="font-medium">{tenant?.name || "Unknown Tenant"} (Room {tenant?.unitNo})</TableCell>
                       <TableCell>₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
-                      <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{payment.method}</span></TableCell>
-                      <TableCell className="text-right">
+                      <TableCell><span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">{payment.method}</span></TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => setSelectedReceipt({ payment, tenant })}>
+                            <FileText className="mr-2 h-4 w-4" /> Receipt
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => confirmDeletePayment(payment)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -196,5 +207,3 @@ export default function Payments({ appState, setAppState }) {
     </div>
   );
 }
-
-    

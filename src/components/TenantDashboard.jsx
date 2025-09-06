@@ -489,8 +489,7 @@ const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) 
                                                 variant="outline" 
                                                 size="sm" 
                                                 onClick={() => setShowReceipt({ payment, tenant, room })}
-                                                disabled={payment.status === 'Processing' || !canDownloadReceipts}
-                                                title={!canDownloadReceipts ? "Upgrade to Plus or Premium to download receipts" : ""}
+                                                disabled={payment.status === 'Processing'}
                                             >
                                                 <FileText className="h-4 w-4 mr-0 sm:mr-2" />
                                                 <span className="hidden sm:inline">View</span>
