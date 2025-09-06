@@ -20,14 +20,10 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
 
-    // --- PASTE YOUR BASE64 STRING HERE ---
-    // Replace the entire placeholder text including the quotes.
-    // It should look like: const base64AudioData = "data:audio/mpeg;base64,SUQzBAA...";
-    const base64AudioData = "PASTE_YOUR_BASE64_AUDIO_DATA_HERE";
-    // ------------------------------------
-
     useEffect(() => {
-        if (isOpen && audioRef.current && base64AudioData && !base64AudioData.includes("PASTE")) {
+        if (isOpen && audioRef.current) {
+            // Start playing muted when the dialog opens
+            audioRef.current.muted = true;
             audioRef.current.play().catch(error => {
                 console.warn("Autoplay was prevented. User must interact to play audio.");
             });
@@ -36,17 +32,12 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             audioRef.current.currentTime = 0;
             setIsPlaying(false);
         }
-    }, [isOpen, base64AudioData]);
+    }, [isOpen]);
 
     const togglePlay = () => {
         if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause();
-            } else {
-                audioRef.current.play().catch(error => {
-                    console.error("Audio play failed on click:", error);
-                });
-            }
+            audioRef.current.muted = !audioRef.current.muted;
+            setIsPlaying(!audioRef.current.muted);
         }
     };
     
@@ -57,13 +48,14 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
+                    {/* Use the audio file directly from the public folder */}
                     <audio 
                         ref={audioRef} 
-                        src={base64AudioData.includes("PASTE") ? undefined : base64AudioData}
+                        src="/advertisement-audio.mp3"
                         preload="auto"
-                        onPlay={() => setIsPlaying(true)}
+                        loop
+                        onPlay={() => setIsPlaying(!audioRef.current?.muted)}
                         onPause={() => setIsPlaying(false)}
-                        onEnded={() => setIsPlaying(false)}
                     />
                     
                     <div className="relative p-8 text-center text-white">
@@ -77,9 +69,8 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                                 size="icon"
                                 className="text-white/70 hover:text-white bg-black/30 hover:bg-black/50"
                                 onClick={togglePlay}
-                                disabled={base64AudioData.includes("PASTE")}
                             >
-                                {isPlaying ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                                {isPlaying ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                                 <span className="sr-only">Toggle Sound</span>
                             </Button>
                         </div>
