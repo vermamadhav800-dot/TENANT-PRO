@@ -19,6 +19,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from './ui/badge';
+import ComingSoon from './ComingSoon';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -681,36 +682,13 @@ const TenantNoticeBoard = ({ appState }) => {
     );
 };
 
-const UpgradeModal = ({ isOpen, onOpenChange }) => (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent>
-            <DialogHeader>
-                <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-amber-500" />
-                    </div>
-                </div>
-                <DialogTitle className="text-center text-2xl">Unlock Premium Features</DialogTitle>
-                <DialogDescription className="text-center">
-                    Want access to more features like online document storage or an AI assistant?
-                    <br />
-                    Ask your property owner to upgrade to the <strong>Pro</strong> or <strong>Business</strong> plan!
-                </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-                <Button onClick={() => onOpenChange(false)} className="w-full">Got it!</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-
 const TABS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
     { id: 'notices', label: 'Notice Board', icon: Megaphone },
     { id: 'support', label: 'Help & Support', icon: Wrench },
     { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'premium', label: 'Premium', icon: Star },
     { id: 'profile', label: 'Profile', icon: User },
 ];
 
@@ -718,7 +696,6 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
     const { payments, rooms, notifications = [], defaults = {} } = appState;
     const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
     const isBusinessPlan = defaults.subscriptionPlan === 'business';
@@ -733,21 +710,24 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     }, [rooms, tenant.unitNo]);
 
     const renderContent = () => {
+        const props = { tenant, appState, setAppState, payments, room };
         switch (activeTab) {
             case 'dashboard':
-                return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
+                return <TenantHome {...props} />;
             case 'payments':
-                return <RentAndPayments tenant={tenant} payments={payments} setAppState={setAppState} room={room} appState={appState} />;
+                return <RentAndPayments {...props} />;
             case 'notices':
-                return <TenantNoticeBoard appState={appState} />;
+                return <TenantNoticeBoard {...props} />;
             case 'support':
-                return <HelpAndSupport tenant={tenant} appState={appState} setAppState={setAppState} />;
+                return <HelpAndSupport {...props} />;
             case 'notifications':
-                return <Notifications tenant={tenant} appState={appState} setAppState={setAppState} />;
+                return <Notifications {...props} />;
+            case 'premium':
+                return <ComingSoon title="Premium Features" description="The owner has not enabled premium features like AI Assistant or Advanced Document Management. Ask them to upgrade to the Business plan to unlock more capabilities!" />;
             case 'profile':
-                return <TenantProfile tenant={tenant} />;
+                return <TenantProfile {...props} />;
             default:
-                return <TenantHome tenant={tenant} payments={payments} room={room} appState={appState} />;
+                return <TenantHome {...props} />;
         }
     };
     
@@ -758,35 +738,35 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
             <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {TABS.map(tab => (
-                    <Button
-                        key={tab.id}
-                        variant={activeTab === tab.id ? 'secondary' : 'ghost'}
-                        className="w-full justify-start gap-3"
-                        onClick={() => {
-                            setActiveTab(tab.id);
-                            setIsSidebarOpen(false);
-                        }}
-                    >
-                        <tab.icon className="h-5 w-5" />
-                        <span>{tab.label}</span>
-                        {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
-                            <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                {unreadNotificationsCount}
-                            </span>
-                        )}
-                    </Button>
-                ))}
+                {TABS.map(tab => {
+                    let isPremiumFeature = tab.id === 'premium';
+                    let buttonClass = "";
+                    if (isPremiumFeature) {
+                         buttonClass = "bg-amber-400/10 text-amber-600 border-amber-400/50 hover:bg-amber-400/20 hover:text-amber-700";
+                    }
+
+                    return (
+                        <Button
+                            key={tab.id}
+                            variant={activeTab === tab.id ? 'secondary' : 'ghost'}
+                            className={cn("w-full justify-start gap-3", isPremiumFeature && buttonClass)}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                setIsSidebarOpen(false);
+                            }}
+                        >
+                            <tab.icon className="h-5 w-5" />
+                            <span>{tab.label}</span>
+                            {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
+                                <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                    {unreadNotificationsCount}
+                                </span>
+                            )}
+                        </Button>
+                    )
+                })}
             </div>
             <div className="p-4 border-t mt-auto space-y-2">
-                 <Button 
-                    variant="outline" 
-                    className="w-full justify-start gap-3 bg-amber-400/10 text-amber-600 border-amber-400/50 hover:bg-amber-400/20 hover:text-amber-700"
-                    onClick={() => setIsUpgradeModalOpen(true)}
-                 >
-                    <Star className="w-5 h-5" />
-                    Premium Features
-                </Button>
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
                     <LogOut className="w-5 h-5" />
                     Log Out
@@ -844,7 +824,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                     {renderContent()}
                 </main>
             </div>
-            <UpgradeModal isOpen={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen} />
         </div>
     );
 }
+
+    
