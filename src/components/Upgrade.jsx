@@ -13,7 +13,7 @@ const ownerPlanFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
     { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: true, pro: false, business: false },
+    { feature: "Expense Tracking", standard: true, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
     { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true },
@@ -135,12 +135,13 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-slate-900/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-lg border border-white/10",
-                 isHighlighted && "ring-2 ring-primary/80 ring-offset-2 ring-offset-black",
-                 plan.id === 'business' && "ring-2 ring-amber-500/70 ring-offset-2 ring-offset-black"
+                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg border border-white/10",
+                 isHighlighted && "ring-2 ring-primary/60 ring-offset-2 ring-offset-black",
+                 plan.id === 'business' && "ring-2 ring-red-500/50 ring-offset-2 ring-offset-black",
+                 plan.id === 'standard' && "ring-2 ring-cyan-500/50 ring-offset-2 ring-offset-black"
             )}>
                  {isHighlighted && (
-                    <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
+                    <div className="absolute top-4 -right-12 rotate-45 bg-primary text-primary-foreground text-xs font-bold px-12 py-1.5">Popular</div>
                  )}
                 <CardHeader className="text-center pt-8">
                     <CardTitle className="text-3xl font-bold">{plan.name}</CardTitle>
@@ -206,4 +207,3 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         </div>
     );
 }
-
