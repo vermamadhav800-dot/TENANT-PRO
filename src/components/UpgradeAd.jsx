@@ -19,7 +19,7 @@ const PRO_FEATURES = [
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
-    const [audioSrc, setAudioSrc] = useState('');
+    const [audioSrc, setAudioSrc] = useState(null);
 
     useEffect(() => {
         // Fetch the Base64 string from the text file.
@@ -62,14 +62,16 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
                     {/* The src is now set dynamically from the fetched text file */}
-                    <audio 
-                        ref={audioRef} 
-                        src={audioSrc}
-                        preload="auto"
-                        onPlay={() => setIsPlaying(true)}
-                        onPause={() => setIsPlaying(false)}
-                        onEnded={() => setIsPlaying(false)}
-                    />
+                    {audioSrc && (
+                        <audio 
+                            ref={audioRef} 
+                            src={audioSrc}
+                            preload="auto"
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onEnded={() => setIsPlaying(false)}
+                        />
+                    )}
                     
                     <div className="relative p-8 text-center text-white">
                         <DialogHeader className="sr-only">
