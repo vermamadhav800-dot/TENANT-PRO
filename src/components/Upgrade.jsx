@@ -13,7 +13,7 @@ const ownerPlanFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
     { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: true, pro: true, business: true },
+    { feature: "Expense Tracking", standard: false, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
     { feature: "Full Data Backup", standard: false, pro: true, business: true },
@@ -135,11 +135,11 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         let cardClass = "border-border";
         if(plan.id === 'standard' || plan.id === 'free') cardClass = "border-blue-500/30";
         if (isHighlighted) cardClass = "border-primary/80";
-        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-amber-500/50";
+        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-red-500/50";
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-card/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
+                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
                 cardClass,
                 isHighlighted && "ring-2 ring-primary/60"
             )}>
@@ -210,4 +210,3 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         </div>
     );
 }
-
