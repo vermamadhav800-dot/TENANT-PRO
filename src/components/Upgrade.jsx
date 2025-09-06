@@ -12,12 +12,15 @@ import PaymentGateway from './PaymentGateway';
 
 const ownerPlanFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
-    { feature: "Payment Tracking & Requests", standard: true, pro: true, business: true },
+    { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: false, pro: true, business: true, icon: Wallet },
+    { feature: "Expense Tracking", standard: true, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true, icon: Zap },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true, icon: FileText },
+    { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true, icon: BrainCircuit },
+    { feature: "All Pro Features", standard: false, pro: false, business: true, icon: CheckCircle },
     { feature: "Document & Lease Management", standard: false, pro: false, business: true, icon: FolderArchive },
+    { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true, icon: BrainCircuit },
 ];
 
 const tenantPlanFeatures = [
@@ -30,9 +33,9 @@ const tenantPlanFeatures = [
 ];
 
 const ownerPlans = {
-    standard: { id: 'standard', name: 'Standard', price: 'Free', priceSuffix: '', description: 'Perfect for getting started with basic management needs.', cta: 'Your Current Plan', priceAmount: 0 },
-    pro: { id: 'pro', name: 'Pro', price: '499', priceSuffix: '/mo', description: 'For property owners who need advanced tools and automation.', cta: 'Upgrade to Pro', priceAmount: 499 },
-    business: { id: 'business', name: 'Business', price: '999', priceSuffix: '/mo', description: 'The ultimate solution for scaling your property business.', cta: 'Upgrade to Business', priceAmount: 999 }
+    standard: { id: 'standard', name: 'Standard', price: 'Free', priceSuffix: '', description: 'Perfect for getting started with basics', cta: 'Get Started', priceAmount: 0 },
+    pro: { id: 'pro', name: 'Pro', price: '499', priceSuffix: '/mo', description: 'For property owners needing automation', cta: 'Upgrade to Pro', priceAmount: 499 },
+    business: { id: 'business', name: 'Business', price: '999', priceSuffix: '/mo', description: 'Scaling your property business', cta: 'Scale with Business', priceAmount: 999 }
 };
 
 const tenantPlans = {
@@ -121,11 +124,16 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                 icon: <MinusCircle className="mr-2 h-4 w-4" />
             };
         }
+        
+        let buttonClass = '';
+        if (plan.id === 'standard') buttonClass = 'btn-gradient-green';
+        if (plan.id === 'pro') buttonClass = 'btn-gradient-blue';
+        if (plan.id === 'business') buttonClass = 'btn-gradient-orange';
 
         return {
             text: plan.cta,
             variant: "default",
-            className: "btn-gradient-glow",
+            className: buttonClass,
             onClick: () => handlePlanActionClick(plan),
             icon: <ArrowRight className="ml-2 h-4 w-4" />
         };
@@ -139,32 +147,34 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col glass-card transition-all duration-300 hover:border-primary/80 hover:shadow-primary/20 relative overflow-hidden",
-                isCurrent && "border-2 border-primary shadow-lg shadow-primary/20 bg-gradient-to-br from-card to-primary/10",
-                isHighlighted && !isCurrent && "border-2 border-transparent lg:scale-105"
+                "flex flex-col bg-[#111118]/80 border-[#333] backdrop-blur-sm transition-all duration-300 hover:border-primary/80 relative overflow-hidden",
+                isHighlighted && "border-primary/80 ring-2 ring-primary/80",
+                isCurrent && "border-2 border-primary shadow-lg shadow-primary/20",
             )}>
+                 {isHighlighted && (
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
+                 )}
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-white">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
                     <div className="text-center flex items-baseline justify-center">
-                        <span className="text-4xl font-extrabold">{plan.price !== 'Free' ? `₹${plan.price}` : 'Free'}</span>
+                        <span className={cn("text-5xl font-extrabold text-white", plan.price === 'Free' && 'text-green-400')}>
+                            {plan.price !== 'Free' ? `₹${plan.price}` : 'Free'}
+                        </span>
                         {plan.price !== 'Free' && <span className="text-muted-foreground self-end mb-1 ml-1">{plan.priceSuffix}</span>}
                     </div>
                     <Separator className="bg-white/10"/>
-                    <ul className="space-y-4 text-sm">
+                    <ul className="space-y-4 text-sm text-left">
                         {planFeatures.map((item, i) => {
-                            const FeatureIcon = item.icon || Check;
                             const planKey = Object.keys(item).find(key => key === plan.id);
-                            const isAvailable = planKey ? item[planKey] : false;
+                            if (!planKey || !item[planKey]) return null;
+
                             return(
                                 <li key={i} className="flex items-center gap-3">
-                                    {isAvailable ? 
-                                        <FeatureIcon className="h-5 w-5 text-green-400" style={{filter: 'drop-shadow(0 0 5px currentColor)'}}/> : 
-                                        <X className="h-5 w-5 text-muted-foreground/50" />
-                                    }
-                                    <span className={cn(!isAvailable && "text-muted-foreground/60")}>
+                                    <Check className="h-5 w-5 text-green-400 shrink-0"/>
+                                    <span className="text-white/90">
                                         {item.feature}
                                     </span>
                                 </li>
@@ -172,21 +182,20 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                         })}
                     </ul>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="pt-6">
                      {action ? (
                         <Button 
-                            className={cn("w-full", action.className)}
+                            className={cn("w-full text-lg py-6", action.className)}
                             variant={action.variant}
                             onClick={action.onClick} 
                             disabled={action.disabled}
+                            size="lg"
                         >
-                            {action.icon && action.text !== "Upgrade to Pro" && action.text !== "Upgrade to Business" && action.icon}
                             {action.text}
-                            {(action.text === "Upgrade to Pro" || action.text === "Upgrade to Business") && action.icon}
                         </Button>
                      ) : (
-                        <div className="w-full h-10 flex items-center justify-center rounded-md bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold shadow-lg shadow-primary/20">
-                           <Star className="mr-2 h-4 w-4 text-amber-300" /> Current Plan
+                        <div className="w-full h-12 flex items-center justify-center rounded-md bg-primary/20 border border-primary text-primary font-semibold">
+                           Current Plan
                         </div>
                      )}
                 </CardFooter>
@@ -195,29 +204,31 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 p-4">
-            <div className="text-center space-y-2">
-                <h1 className="text-4xl font-bold font-headline gradient-text">Choose the plan that’s right for you</h1>
-                <p className="text-muted-foreground text-lg">
-                    {userType === 'owner' 
-                        ? "Unlock powerful features to manage your properties like a pro."
-                        : "Upgrade your experience with premium features for convenience."
-                    }
-                </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-               {Object.values(plans).map(plan => renderPlanCard(plan))}
-            </div>
+        <div className="w-full min-h-screen dark-bg-futuristic text-white py-12">
+            <div className="max-w-7xl mx-auto space-y-12 p-4">
+                <div className="text-center space-y-2">
+                    <h1 className="text-5xl font-bold font-headline">Choose the plan that’s right for you</h1>
+                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                        {userType === 'owner' 
+                            ? "Unlock powerful features to manage your properties like a pro."
+                            : "Upgrade your experience with premium features for convenience."
+                        }
+                    </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+                   {Object.values(plans).map(plan => renderPlanCard(plan))}
+                </div>
 
-            {selectedPlan && (
-                <PaymentGateway
-                    isOpen={isGatewayOpen}
-                    onOpenChange={setIsGatewayOpen}
-                    plan={selectedPlan}
-                    onPaymentSuccess={handlePaymentSuccess}
-                />
-            )}
+                {selectedPlan && (
+                    <PaymentGateway
+                        isOpen={isGatewayOpen}
+                        onOpenChange={setIsGatewayOpen}
+                        plan={selectedPlan}
+                        onPaymentSuccess={handlePaymentSuccess}
+                    />
+                )}
+            </div>
         </div>
     );
 }

@@ -109,6 +109,16 @@ body {
     @apply bg-gradient-to-r from-primary to-secondary text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 focus:ring-4 focus:ring-primary/50;
   }
   
+  .btn-gradient-green {
+    @apply bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow-lg shadow-green-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/40 focus:ring-4 focus:ring-green-500/50;
+  }
+  .btn-gradient-blue {
+    @apply bg-gradient-to-r from-blue-600 to-violet-700 text-white font-semibold shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 focus:ring-4 focus:ring-blue-500/50;
+  }
+  .btn-gradient-orange {
+     @apply bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/40 focus:ring-4 focus:ring-amber-500/50;
+  }
+  
   .dark-bg-futuristic {
     background-color: hsl(224, 71%, 4%);
     background-image:
