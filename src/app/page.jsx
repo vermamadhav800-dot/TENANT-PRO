@@ -42,12 +42,14 @@ export default function Home() {
         // Tenant login needs to check across all owners' data
         for (const ownerKey in appState) {
           const ownerData = appState[ownerKey];
-          const tenant = ownerData.tenants.find(t => t.phone === credentials.username);
-          if (tenant) {
-            // We need to know which owner this tenant belongs to for data updates
-            setAuth({ user: tenant, role: 'tenant', ownerId: ownerKey }); 
-            toast({ title: "Login Successful", description: `Welcome, ${tenant.name}!` });
-            return true;
+          if (ownerData && ownerData.tenants) { // Check if ownerData and tenants array exist
+            const tenant = ownerData.tenants.find(t => t.phone === credentials.username);
+            if (tenant) {
+              // We need to know which owner this tenant belongs to for data updates
+              setAuth({ user: tenant, role: 'tenant', ownerId: ownerKey }); 
+              toast({ title: "Login Successful", description: `Welcome, ${tenant.name}!` });
+              return true;
+            }
           }
         }
       }
