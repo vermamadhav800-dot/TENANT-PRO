@@ -19,16 +19,8 @@ export default function Rooms({ appState, setAppState, triggerUpgradeAd }) {
   const { toast } = useToast();
 
   const openModal = (room) => {
-    const action = () => {
-      setEditingRoom(room);
-      setIsModalOpen(true);
-    };
-    
-    if (!room) { // Only trigger ad for adding a new room
-        triggerUpgradeAd(action);
-    } else { // Allow editing without ad
-        action();
-    }
+    setEditingRoom(room);
+    setIsModalOpen(true);
   };
   
   const recalculateRentForRoom = (unitNo, newRent, allTenants) => {
