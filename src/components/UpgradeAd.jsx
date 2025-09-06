@@ -21,14 +21,9 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        if (isOpen && audioRef.current) {
-            // Browsers may prevent autoplay, we let the user initiate it.
-            // Resetting the state when the dialog opens.
-            setIsPlaying(false); 
+        if (!isOpen && audioRef.current) {
+            audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            audioRef.current.pause();
-        } else if (!isOpen && audioRef.current) {
-            audioRef.current.pause();
             setIsPlaying(false);
         }
     }, [isOpen]);
@@ -39,12 +34,13 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 audioRef.current.pause();
             } else {
                 audioRef.current.play().catch(error => {
-                    console.error("Audio play failed:", error);
+                    console.error("Audio play failed. User interaction might be needed.", error);
                 });
             }
             setIsPlaying(!isPlaying);
         }
     };
+    
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -52,11 +48,13 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
-                    {/* The audio file should be placed in the `public` folder */}
+                    {/* This points to your file in the `public` folder */}
                     <audio 
                         ref={audioRef} 
-                        src="/advertisement-audio.mp3" 
+                        src="/base64" 
                         preload="auto"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
                         onEnded={() => setIsPlaying(false)}
                     />
                     
