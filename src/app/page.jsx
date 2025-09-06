@@ -29,14 +29,11 @@ export default function Home() {
     if (action === 'login') {
       if (credentials.role === 'owner') {
         const ownerData = appState[credentials.username];
-        if (!ownerData) {
-            toast({ variant: "destructive", title: "Login Error", description: "No account found with this email. Please register first." });
-            return false;
-        }
-        if (credentials.password === ownerData.MOCK_USER_INITIAL.password) {
-          setAuth({ user: ownerData.MOCK_USER_INITIAL, role: 'owner' });
-          toast({ title: "Login Successful", description: "Welcome back!" });
-          return true;
+        if (ownerData) {
+            // Mock login: only check if owner exists, not password
+            setAuth({ user: ownerData.MOCK_USER_INITIAL, role: 'owner' });
+            toast({ title: "Login Successful", description: "Welcome back!" });
+            return true;
         }
       } else { // Tenant login
         // Tenant login needs to check across all owners' data
