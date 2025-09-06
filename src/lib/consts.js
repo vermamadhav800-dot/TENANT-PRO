@@ -22,7 +22,7 @@ export const INITIAL_APP_STATE = {
       overdueDays: 3, // Every x days when overdue
     },
     lastReminderCheck: null,
-    subscriptionPlan: 'business', // 'standard', 'pro', or 'business'
+    subscriptionPlan: 'pro', // 'standard', 'pro', or 'business'
     maxProperties: 1, // Based on subscription
   },
   rooms: [
