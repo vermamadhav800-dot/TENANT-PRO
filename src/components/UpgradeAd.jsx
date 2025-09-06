@@ -25,9 +25,8 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             setCountdown(10); 
             
             const playAudio = async () => {
-                if (audioRef.current) {
+                if (audioRef.current && audioRef.current.src) {
                     try {
-                        // Reset audio and play
                         audioRef.current.currentTime = 0;
                         await audioRef.current.play();
                     } catch (error) {
