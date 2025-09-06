@@ -16,20 +16,52 @@ const PRO_FEATURES = [
     "Ad-free Experience",
 ];
 
-const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
+const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [countdown, setCountdown] = useState(10);
+    const [showCloseButton, setShowCloseButton] = useState(false);
     const audioRef = useRef(null);
+    const intervalRef = useRef(null);
 
     useEffect(() => {
-        if (isOpen && audioRef.current) {
-            audioRef.current.play().catch(error => {
-                console.warn("Audio play was prevented by browser:", error);
-            });
-        } else if (!isOpen && audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+        if (isOpen) {
+            // Reset state when dialog opens
+            setCountdown(10);
+            setShowCloseButton(false);
+
+            if (audioRef.current) {
+                audioRef.current.play().catch(error => {
+                    console.warn("Audio play was prevented by browser:", error);
+                });
+            }
+
+            intervalRef.current = setInterval(() => {
+                setCountdown(prevCountdown => prevCountdown - 1);
+            }, 1000);
+
+        } else if (!isOpen) {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
         }
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, [isOpen]);
+
+    useEffect(() => {
+        if (countdown <= 0) {
+            if(intervalRef.current) clearInterval(intervalRef.current);
+            setShowCloseButton(true);
+        }
+    }, [countdown]);
 
     const togglePlay = () => {
         if (audioRef.current) {
@@ -38,12 +70,11 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
         }
     };
     
-
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent 
-                className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" 
-                showCloseButton={true}
+                className="sm:max-w-md p-0 border-0 bg-transparent shadow-none" 
+                showCloseButton={false} // We will handle the close button manually
             >
                  <div 
                     className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card"
@@ -77,6 +108,17 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                             </Button>
                         </div>
                         
+                        {showCloseButton ? (
+                            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10">
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Close</span>
+                            </DialogClose>
+                        ) : (
+                             <div className="absolute right-4 top-4 text-xs font-mono bg-black/30 text-white/70 px-2 py-1 rounded-full">
+                                {countdown}s
+                             </div>
+                        )}
+                        
                         <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-yellow-500/30">
                             <Star className="text-black h-12 w-12" />
                         </div>
@@ -100,9 +142,6 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                         <div className="flex flex-col gap-3">
                              <Button size="lg" className="w-full text-lg h-12 font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-500 shadow-lg shadow-yellow-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/50 hover:scale-105" onClick={onUpgrade}>
                                 Upgrade to Pro Now
-                            </Button>
-                             <Button variant="link" className="text-white/70" onClick={onContinue}>
-                                Continue without upgrading
                             </Button>
                         </div>
                     </div>

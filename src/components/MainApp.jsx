@@ -97,15 +97,7 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
     }
   };
   
-  const handleContinue = () => {
-    if (actionAfterAd) {
-        actionAfterAd();
-    }
-    setIsUpgradeAdOpen(false);
-    setActionAfterAd(null);
-  };
-  
-  const handleUpgrade = () => {
+  const handleUpgradeFromAd = () => {
     setActiveTab('upgrade');
     setIsUpgradeAdOpen(false);
     setActionAfterAd(null);
@@ -170,8 +162,7 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
        <UpgradeAd
           isOpen={isUpgradeAdOpen}
           onOpenChange={setIsUpgradeAdOpen}
-          onUpgrade={handleUpgrade}
-          onContinue={handleContinue}
+          onUpgrade={handleUpgradeFromAd}
         />
     </div>
   );
