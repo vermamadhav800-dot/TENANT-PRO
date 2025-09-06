@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -681,20 +681,44 @@ const TenantNoticeBoard = ({ appState }) => {
     );
 };
 
+const UpgradeModal = ({ isOpen, onOpenChange }) => (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent>
+            <DialogHeader>
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-amber-500" />
+                    </div>
+                </div>
+                <DialogTitle className="text-center text-2xl">Unlock Premium Features</DialogTitle>
+                <DialogDescription className="text-center">
+                    Want access to more features like online document storage or an AI assistant?
+                    <br />
+                    Ask your property owner to upgrade to the <strong>Pro</strong> or <strong>Business</strong> plan!
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button onClick={() => onOpenChange(false)} className="w-full">Got it!</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+);
+
 
 const TABS = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, plan: 'standard' },
-    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee, plan: 'standard' },
-    { id: 'notices', label: 'Notice Board', icon: Megaphone, plan: 'standard' },
-    { id: 'support', label: 'Help & Support', icon: Wrench, plan: 'standard' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, plan: 'standard' },
-    { id: 'profile', label: 'Profile', icon: User, plan: 'standard' },
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'payments', label: 'Rent & Payments', icon: IndianRupee },
+    { id: 'notices', label: 'Notice Board', icon: Megaphone },
+    { id: 'support', label: 'Help & Support', icon: Wrench },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'profile', label: 'Profile', icon: User },
 ];
 
 export default function TenantDashboard({ appState, setAppState, tenant, onLogout }) {
     const { theme, setTheme } = useTheme();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
     const { payments, rooms, notifications = [], defaults = {} } = appState;
     const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
     const isBusinessPlan = defaults.subscriptionPlan === 'business';
@@ -734,37 +758,35 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 <span className="text-xl font-bold">My Dashboard</span>
             </div>
             <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {TABS.map(tab => {
-                    if (tab.plan === 'business' && !isBusinessPlan) {
-                        return null; // Don't render tab if it's a business feature and owner is not on business plan
-                    }
-                    return (
-                        <Button
-                            key={tab.id}
-                            variant={activeTab === tab.id ? 'secondary' : 'ghost'}
-                            className="w-full justify-start gap-3"
-                            onClick={() => {
-                                setActiveTab(tab.id);
-                                setIsSidebarOpen(false);
-                            }}
-                        >
-                            <tab.icon className="h-5 w-5" />
-                            <span>{tab.label}</span>
-                            {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
-                                <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                    {unreadNotificationsCount}
-                                </span>
-                            )}
-                            {tab.plan === 'business' && (
-                                <Badge variant="outline" className="ml-auto bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs">
-                                  Premium
-                                </Badge>
-                            )}
-                        </Button>
-                    );
-                })}
+                {TABS.map(tab => (
+                    <Button
+                        key={tab.id}
+                        variant={activeTab === tab.id ? 'secondary' : 'ghost'}
+                        className="w-full justify-start gap-3"
+                        onClick={() => {
+                            setActiveTab(tab.id);
+                            setIsSidebarOpen(false);
+                        }}
+                    >
+                        <tab.icon className="h-5 w-5" />
+                        <span>{tab.label}</span>
+                        {tab.id === 'notifications' && unreadNotificationsCount > 0 && (
+                            <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                {unreadNotificationsCount}
+                            </span>
+                        )}
+                    </Button>
+                ))}
             </div>
-            <div className="p-4 border-t mt-auto">
+            <div className="p-4 border-t mt-auto space-y-2">
+                 <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-3 bg-amber-400/10 text-amber-600 border-amber-400/50 hover:bg-amber-400/20 hover:text-amber-700"
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                 >
+                    <Star className="w-5 h-5" />
+                    Premium Features
+                </Button>
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
                     <LogOut className="w-5 h-5" />
                     Log Out
@@ -822,6 +844,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                     {renderContent()}
                 </main>
             </div>
+            <UpgradeModal isOpen={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen} />
         </div>
     );
 }
