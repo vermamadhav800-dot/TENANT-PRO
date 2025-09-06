@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from './ui/badge';
 import ComingSoon from './ComingSoon';
 import TenantDocuments from './TenantDocuments';
+import Upgrade from './Upgrade';
 
 
 const TenantProfile = ({ tenant }) => (
@@ -67,6 +68,8 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
     const [paymentScreenshotPreview, setPaymentScreenshotPreview] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentView, setPaymentView] = useState('default'); // 'default', 'qr'
+    const tenantPlan = tenant.subscriptionPlan || 'free';
+    const canDownloadReceipts = tenantPlan === 'plus' || tenantPlan === 'premium';
 
     const { upiId: adminUpiId } = appState.defaults || {};
     const ownerDetails = appState.MOCK_USER_INITIAL || {};
@@ -362,7 +365,8 @@ const RentAndPayments = ({ tenant, payments, setAppState, room, appState }) => {
                                                 variant="outline" 
                                                 size="sm" 
                                                 onClick={() => setShowReceipt({ payment, tenant, room })}
-                                                disabled={payment.status === 'Processing'}
+                                                disabled={payment.status === 'Processing' || !canDownloadReceipts}
+                                                title={!canDownloadReceipts ? "Upgrade to Plus or Premium to download receipts" : ""}
                                             >
                                                 <FileText className="h-4 w-4 mr-2" /> View
                                             </Button>
@@ -690,7 +694,7 @@ const TABS = [
     { id: 'notices', label: 'Notice Board', icon: Megaphone, premium: false },
     { id: 'support', label: 'Help & Support', icon: Wrench, premium: false },
     { id: 'notifications', label: 'Notifications', icon: Bell, premium: false },
-    { id: 'premium', label: 'Premium', icon: Star, premium: false }, // This is the generic upgrade tab
+    { id: 'upgrade', label: 'My Plan', icon: Star, premium: false },
     { id: 'profile', label: 'Profile', icon: User, premium: false },
 ];
 
@@ -701,7 +705,8 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { payments, rooms, notifications = [], defaults = {} } = appState;
     const ownerDetails = appState.MOCK_USER_INITIAL || { name: 'Owner', username: 'owner' };
-    const isBusinessPlan = defaults.subscriptionPlan === 'business';
+    const currentTenant = appState.tenants.find(t => t.id === tenant.id) || tenant;
+    const tenantPlan = currentTenant.subscriptionPlan || 'free';
 
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
@@ -715,7 +720,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     }, [rooms, tenant.unitNo]);
 
     const handleTabClick = (tab) => {
-        if (tab.premium && !isBusinessPlan) {
+        if (tab.premium && !(tenantPlan === 'premium')) {
             setIsUpgradeModalOpen(true);
         } else {
             setActiveTab(tab.id);
@@ -724,7 +729,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
     };
 
     const renderContent = () => {
-        const props = { tenant, appState, setAppState, payments, room };
+        const props = { tenant: currentTenant, appState, setAppState, payments, room };
         switch (activeTab) {
             case 'dashboard':
                 return <TenantHome {...props} />;
@@ -738,8 +743,14 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                 return <HelpAndSupport {...props} />;
             case 'notifications':
                 return <Notifications {...props} />;
-            case 'premium':
-                return <ComingSoon title="Premium Features" description="The owner has not enabled premium features like AI Assistant or Advanced Document Management. Ask them to upgrade to the Business plan to unlock more capabilities!" />;
+            case 'upgrade':
+                return <Upgrade 
+                            userType="tenant" 
+                            appState={appState} 
+                            setAppState={setAppState} 
+                            currentTenant={currentTenant}
+                            onUpgradeSuccess={() => setActiveTab('dashboard')}
+                        />;
             case 'profile':
                 return <TenantProfile {...props} />;
             default:
@@ -755,9 +766,7 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
             </div>
             <div className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {TABS.map(tab => {
-                    if (tab.id === 'premium') return null; // Hide the generic premium tab for now
-
-                    const isLocked = tab.premium && !isBusinessPlan;
+                    const isLocked = tab.premium && !(tenantPlan === 'premium');
 
                     return (
                         <Button
@@ -782,20 +791,6 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                         </Button>
                     )
                 })}
-                 <Button
-                    variant='ghost'
-                    className="w-full justify-start gap-3 mt-4 text-amber-600 hover:bg-amber-400/20 hover:text-amber-700"
-                    onClick={() => {
-                        toast({
-                            title: "Premium Features",
-                            description: "Ask your property owner to upgrade to the Business plan to unlock more features for you!",
-                        });
-                        setIsSidebarOpen(false);
-                    }}
-                >
-                    <Star className="h-5 w-5" />
-                    <span>Request Upgrade</span>
-                </Button>
             </div>
             <div className="p-4 border-t mt-auto space-y-2">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={onLogout}>
@@ -825,13 +820,19 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
              <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Premium Feature</DialogTitle>
+                        <DialogTitle>Premium Feature Locked</DialogTitle>
                         <DialogDescription>
-                            This feature is only available on the owner's Business plan. Please ask your property owner to upgrade to unlock this for you.
+                            This feature requires a higher plan. Please upgrade your subscription to unlock it.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button onClick={() => setIsUpgradeModalOpen(false)}>Got it</Button>
+                        <Button variant="outline" onClick={() => setIsUpgradeModalOpen(false)}>Maybe Later</Button>
+                        <Button onClick={() => {
+                            setActiveTab('upgrade');
+                            setIsUpgradeModalOpen(false);
+                        }}>
+                           <Star className="mr-2 h-4 w-4" /> Go to Plans
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -853,12 +854,12 @@ export default function TenantDashboard({ appState, setAppState, tenant, onLogou
                             </Button>
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-9 w-9">
-                                    <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
-                                    <AvatarFallback>{tenant.name ? tenant.name.charAt(0).toUpperCase() : 'T'}</AvatarFallback>
+                                    <AvatarImage src={currentTenant.profilePhotoUrl} alt={currentTenant.name} />
+                                    <AvatarFallback>{currentTenant.name ? currentTenant.name.charAt(0).toUpperCase() : 'T'}</AvatarFallback>
                                 </Avatar>
                                 <div className="hidden sm:flex flex-col items-start">
-                                    <p className="text-sm font-medium">{tenant.name}</p>
-                                    <p className="text-xs text-muted-foreground">Tenant</p>
+                                    <p className="text-sm font-medium">{currentTenant.name}</p>
+                                    <p className="text-xs text-muted-foreground">Tenant ({tenantPlan})</p>
                                 </div>
                             </div>
                         </div>

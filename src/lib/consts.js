@@ -22,7 +22,7 @@ export const INITIAL_APP_STATE = {
       overdueDays: 3, // Every x days when overdue
     },
     lastReminderCheck: null,
-    subscriptionPlan: 'standard', // 'standard', 'pro', or 'business'
+    subscriptionPlan: 'business', // 'standard', 'pro', or 'business'
     maxProperties: 1, // Based on subscription
   },
   rooms: [
@@ -46,6 +46,7 @@ export const INITIAL_APP_STATE = {
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
       leaseAgreementUrl: 'https://placehold.co/600x400.png?text=Lease+Agreement',
       otherCharges: [],
+      subscriptionPlan: 'free', // 'free', 'plus', 'premium'
     },
     {
       id: 't2',
@@ -62,6 +63,7 @@ export const INITIAL_APP_STATE = {
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
       leaseAgreementUrl: null,
       otherCharges: [],
+      subscriptionPlan: 'free',
     },
      {
       id: 't3',
@@ -78,6 +80,7 @@ export const INITIAL_APP_STATE = {
       aadhaarCardUrl: 'https://placehold.co/600x400.png?text=Aadhaar+Card',
       leaseAgreementUrl: 'https://placehold.co/600x400.png?text=Lease+Agreement',
       otherCharges: [],
+      subscriptionPlan: 'plus',
     },
   ],
   payments: [
