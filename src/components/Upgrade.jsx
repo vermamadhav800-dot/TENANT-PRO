@@ -117,8 +117,8 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         }
         
         let buttonClass = '';
-        if (plan.id === 'standard' || plan.id === 'plus') buttonClass = 'btn-gradient-green';
-        if (plan.id === 'pro') buttonClass = 'btn-gradient-blue';
+        if (plan.id === 'standard' || plan.id === 'free') buttonClass = 'btn-gradient-green';
+        if (plan.id === 'pro' || plan.id === 'plus') buttonClass = 'btn-gradient-blue';
         if (plan.id === 'business' || plan.id === 'premium') buttonClass = 'btn-gradient-orange';
 
         return (
@@ -133,27 +133,28 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         const isHighlighted = plan.id === 'pro' || plan.id === 'plus';
 
         let cardClass = "border-border";
-        if (isHighlighted) cardClass = "border-primary";
-        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-amber-500/80";
+        if(plan.id === 'standard' || plan.id === 'free') cardClass = "border-blue-500/30";
+        if (isHighlighted) cardClass = "border-primary/80";
+        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-amber-500/50";
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/80 relative overflow-hidden shadow-lg hover:-translate-y-4",
+                "flex flex-col bg-card/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
                 cardClass,
-                isHighlighted && "ring-2 ring-primary/80"
+                isHighlighted && "ring-2 ring-primary/60"
             )}>
                  {isHighlighted && (
                     <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
                  )}
                 <CardHeader className="text-center pt-8">
-                    <CardTitle className="text-3xl font-bold text-white">{plan.name}</CardTitle>
+                    <CardTitle className="text-3xl font-bold">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-6">
                     <div className="text-center flex items-baseline justify-center">
                         <span className={cn(
-                            "text-5xl font-extrabold text-white", 
-                            plan.price === 'Free' && 'text-green-400'
+                            "text-5xl font-extrabold", 
+                            plan.price === 'Free' ? 'text-green-400' : 'text-foreground'
                         )}>
                             {plan.price !== 'Free' ? `₹${plan.price}` : 'Free'}
                         </span>
@@ -168,7 +169,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                             return(
                                 <li key={i} className="flex items-center gap-3">
                                     <Check className="h-5 w-5 text-green-400 shrink-0"/>
-                                    <span className={cn("text-white/90", !item[planKey] && "text-white/40 line-through")}>
+                                    <span className={cn("text-muted-foreground", item[planKey] && "text-foreground")}>
                                         {item.feature}
                                     </span>
                                 </li>
@@ -187,7 +188,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         <div className="w-full min-h-screen dark-bg-futuristic text-white py-12">
             <div className="max-w-7xl mx-auto space-y-12 p-4">
                 <div className="text-center space-y-2">
-                    <h1 className="text-5xl font-bold font-headline">Choose the plan that’s right for you</h1>
+                    <h1 className="text-5xl font-bold font-headline gradient-text">Choose the plan that’s right for you</h1>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                         Unlock powerful features to manage your properties like a pro.
                     </p>
@@ -209,3 +210,4 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         </div>
     );
 }
+
