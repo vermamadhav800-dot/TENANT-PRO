@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Sun, Moon, Palette, Upload, Trash2 } from 'lucide-react';
+import { Sun, Moon, Palette, Upload, Trash2, Import, AlertTriangle } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Switch } from './ui/switch';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 export default function AppSettings({ appState, setAppState, user }) {
   const { toast } = useToast();
@@ -19,6 +21,9 @@ export default function AppSettings({ appState, setAppState, user }) {
   const [currentUser, setCurrentUser] = useState(user);
   const [qrCodePreview, setQrCodePreview] = useState(appState.defaults.qrCodeUrl || null);
   const isPro = appState.defaults.subscriptionPlan === 'pro' || appState.defaults.subscriptionPlan === 'business';
+  
+  const [isImportAlertOpen, setIsImportAlertOpen] = useState(false);
+  const [dataToImport, setDataToImport] = useState(null);
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -41,12 +46,12 @@ export default function AppSettings({ appState, setAppState, user }) {
     setCurrentUser(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, setPreview) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setQrCodePreview(reader.result);
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -66,6 +71,51 @@ export default function AppSettings({ appState, setAppState, user }) {
       description: "Your new settings have been applied.",
     });
   };
+
+  const handleImportFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "application/json") {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          setDataToImport(importedData);
+          setIsImportAlertOpen(true);
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "The selected file is not valid JSON.",
+          });
+        }
+      };
+      reader.readAsText(file);
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Invalid File",
+        description: "Please select a valid .json file.",
+      });
+    }
+     // Reset the file input so the same file can be selected again
+    e.target.value = null;
+  };
+  
+  const handleConfirmImport = () => {
+    if(dataToImport) {
+        setAppState(prevAppState => ({...prevAppState, [user.username]: dataToImport}));
+        toast({
+            title: "Import Successful",
+            description: "Your data has been restored from the backup file.",
+        });
+        // We might need to force-reload or update state in parent components
+        // For simplicity, we can rely on reactivity or just inform the user.
+        window.location.reload(); // Easiest way to reflect all changes
+    }
+    setIsImportAlertOpen(false);
+    setDataToImport(null);
+  };
+
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -217,7 +267,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                     id="qrCode"
                     type="file" 
                     accept="image/png, image/jpeg, image/jpg" 
-                    onChange={handleFileChange}
+                    onChange={(e) => handleFileChange(e, setQrCodePreview)}
                   />
                   <p className="text-xs text-muted-foreground mt-2">
                     Upload a QR code image. Tenants will see this image to make payments.
@@ -232,7 +282,23 @@ export default function AppSettings({ appState, setAppState, user }) {
             </div>
         </CardContent>
       </Card>
-      
+       
+       <Card>
+        <CardHeader>
+          <CardTitle>Data Management</CardTitle>
+          <CardDescription>Import or export your application data.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center gap-4">
+            <Button variant="outline" asChild>
+                <Label htmlFor="import-backup" className="cursor-pointer">
+                    <Import className="mr-2 h-4 w-4" /> Import from Backup
+                </Label>
+            </Button>
+            <Input id="import-backup" type="file" accept=".json" className="sr-only" onChange={handleImportFileSelect} />
+            <p className="text-sm text-muted-foreground">Importing will overwrite all current data.</p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>User Profile</CardTitle>
@@ -257,8 +323,24 @@ export default function AppSettings({ appState, setAppState, user }) {
       <div className="flex justify-end">
         <Button onClick={handleSave} size="lg" className="btn-gradient-glow">Save All Settings</Button>
       </div>
+
+       <AlertDialog open={isImportAlertOpen} onOpenChange={setIsImportAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-amber-500" />
+                Overwrite All Data?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to import this file? This action cannot be undone and will permanently replace all existing data in the application with the contents of the backup file.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsImportAlertOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmImport}>Yes, Overwrite and Import</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-
-    
