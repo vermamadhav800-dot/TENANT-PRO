@@ -20,22 +20,14 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
 
-    const playAudio = () => {
-        if (audioRef.current && audioRef.current.paused) {
-            audioRef.current.play().catch(error => {
-                console.warn("Audio play was prevented:", error);
-            });
-        }
-    };
-    
     useEffect(() => {
         if (isOpen && audioRef.current) {
-            audioRef.current.muted = true;
-            playAudio();
+            audioRef.current.play().catch(error => {
+                console.warn("Audio play was prevented by browser:", error);
+            });
         } else if (!isOpen && audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            setIsPlaying(false);
         }
     }, [isOpen]);
 
@@ -55,15 +47,15 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             >
                  <div 
                     className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card"
-                    onMouseEnter={playAudio} // Force play on mouse enter
                  >
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
                     <audio 
                         ref={audioRef} 
-                        src="/C.mp4"
+                        src="https://media1.vocaroo.com/mp3/13ySuc198HNQ"
                         preload="auto"
                         loop
+                        muted
                         onPlay={() => setIsPlaying(!audioRef.current?.muted)}
                         onPause={() => setIsPlaying(false)}
                     />
