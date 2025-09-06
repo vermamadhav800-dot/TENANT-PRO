@@ -16,11 +16,9 @@ const ownerPlanFeatures = [
     { feature: "Expense Tracking", standard: true, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
-    { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true },
-    { feature: "All Pro Features", standard: false, pro: false, business: true},
     { feature: "Document & Lease Management", standard: false, pro: false, business: true },
     { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true },
-    { feature: "Ad-free Experience", standard: false, pro: true, business: true },
+    { feature: "Multi-Property Support", standard: false, pro: false, business: true },
 ];
 
 
@@ -35,7 +33,7 @@ const tenantPlanFeatures = [
 ];
 
 const ownerPlans = {
-    standard: { id: 'standard', name: 'Standard', price: 'Free', priceSuffix: '', description: 'Perfect for getting started with basics', cta: 'Get Started', priceAmount: 0 },
+    standard: { id: 'standard', name: 'Standard', price: 'Free', priceSuffix: '', description: 'Perfect for getting started with basics', cta: 'Your Current Plan', priceAmount: 0 },
     pro: { id: 'pro', name: 'Pro', price: '499', priceSuffix: '/mo', description: 'For property owners needing automation', cta: 'Upgrade to Pro', priceAmount: 499 },
     business: { id: 'business', name: 'Business', price: '999', priceSuffix: '/mo', description: 'Scaling your property business', cta: 'Scale with Business', priceAmount: 999 }
 };
@@ -110,17 +108,26 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
     
     const getButtonForPlan = (plan, isCurrent) => {
         const planOrder = { standard: 1, pro: 2, business: 3, free: 1, plus: 2, premium: 3 };
+        const currentPlanRank = planOrder[currentPlanId];
+        const clickedPlanRank = planOrder[plan.id];
 
         if (isCurrent) {
             return (
-                <Button className="w-full text-base md:text-lg py-6" variant="outline" disabled>
+                <Button className="w-full text-base md:text-lg py-6 btn-gradient-glow" variant="outline" disabled>
                    Your Current Plan
+                </Button>
+            );
+        }
+
+        if (clickedPlanRank < currentPlanRank) {
+             return (
+                <Button className="w-full text-base md:text-lg py-6" variant="outline" onClick={() => handlePlanActionClick(plan)}>
+                   Downgrade to {plan.name}
                 </Button>
             );
         }
         
         let buttonClass = '';
-        if (plan.id === 'standard' || plan.id === 'free') buttonClass = 'btn-gradient-green';
         if (plan.id === 'pro' || plan.id === 'plus') buttonClass = 'btn-gradient-blue';
         if (plan.id === 'business' || plan.id === 'premium') buttonClass = 'btn-gradient-orange';
 
@@ -136,21 +143,21 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         const isHighlighted = plan.id === 'pro' || plan.id === 'plus';
 
         const ringClasses = {
-            standard: 'ring-cyan-500/50',
-            pro: 'ring-primary/60',
-            business: 'ring-red-500/50',
-            free: 'ring-cyan-500/50',
-            plus: 'ring-primary/60',
-            premium: 'ring-red-500/50'
+            standard: 'ring-gray-500/50',
+            pro: 'ring-blue-500/50',
+            business: 'ring-violet-500/50',
+            free: 'ring-gray-500/50',
+            plus: 'ring-blue-500/50',
+            premium: 'ring-violet-500/50'
         }
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-lg",
-                "ring-2 ring-offset-2 ring-offset-black",
-                ringClasses[plan.id]
+                "flex flex-col bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-lg",
+                "ring-2 ring-offset-2 ring-offset-background",
+                isCurrent ? 'ring-primary' : 'ring-transparent hover:ring-primary/50'
             )}>
-                 {isHighlighted && (
+                 {isHighlighted && !isCurrent && (
                     <div className="absolute top-4 -right-12 rotate-45 bg-primary text-primary-foreground text-xs font-bold px-12 py-1.5">Popular</div>
                  )}
                 <CardHeader className="text-center pt-8">
@@ -172,8 +179,8 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                         {planFeatures.map((item, i) => {
                              const isIncluded = item[plan.id];
                              return(
-                                <li key={i} className={cn("flex items-center gap-3", !isIncluded && "text-muted-foreground")}>
-                                    {isIncluded ? <Check className="h-5 w-5 text-green-400 shrink-0"/> : <X className="h-5 w-5 text-red-500 shrink-0" />}
+                                <li key={i} className={cn("flex items-start gap-3", !isIncluded && "text-muted-foreground")}>
+                                    {isIncluded ? <Check className="h-5 w-5 text-green-400 shrink-0 mt-0.5"/> : <X className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />}
                                     <span className="text-foreground">
                                         {item.feature}
                                     </span>
