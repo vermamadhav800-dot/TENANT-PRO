@@ -60,13 +60,14 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
                         src={VIDEO_AD_URL}
                         loop
                         playsInline
+                        muted // Start muted, user can enable sound
                         className="absolute top-0 left-0 w-full h-full object-cover"
                      >
                         Your browser does not support the video tag.
                      </video>
                     <div className="absolute inset-0 bg-black/60 z-10"></div>
 
-                    <div className="relative p-6 text-center text-white z-20 flex flex-col h-full">
+                    <div className="relative p-6 text-center text-white z-20 flex flex-col h-full min-h-[500px]">
                         <DialogHeader className="sr-only">
                             <DialogTitle>Upgrade to Pro</DialogTitle>
                         </DialogHeader>
