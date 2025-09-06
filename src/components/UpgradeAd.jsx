@@ -25,25 +25,25 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        if (isOpen) {
-             if (videoRef.current) {
-                videoRef.current.play().catch(error => {
-                    console.warn("Video play was prevented by browser:", error);
-                });
-            }
-        } else {
-             if (videoRef.current) {
-                videoRef.current.pause();
-                videoRef.current.currentTime = 0;
-            }
+        if (isOpen && videoRef.current) {
+             videoRef.current.play().catch(error => {
+                // Autoplay was prevented. This is common in browsers.
+                // The user will have to manually unmute or play.
+                console.warn("Video play was prevented by browser:", error);
+                setIsPlaying(false);
+            });
+        } else if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
         }
     }, [isOpen]);
 
 
     const togglePlay = () => {
         if (videoRef.current) {
-            videoRef.current.muted = !videoRef.current.muted;
-            setIsPlaying(!videoRef.current.muted);
+            const isMuted = videoRef.current.muted;
+            videoRef.current.muted = !isMuted;
+            setIsPlaying(isMuted); // If it was muted, it will now be playing with sound.
         }
     };
     
@@ -55,7 +55,6 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
                  <div 
                     className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card"
                  >
-                    <div className="absolute inset-0 bg-black/50 z-10"></div>
                      <video 
                         ref={videoRef}
                         src={VIDEO_AD_URL}
@@ -69,6 +68,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
                      >
                         Your browser does not support the video tag.
                      </video>
+                    <div className="absolute inset-0 bg-black/50 z-10"></div>
 
                     <div className="relative p-6 text-center text-white z-20">
                         <DialogHeader className="sr-only">
