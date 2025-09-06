@@ -16,6 +16,24 @@ const PRO_FEATURES = [
 ];
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
+    const [countdown, setCountdown] = useState(10);
+
+    useEffect(() => {
+        if (isOpen) {
+            setCountdown(10); // Reset countdown when dialog opens
+            const timer = setInterval(() => {
+                setCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(timer); // Cleanup on close
+        }
+    }, [isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -27,11 +45,19 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-4 right-4 text-white/70 hover:text-white z-10"
+                          className={cn(
+                            "absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-all duration-300",
+                            countdown > 0 ? "opacity-60 cursor-not-allowed bg-black/30" : "opacity-100"
+                          )}
                           onClick={onContinue}
+                          disabled={countdown > 0}
                         >
+                          {countdown > 0 ? (
+                            <span className="text-sm font-mono w-5 h-5 flex items-center justify-center">{countdown}</span>
+                          ) : (
                             <X className="h-5 w-5" />
-                            <span className="sr-only">Close</span>
+                          )}
+                          <span className="sr-only">Close</span>
                         </Button>
                     </DialogClose>
 
