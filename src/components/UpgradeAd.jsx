@@ -19,11 +19,19 @@ const PRO_FEATURES = [
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
+    const [audioSrc, setAudioSrc] = useState('');
 
     useEffect(() => {
-        if (isOpen && audioRef.current) {
-            // Let's try to play, but catch error if autoplay is blocked.
-            // The user can still click the play button.
+        // Fetch the Base64 string from the text file.
+        fetch('/base64.txt')
+            .then(response => response.text())
+            .then(text => setAudioSrc(text.trim()))
+            .catch(error => console.error("Failed to load audio data:", error));
+    }, []);
+
+    useEffect(() => {
+        if (isOpen && audioRef.current && audioSrc) {
+            // Once the ad is open and we have the audio source, try to play.
             audioRef.current.play().catch(error => {
                 console.warn("Autoplay was prevented. User must interact to play audio.");
             });
@@ -32,7 +40,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             audioRef.current.currentTime = 0;
             setIsPlaying(false);
         }
-    }, [isOpen]);
+    }, [isOpen, audioSrc]);
 
     const togglePlay = () => {
         if (audioRef.current) {
@@ -53,10 +61,10 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
-                    {/* This points to your file in the `public` folder */}
+                    {/* The src is now set dynamically from the fetched text file */}
                     <audio 
                         ref={audioRef} 
-                        src="/base64.txt" 
+                        src={audioSrc}
                         preload="auto"
                         onPlay={() => setIsPlaying(true)}
                         onPause={() => setIsPlaying(false)}
@@ -74,6 +82,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                                 size="icon"
                                 className="text-white/70 hover:text-white bg-black/30 hover:bg-black/50"
                                 onClick={togglePlay}
+                                disabled={!audioSrc}
                             >
                                 {isPlaying ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                                 <span className="sr-only">Toggle Sound</span>
