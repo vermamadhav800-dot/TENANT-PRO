@@ -62,16 +62,14 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
                     {/* The src is now set dynamically from the fetched text file */}
-                    {audioSrc && (
-                        <audio 
-                            ref={audioRef} 
-                            src={audioSrc}
-                            preload="auto"
-                            onPlay={() => setIsPlaying(true)}
-                            onPause={() => setIsPlaying(false)}
-                            onEnded={() => setIsPlaying(false)}
-                        />
-                    )}
+                    <audio 
+                        ref={audioRef} 
+                        src={audioSrc || undefined}
+                        preload="auto"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                        onEnded={() => setIsPlaying(false)}
+                    />
                     
                     <div className="relative p-8 text-center text-white">
                         <DialogHeader className="sr-only">
