@@ -67,12 +67,12 @@ const TABS = [
   { id: "payments", label: "Payments", icon: CreditCard, plan: 'standard', group: 'management' },
   { id: "requests", label: "Requests", icon: Wrench, plan: 'standard', group: 'operations' },
   { id: "notices", label: "Notices", icon: Megaphone, plan: 'standard', group: 'operations' },
-  { id: "electricity", label: "Electricity", icon: Zap, plan: 'standard', group: 'operations' },
   { id: "insights", label: "Insights", icon: TrendingUp, plan: 'pro', group: 'analytics' },
   { id: "expenses", label: "Expenses", icon: Wallet, plan: 'pro', group: 'analytics' },
+  { id: "electricity", label: "Electricity", icon: Zap, plan: 'pro', group: 'analytics' },
+  { id: "reports", label: "Reports", icon: BarChart, plan: 'pro', group: 'analytics' },
   { id: "documents", label: "Documents", icon: FolderArchive, plan: 'business', group: 'analytics' },
   { id: "ai-assistant", label: "AI Assistant", icon: BrainCircuit, plan: 'business', group: 'analytics' },
-  { id: "reports", label: "Reports", icon: BarChart, plan: 'pro', group: 'analytics' },
 ];
 
 const TAB_GROUPS = ['main', 'management', 'operations', 'analytics'];
