@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive, Mail, Phone, Edit, Image as ImageIcon } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive, Mail, Phone, Edit, Image as ImageIcon, Crown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ const TenantProfile = ({ tenant, setOwnerState }) => {
     const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant.profilePhotoUrl);
     const [aadhaarCardPreview, setAadhaarCardPreview] = useState(null);
     const [leaseAgreementPreview, setLeaseAgreementPreview] = useState(null);
+    const isPremium = tenant.subscriptionPlan === 'premium';
     
     const handleFileChange = (e, setFile, setPreview) => {
         const file = e.target.files?.[0];
@@ -89,17 +90,20 @@ const TenantProfile = ({ tenant, setOwnerState }) => {
 
     return (
         <div className="space-y-6">
-            <Card className={cn("glass-card", tenant.subscriptionPlan === 'premium' && 'premium-glow')}>
+            <Card className={cn("glass-card", isPremium && 'premium-glow')}>
                 <CardHeader>
                     <CardTitle>Personal Details</CardTitle>
                     <CardDescription>Your personal information on record.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16 md:h-20 md:w-20">
-                            <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
-                            <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                            <Avatar className="h-16 w-16 md:h-20 md:w-20">
+                                <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
+                                <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {isPremium && <Crown className="absolute -top-2 -right-2 h-6 w-6 text-amber-400 rotate-12 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]" />}
+                        </div>
                         <div>
                             <h3 className="text-xl font-semibold">{tenant.name}</h3>
                             <p className="text-muted-foreground">{tenant.username}</p>
@@ -1008,3 +1012,5 @@ export default function TenantDashboard({ ownerState, setAppState, tenant, onLog
         </div>
     );
 }
+
+    

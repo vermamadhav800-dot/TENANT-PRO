@@ -24,6 +24,7 @@ import {
   FolderArchive,
   BrainCircuit,
   MoreHorizontal,
+  Crown,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -348,10 +349,13 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors", isBusiness && 'premium-glow')}>
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
-                    <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
+                        <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      {isBusiness && <Crown className="absolute -top-2 -right-2 h-5 w-5 text-amber-400 rotate-12 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]" />}
+                  </div>
                   <div className="overflow-hidden flex-1">
                     <p className="text-sm font-medium truncate">{user.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.username}</p>
@@ -390,5 +394,7 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
     </SidebarProvider>
   );
 }
+
+    
 
     
