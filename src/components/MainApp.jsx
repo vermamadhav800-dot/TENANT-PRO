@@ -59,6 +59,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "./ui/badge";
 import Documents from "./Documents";
 import AIAssistant from "./AIAssistant";
+import UpgradeAd from "./UpgradeAd";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard', group: 'main' },
@@ -145,6 +146,10 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
   
+  const [isUpgradeAdOpen, setIsUpgradeAdOpen] = useState(false);
+  const [navAction, setNavAction] = useState(null);
+  const [navCount, setNavCount] = useState(0);
+
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const pendingUpdateRequestsCount = (appState.updateRequests || []).length;
@@ -158,17 +163,48 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     const planOrder = { standard: 1, pro: 2, business: 3 };
     const currentPlanRank = planOrder[currentPlan] || 1;
     const requiredPlanRank = planOrder[tab.plan] || 1;
+    
+    const action = () => {
+        if (currentPlanRank < requiredPlanRank) {
+          setActiveTab('upgrade');
+          toast({
+            variant: "destructive",
+            title: "Upgrade Required",
+            description: `The "${tab.label}" feature is only available on the ${tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)} plan or higher.`
+          });
+        } else {
+          setActiveTab(tab.id);
+        }
+    };
+    
+    if (currentPlan === 'standard' && tab.id !== 'upgrade' && tab.id !== 'settings') {
+        const newNavCount = navCount + 1;
+        setNavCount(newNavCount);
 
-    if (currentPlanRank < requiredPlanRank) {
-      setActiveTab('upgrade');
-      toast({
-        variant: "destructive",
-        title: "Upgrade Required",
-        description: `The "${tab.label}" feature is only available on the ${tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)} plan or higher.`
-      });
+        if (newNavCount >= 3) {
+            setNavAction(() => action);
+            setIsUpgradeAdOpen(true);
+            setNavCount(0);
+        } else {
+            action();
+        }
     } else {
-      setActiveTab(tab.id);
+       action();
     }
+  }
+
+  const handleContinueToFree = () => {
+      if (navAction) {
+          navAction();
+      }
+      setIsUpgradeAdOpen(false);
+      setNavAction(null);
+  }
+  
+  const handleUpgradeFromAd = () => {
+      setActiveTab('upgrade');
+      setIsUpgradeAdOpen(false);
+      setNavAction(null);
   }
 
   useEffect(() => {
@@ -379,7 +415,15 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           setAppState={setAppState}
           user={user}
         />
+        <UpgradeAd
+            isOpen={isUpgradeAdOpen}
+            onOpenChange={setIsUpgradeAdOpen}
+            onUpgrade={handleUpgradeFromAd}
+            onContinue={handleContinueToFree}
+        />
       </div>
     </SidebarProvider>
   );
 }
+
+    
