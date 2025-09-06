@@ -130,4 +130,8 @@ body {
   .gradient-text {
     @apply bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-400 text-transparent bg-clip-text;
   }
+  
+  .premium-glow {
+    @apply shadow-[0_0_15px_2px_rgba(252,211,77,0.3)] border-amber-400/50 transition-all duration-300;
+  }
 }

@@ -347,7 +347,7 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
             <Separator className="my-1"/>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
+                <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors", isBusiness && 'premium-glow')}>
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
                     <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>

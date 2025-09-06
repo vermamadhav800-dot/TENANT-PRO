@@ -89,7 +89,7 @@ const TenantProfile = ({ tenant, setOwnerState }) => {
 
     return (
         <div className="space-y-6">
-            <Card className="glass-card">
+            <Card className={cn("glass-card", tenant.subscriptionPlan === 'premium' && 'premium-glow')}>
                 <CardHeader>
                     <CardTitle>Personal Details</CardTitle>
                     <CardDescription>Your personal information on record.</CardDescription>
