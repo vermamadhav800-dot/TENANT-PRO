@@ -13,11 +13,10 @@ const ownerPlanFeatures = [
     { feature: "Tenant & Room Management", standard: true, pro: true, business: true },
     { feature: "Payment Tracking", standard: true, pro: true, business: true },
     { feature: "Tenant Portal", standard: true, pro: true, business: true },
-    { feature: "Expense Tracking", standard: true, pro: false, business: false },
+    { feature: "Expense Tracking", standard: true, pro: true, business: true },
     { feature: "Automated Reminders", standard: false, pro: true, business: true },
     { feature: "Advanced Data Exports (PDF, CSV)", standard: false, pro: true, business: true },
-    { feature: "AI-Powered Rent Optimization", standard: false, pro: true, business: true },
-    { feature: "All Pro Features", standard: false, pro: false, business: true },
+    { feature: "Full Data Backup", standard: false, pro: true, business: true },
     { feature: "Document & Lease Management", standard: false, pro: false, business: true },
     { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true },
 ];
@@ -118,9 +117,9 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         }
         
         let buttonClass = '';
-        if (plan.id === 'standard') buttonClass = 'btn-gradient-green';
+        if (plan.id === 'standard' || plan.id === 'plus') buttonClass = 'btn-gradient-green';
         if (plan.id === 'pro') buttonClass = 'btn-gradient-blue';
-        if (plan.id === 'business') buttonClass = 'btn-gradient-orange';
+        if (plan.id === 'business' || plan.id === 'premium') buttonClass = 'btn-gradient-orange';
 
         return (
             <Button className={cn("w-full text-lg py-6", buttonClass)} onClick={() => handlePlanActionClick(plan)}>
@@ -135,7 +134,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         let cardClass = "border-border";
         if (isHighlighted) cardClass = "border-primary";
-        if (plan.id === 'business') cardClass = "border-amber-500/80";
+        if (plan.id === 'business' || plan.id === 'premium') cardClass = "border-amber-500/80";
 
         return (
              <Card key={plan.id} className={cn(
@@ -177,7 +176,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                         })}
                     </ul>
                 </CardContent>
-                <CardFooter className="pt-6 px-6 pb-8">
+                <CardFooter className="pt-6 px-6 pb-8 mt-auto">
                     {getButtonForPlan(plan, isCurrent)}
                 </CardFooter>
             </Card>
