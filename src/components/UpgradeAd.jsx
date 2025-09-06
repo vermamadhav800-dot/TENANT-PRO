@@ -16,8 +16,9 @@ const PRO_FEATURES = [
     "Ad-free Experience",
 ];
 
-// You can replace this URL with your own video ad link.
-const VIDEO_AD_URL = "https://video-link-generator.replit.app/v/2qvx8pbscxug85183ehrl4";
+// Use a local video file for reliability.
+// Place your video at `public/video/ad.mp4`
+const VIDEO_AD_URL = "/video/ad.mp4";
 
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
