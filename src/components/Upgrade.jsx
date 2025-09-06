@@ -20,6 +20,7 @@ const ownerPlanFeatures = [
     { feature: "All Pro Features", standard: false, pro: false, business: true},
     { feature: "Document & Lease Management", standard: false, pro: false, business: true },
     { feature: "AI Financial Analyst Chat", standard: false, pro: false, business: true },
+    { feature: "Ad-free Experience", standard: false, pro: true, business: true },
 ];
 
 
@@ -30,7 +31,7 @@ const tenantPlanFeatures = [
     { feature: "Download Detailed Receipts", free: false, plus: true, premium: true },
     { feature: "View Full Payment History", free: false, plus: true, premium: true },
     { feature: "Access All Your Documents", free: false, plus: false, premium: true },
-    { feature: "Ad-free Experience", free: false, plus: false, premium: true },
+    { feature: "Ad-free Experience", free: false, plus: true, premium: true },
 ];
 
 const ownerPlans = {
