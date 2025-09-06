@@ -25,7 +25,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             setCountdown(10); 
             
             const playAudio = async () => {
-                if (audioRef.current && audioRef.current.src) {
+                if (audioRef.current) {
                     try {
                         audioRef.current.currentTime = 0;
                         await audioRef.current.play();
@@ -35,7 +35,8 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 }
             };
             
-            playAudio();
+            // A small delay can sometimes help browsers register the audio element before playing
+            const playTimeout = setTimeout(playAudio, 100);
 
             const timer = setInterval(() => {
                 setCountdown(prev => {
@@ -48,6 +49,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             }, 1000);
 
             return () => {
+                clearTimeout(playTimeout);
                 clearInterval(timer);
                 if (audioRef.current) {
                     audioRef.current.pause();
@@ -62,7 +64,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
-                    <audio ref={audioRef} src={"PASTE_YOUR_BASE64_AUDIO_DATA_HERE"} preload="auto"></audio>
+                    <audio ref={audioRef} src="/advertisement-audio.mp3" preload="auto"></audio>
                     
                     <div className={cn(
                         "absolute top-4 right-4 z-10 transition-all duration-300"
