@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Check, Star, X } from 'lucide-react';
@@ -17,10 +17,22 @@ const PRO_FEATURES = [
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [countdown, setCountdown] = useState(10);
+    const audioRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
             setCountdown(10); // Reset countdown when dialog opens
+            
+            // Play audio
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(error => {
+                    // Autoplay might be blocked by the browser, which is a common restriction.
+                    // We can ignore this error silently as the user can still see the ad.
+                    console.log("Audio autoplay was prevented.", error);
+                });
+            }
+
             const timer = setInterval(() => {
                 setCountdown(prev => {
                     if (prev <= 1) {
@@ -31,7 +43,13 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 });
             }, 1000);
 
-            return () => clearInterval(timer); // Cleanup on close
+            return () => {
+                clearInterval(timer);
+                // Pause audio when component unmounts or dialog closes
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+            };
         }
     }, [isOpen]);
 
@@ -40,6 +58,13 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
             <DialogContent className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" showCloseButton={false}>
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
+                    
+                    {/* 
+                      ** IMPORTANT **
+                      1. Add your audio file to the `public` folder in your project.
+                      2. Replace `/your-audio-file.mp3` with the correct path, for example `/advertisement-audio.mp3`
+                    */}
+                    <audio ref={audioRef} src="/your-audio-file.mp3" preload="auto"></audio>
                     
                     <DialogClose asChild>
                         <Button
