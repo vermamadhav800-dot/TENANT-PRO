@@ -14,7 +14,7 @@ export default function Home() {
   const [isStartupLoading, setIsStartupLoading] = useState(true);
   const [auth, setAuth] = useLocalStorage("auth", { user: null, role: null });
   // appState now stores data per owner, keyed by owner's username
-  const [appState, setAppState] = useLocalStorage("appState", {}); 
+  const [appState, setAppState] = useLocalStorage("appState_v2", {}); 
   const { toast } = useToast();
 
   useEffect(() => {
