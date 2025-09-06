@@ -102,15 +102,18 @@ export default function AppSettings({ appState, setAppState, user }) {
   };
   
   const handleConfirmImport = () => {
-    if(dataToImport) {
-        setAppState(prevAppState => ({...prevAppState, [user.username]: dataToImport}));
-        toast({
-            title: "Import Successful",
-            description: "Your data has been restored from the backup file.",
-        });
-        // We might need to force-reload or update state in parent components
-        // For simplicity, we can rely on reactivity or just inform the user.
-        window.location.reload(); // Easiest way to reflect all changes
+    if (dataToImport) {
+      // The imported file contains the entire appState object, so we just set it.
+      setAppState(dataToImport);
+      toast({
+        title: 'Import Successful',
+        description:
+          'Your data has been restored. The application will now reload.',
+      });
+      // A reload is the safest way to ensure all components refresh with the new state.
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     }
     setIsImportAlertOpen(false);
     setDataToImport(null);
