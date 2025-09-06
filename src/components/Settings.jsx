@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -8,22 +7,24 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Sun, Moon, Palette, Upload, Trash2, Import, AlertTriangle } from 'lucide-react';
+import { Sun, Moon, Palette, Upload, Trash2, Import, AlertTriangle, FileJson, Type } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Switch } from './ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Textarea } from './ui/textarea';
 
 
 export default function AppSettings({ appState, setAppState, user }) {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const [defaults, setDefaults] = useState(appState.defaults);
-  const [currentUser, setCurrentUser] = useState(user);
+  const [currentUser, setCurrentUser] = useState(appState.MOCK_USER_INITIAL);
   const [qrCodePreview, setQrCodePreview] = useState(appState.defaults.qrCodeUrl || null);
   const isPro = appState.defaults.subscriptionPlan === 'pro' || appState.defaults.subscriptionPlan === 'business';
   
   const [isImportAlertOpen, setIsImportAlertOpen] = useState(false);
   const [dataToImport, setDataToImport] = useState(null);
+  const [importText, setImportText] = useState('');
 
   const handleDefaultsChange = (e) => {
     const { name, value, type } = e.target;
@@ -101,9 +102,31 @@ export default function AppSettings({ appState, setAppState, user }) {
     e.target.value = null;
   };
   
+  const handleTextImport = () => {
+    if (!importText.trim()) {
+        toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "The text box is empty. Please paste your JSON data.",
+        });
+        return;
+    }
+
+    try {
+        const importedData = JSON.parse(importText);
+        setDataToImport(importedData);
+        setIsImportAlertOpen(true);
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "The pasted text is not valid JSON.",
+        });
+    }
+  };
+
   const handleConfirmImport = () => {
     if (dataToImport) {
-      // The imported file contains the entire appState object, so we just set it.
       setAppState(dataToImport);
       toast({
         title: 'Import Successful',
@@ -293,16 +316,35 @@ export default function AppSettings({ appState, setAppState, user }) {
        <Card>
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
-          <CardDescription>Import or export your application data.</CardDescription>
+          <CardDescription>Import or export your application data. This is useful for backups and transfers.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <Button variant="outline" asChild>
-                <Label htmlFor="import-backup" className="cursor-pointer">
-                    <Import className="mr-2 h-4 w-4" /> Import from Backup
-                </Label>
-            </Button>
-            <Input id="import-backup" type="file" accept=".json" className="sr-only" onChange={handleImportFileSelect} />
-            <p className="text-sm text-muted-foreground">Importing will overwrite all current data.</p>
+        <CardContent className="space-y-6">
+            <div>
+                <Label htmlFor="import-backup" className="font-semibold">Import from File</Label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <Button variant="outline" asChild className="w-full sm:w-auto">
+                        <Label htmlFor="import-backup" className="cursor-pointer">
+                            <FileJson className="mr-2 h-4 w-4" /> Select JSON File
+                        </Label>
+                    </Button>
+                    <Input id="import-backup" type="file" accept=".json" className="sr-only" onChange={handleImportFileSelect} />
+                    <p className="text-sm text-muted-foreground flex-1">Importing will overwrite all current data.</p>
+                </div>
+            </div>
+             <div className="border-t pt-6 space-y-2">
+                 <Label htmlFor="import-text" className="font-semibold">Import from Pasted Text (Mobile-friendly)</Label>
+                 <p className="text-sm text-muted-foreground">Copy the text from your JSON backup file and paste it here.</p>
+                 <Textarea 
+                    id="import-text"
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder='Paste your JSON content here...'
+                    rows={6}
+                 />
+                 <Button onClick={handleTextImport} className="w-full sm:w-auto">
+                    <Type className="mr-2 h-4 w-4" /> Import Pasted Data
+                 </Button>
+            </div>
         </CardContent>
       </Card>
 
@@ -339,7 +381,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                 Overwrite All Data?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to import this file? This action cannot be undone and will permanently replace all existing data in the application with the contents of the backup file.
+              Are you sure you want to import this data? This action cannot be undone and will permanently replace all existing data in the application with the contents of the backup.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
