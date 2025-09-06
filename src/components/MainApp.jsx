@@ -144,9 +144,12 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
 export default function MainApp({ onLogout, user, appState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
+  
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
-  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount;
+  const pendingUpdateRequestsCount = (appState.updateRequests || []).length;
+  const totalPendingRequests = pendingApprovalsCount + pendingMaintenanceCount + pendingUpdateRequestsCount;
+
   const currentPlan = appState.defaults?.subscriptionPlan || 'standard';
   const isPro = currentPlan === 'pro' || currentPlan === 'business';
   const isBusiness = currentPlan === 'business';
