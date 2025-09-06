@@ -35,6 +35,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 }
             };
             
+            // Give browser a moment before trying to play
             const playTimeout = setTimeout(playAudio, 100);
 
             const timer = setInterval(() => {
@@ -63,7 +64,10 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                  <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
+                    {/* V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V */}
+                    {/* V V V V V V V V V V PASTE YOUR BASE64 DATA HERE V V V V V V V V V V */}
                     <audio ref={audioRef} src={"PASTE_YOUR_BASE64_AUDIO_DATA_HERE"} preload="auto"></audio>
+                    {/* A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A */}
                     
                     <div className={cn(
                         "absolute top-4 right-4 z-10 transition-all duration-300"
