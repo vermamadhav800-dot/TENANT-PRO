@@ -63,9 +63,9 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     {/* 
                       ** IMPORTANT **
                       1. Add your audio file to the `public` folder in your project.
-                      2. Replace `/your-audio-file.mp3` with the correct path, for example `/advertisement-audio.mp3`
+                      2. The path below assumes the file is named `advertisement-audio.mp3` and is in the `public` folder.
                     */}
-                    <audio ref={audioRef} src="/your-audio-file.mp3" preload="auto"></audio>
+                    <audio ref={audioRef} src="/advertisement-audio.mp3" preload="auto"></audio>
                     
                     <DialogClose asChild>
                         <Button
@@ -73,7 +73,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                           size="icon"
                           className={cn(
                             "absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-all duration-300",
-                            countdown > 0 ? "opacity-60 cursor-not-allowed bg-black/30" : "opacity-100"
+                            countdown > 0 && "opacity-60 cursor-not-allowed bg-black/30" 
                           )}
                           onClick={onContinue}
                           disabled={countdown > 0}
