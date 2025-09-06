@@ -13,6 +13,7 @@ const PRO_FEATURES = [
     "Financial Insights & Trends",
     "Electricity Bill Management",
     "Full Data Backup",
+    "Ad-free Experience",
 ];
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
