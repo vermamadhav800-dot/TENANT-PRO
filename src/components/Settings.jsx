@@ -12,6 +12,7 @@ import { useTheme } from 'next-themes';
 import { Switch } from './ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from './ui/textarea';
+import { INITIAL_APP_STATE } from '@/lib/consts';
 
 
 export default function AppSettings({ appState, setAppState, user }) {
@@ -23,6 +24,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   const isPro = appState.defaults.subscriptionPlan === 'pro' || appState.defaults.subscriptionPlan === 'business';
   
   const [isImportAlertOpen, setIsImportAlertOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [dataToImport, setDataToImport] = useState(null);
   const [importText, setImportText] = useState('');
 
@@ -75,7 +77,7 @@ export default function AppSettings({ appState, setAppState, user }) {
 
   const handleImportFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && file.type === 'application/json') {
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -143,10 +145,23 @@ export default function AppSettings({ appState, setAppState, user }) {
     setDataToImport(null);
     setImportText('');
   };
+  
+  const handleDeleteAllData = () => {
+    setAppState(prev => ({ [user.username]: INITIAL_APP_STATE }));
+    toast({
+        title: 'Data Deleted',
+        description:
+          'All application data has been wiped. The application will now reload.',
+    });
+    setTimeout(() => {
+        window.location.reload();
+    }, 1500);
+    setIsDeleteAlertOpen(false);
+  };
 
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto pb-12">
       <div className="space-y-1">
         <h2 className="text-2xl md:text-3xl font-bold font-headline">Settings</h2>
         <p className="text-muted-foreground">Manage your application and user settings.</p>
@@ -375,6 +390,24 @@ export default function AppSettings({ appState, setAppState, user }) {
         <Button onClick={handleSave} size="lg" className="btn-gradient-glow w-full sm:w-auto">Save All Settings</Button>
       </div>
 
+       <Card className="border-destructive/50">
+        <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>These actions are irreversible. Please proceed with caution.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h3 className="font-semibold">Delete All Data</h3>
+                <p className="text-sm text-muted-foreground">This will permanently delete all data, including tenants, rooms, payments, and settings. This cannot be undone.</p>
+            </div>
+            <Button variant="destructive" onClick={() => setIsDeleteAlertOpen(true)} className="w-full sm:w-auto">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete All Data
+            </Button>
+        </CardContent>
+      </Card>
+
+
        <AlertDialog open={isImportAlertOpen} onOpenChange={setIsImportAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -392,8 +425,26 @@ export default function AppSettings({ appState, setAppState, user }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-destructive" />
+                Are you absolutely sure?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete ALL data, including every tenant, room, payment, expense, and setting.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAllData} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                Yes, Delete Everything
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-
-    
