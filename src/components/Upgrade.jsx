@@ -29,7 +29,8 @@ const tenantPlanFeatures = [
     { feature: "Access Notice Board", free: true, plus: true, premium: true },
     { feature: "Download Detailed Receipts", free: false, plus: true, premium: true },
     { feature: "View Full Payment History", free: false, plus: true, premium: true },
-    { feature: "Access All Your Documents", free: false, pro: false, premium: true },
+    { feature: "Access All Your Documents", free: false, plus: false, premium: true },
+    { feature: "Ad-free Experience", free: false, plus: false, premium: true },
 ];
 
 const ownerPlans = {
