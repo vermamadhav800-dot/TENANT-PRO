@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -42,7 +43,6 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     console.error("Audio play failed on click:", error);
                 });
             }
-            setIsPlaying(!isPlaying);
         }
     };
     
