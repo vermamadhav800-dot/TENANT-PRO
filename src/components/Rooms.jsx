@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 
-export default function Rooms({ appState, setAppState, triggerUpgradeAd }) {
+export default function Rooms({ appState, setAppState }) {
   const { rooms, tenants } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);

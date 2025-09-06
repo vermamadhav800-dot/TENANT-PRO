@@ -392,7 +392,7 @@ const NotificationModal = ({ tenant, isOpen, setIsOpen, setAppState }) => {
 };
 
 
-export default function Tenants({ appState, setAppState, triggerUpgradeAd }) {
+export default function Tenants({ appState, setAppState }) {
   const { tenants, rooms, payments, notifications = [] } = appState;
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

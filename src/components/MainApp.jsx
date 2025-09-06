@@ -82,30 +82,9 @@ const TAB_GROUPS = ['main', 'management', 'operations', 'analytics'];
 function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
-  
-  const [isUpgradeAdOpen, setIsUpgradeAdOpen] = useState(false);
-  const [actionAfterAd, setActionAfterAd] = useState(null);
-
-  const currentPlan = appState.defaults?.subscriptionPlan || 'standard';
-
-  const triggerUpgradeAd = (action) => {
-    if (currentPlan === 'standard') {
-      setActionAfterAd(() => action);
-      setIsUpgradeAdOpen(true);
-    } else {
-      action();
-    }
-  };
-  
-  const handleUpgradeFromAd = () => {
-    setActiveTab('upgrade');
-    setIsUpgradeAdOpen(false);
-    setActionAfterAd(null);
-  };
-
 
   const renderTabContent = () => {
-    const props = { appState, setAppState, user, setActiveTab, triggerUpgradeAd };
+    const props = { appState, setAppState, user, setActiveTab };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} />;
@@ -159,11 +138,6 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
       <main className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="animate-fade-in">{renderTabContent()}</div>
       </main>
-       <UpgradeAd
-          isOpen={isUpgradeAdOpen}
-          onOpenChange={setIsUpgradeAdOpen}
-          onUpgrade={handleUpgradeFromAd}
-        />
     </div>
   );
 }
@@ -411,5 +385,3 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     </SidebarProvider>
   );
 }
-
-    
