@@ -1,5 +1,4 @@
 
-
 // This file contains the initial mock data for the application.
 // In a real-world scenario, this data would be fetched from a database.
 
