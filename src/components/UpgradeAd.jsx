@@ -16,87 +16,66 @@ const PRO_FEATURES = [
     "Ad-free Experience",
 ];
 
+// You can replace this URL with your own video ad link.
+const VIDEO_AD_URL = "https://cdn.pixabay.com/video/2020/09/13/49389-459820495.mp4";
+
+
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [countdown, setCountdown] = useState(10);
-    const [showCloseButton, setShowCloseButton] = useState(false);
-    const audioRef = useRef(null);
-    const intervalRef = useRef(null);
+    const videoRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
-            // Reset state when dialog opens
-            setCountdown(10);
-            setShowCloseButton(false);
-
-            if (audioRef.current) {
-                audioRef.current.play().catch(error => {
-                    console.warn("Audio play was prevented by browser:", error);
+             if (videoRef.current) {
+                videoRef.current.play().catch(error => {
+                    console.warn("Video play was prevented by browser:", error);
                 });
             }
-
-            intervalRef.current = setInterval(() => {
-                setCountdown(prevCountdown => prevCountdown - 1);
-            }, 1000);
-
-        } else if (!isOpen) {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            }
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
+        } else {
+             if (videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0;
             }
         }
-
-        return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
-        };
     }, [isOpen]);
 
-    useEffect(() => {
-        if (countdown <= 0) {
-            if(intervalRef.current) clearInterval(intervalRef.current);
-            setShowCloseButton(true);
-        }
-    }, [countdown]);
 
     const togglePlay = () => {
-        if (audioRef.current) {
-            audioRef.current.muted = !audioRef.current.muted;
-            setIsPlaying(!audioRef.current.muted);
+        if (videoRef.current) {
+            videoRef.current.muted = !videoRef.current.muted;
+            setIsPlaying(!videoRef.current.muted);
         }
     };
     
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent 
-                className="sm:max-w-sm p-0 border-0 bg-transparent shadow-none" 
-                showCloseButton={false} // We will handle the close button manually
+                className="sm:max-w-md p-0 border-0 bg-transparent shadow-none" 
             >
                  <div 
                     className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card"
                  >
-                    <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
-                    
-                    <audio 
-                        ref={audioRef} 
-                        src="https://media1.vocaroo.com/mp3/13ySuc198HNQ"
-                        preload="auto"
+                    <div className="absolute inset-0 bg-black/50 z-10"></div>
+                     <video 
+                        ref={videoRef}
+                        src={VIDEO_AD_URL}
+                        autoPlay
                         loop
                         muted
-                        onPlay={() => setIsPlaying(!audioRef.current?.muted)}
+                        playsInline
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        onPlay={() => setIsPlaying(!videoRef.current?.muted)}
                         onPause={() => setIsPlaying(false)}
-                    />
-                    
-                    <div className="relative p-6 text-center text-white">
+                     >
+                        Your browser does not support the video tag.
+                     </video>
+
+                    <div className="relative p-6 text-center text-white z-20">
                         <DialogHeader className="sr-only">
                             <DialogTitle>Upgrade to Pro</DialogTitle>
                         </DialogHeader>
 
-                         <div className="absolute top-3 left-3 z-10">
+                         <div className="absolute top-3 left-3 z-30">
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -108,16 +87,10 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
                             </Button>
                         </div>
                         
-                        {showCloseButton ? (
-                            <DialogClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10">
-                                <X className="h-5 w-5" />
-                                <span className="sr-only">Close</span>
-                            </DialogClose>
-                        ) : (
-                             <div className="absolute right-3 top-3 text-xs font-mono bg-black/30 text-white/70 px-2 py-1 rounded-full">
-                                {countdown}s
-                             </div>
-                        )}
+                        <DialogClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-30">
+                            <X className="h-5 w-5" />
+                            <span className="sr-only">Close</span>
+                        </DialogClose>
                         
                         <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/30">
                             <Star className="text-black h-10 w-10" />
