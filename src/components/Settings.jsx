@@ -75,7 +75,7 @@ export default function AppSettings({ appState, setAppState, user }) {
 
   const handleImportFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file && file.type === "application/json") {
+    if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -329,7 +329,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                             <FileJson className="mr-2 h-4 w-4" /> Select JSON File
                         </Label>
                     </Button>
-                    <Input id="import-backup" type="file" accept=".json" className="sr-only" onChange={handleImportFileSelect} />
+                    <Input id="import-backup" type="file" accept=".json,application/json" className="sr-only" onChange={handleImportFileSelect} />
                     <p className="text-sm text-muted-foreground flex-1">Importing will overwrite all current data.</p>
                 </div>
             </div>
