@@ -20,13 +20,18 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
 
+    const playAudio = () => {
+        if (audioRef.current && audioRef.current.paused) {
+            audioRef.current.play().catch(error => {
+                console.warn("Audio play was prevented:", error);
+            });
+        }
+    };
+    
     useEffect(() => {
         if (isOpen && audioRef.current) {
-            // Start playing muted when the dialog opens
             audioRef.current.muted = true;
-            audioRef.current.play().catch(error => {
-                console.warn("Autoplay was prevented. User must interact to play audio.");
-            });
+            playAudio();
         } else if (!isOpen && audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
@@ -44,11 +49,16 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" showCloseButton={true}>
-                 <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
+            <DialogContent 
+                className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" 
+                showCloseButton={true}
+            >
+                 <div 
+                    className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card"
+                    onMouseEnter={playAudio} // Force play on mouse enter
+                 >
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
-                    {/* Use the audio file directly from the public folder */}
                     <audio 
                         ref={audioRef} 
                         src="/audio/advertisement-audio.mp3"
