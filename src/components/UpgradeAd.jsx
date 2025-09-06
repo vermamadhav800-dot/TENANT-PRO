@@ -61,18 +61,19 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     
                     {/* 
-                      ** IMPORTANT **
-                      1. Add your audio file to the `public` folder in your project.
-                      2. The path below assumes the file is named `advertisement-audio.mp3` and is in the `public` folder.
+                      This audio element will play the file from your `public` folder.
+                      Just make sure you have a file named `advertisement-audio.mp3` inside the `public` folder.
                     */}
                     <audio ref={audioRef} src="/advertisement-audio.mp3" preload="auto"></audio>
                     
-                    <DialogClose asChild>
+                    <div className={cn(
+                        "absolute top-4 right-4 z-10 transition-all duration-300"
+                    )}>
                         <Button
                           variant="ghost"
                           size="icon"
                           className={cn(
-                            "absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-all duration-300",
+                            "text-white/70 hover:text-white",
                             countdown > 0 && "opacity-60 cursor-not-allowed bg-black/30" 
                           )}
                           onClick={onContinue}
@@ -85,7 +86,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                           )}
                           <span className="sr-only">Close</span>
                         </Button>
-                    </DialogClose>
+                    </div>
 
                     <div className="relative p-8 text-center text-white">
                         <DialogHeader className="sr-only">
