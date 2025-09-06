@@ -138,7 +138,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/80 relative overflow-hidden shadow-lg",
+                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:border-primary/80 relative overflow-hidden shadow-lg hover:-translate-y-4",
                 cardClass,
                 isHighlighted && "ring-2 ring-primary/80"
             )}>
