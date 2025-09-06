@@ -82,9 +82,38 @@ const TAB_GROUPS = ['main', 'management', 'operations', 'analytics'];
 function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
+  
+  const [isUpgradeAdOpen, setIsUpgradeAdOpen] = useState(false);
+  const [actionAfterAd, setActionAfterAd] = useState(null);
+
+  const currentPlan = appState.defaults?.subscriptionPlan || 'standard';
+
+  const triggerUpgradeAd = (action) => {
+    if (currentPlan === 'standard') {
+      setActionAfterAd(() => action);
+      setIsUpgradeAdOpen(true);
+    } else {
+      action();
+    }
+  };
+  
+  const handleContinue = () => {
+    if (actionAfterAd) {
+        actionAfterAd();
+    }
+    setIsUpgradeAdOpen(false);
+    setActionAfterAd(null);
+  };
+  
+  const handleUpgrade = () => {
+    setActiveTab('upgrade');
+    setIsUpgradeAdOpen(false);
+    setActionAfterAd(null);
+  };
+
 
   const renderTabContent = () => {
-    const props = { appState, setAppState, user, setActiveTab };
+    const props = { appState, setAppState, user, setActiveTab, triggerUpgradeAd };
     switch (activeTab) {
       case "dashboard":
         return <Dashboard {...props} />;
@@ -138,6 +167,12 @@ function AppContent({ activeTab, setActiveTab, appState, setAppState, user }) {
       <main className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="animate-fade-in">{renderTabContent()}</div>
       </main>
+       <UpgradeAd
+          isOpen={isUpgradeAdOpen}
+          onOpenChange={setIsUpgradeAdOpen}
+          onUpgrade={handleUpgrade}
+          onContinue={handleContinue}
+        />
     </div>
   );
 }
@@ -146,10 +181,6 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
   
-  const [isUpgradeAdOpen, setIsUpgradeAdOpen] = useState(false);
-  const [navAction, setNavAction] = useState(null);
-  const [navCount, setNavCount] = useState(0);
-
   const pendingApprovalsCount = (appState.pendingApprovals || []).length;
   const pendingMaintenanceCount = (appState.maintenanceRequests || []).filter(r => r.status === 'Pending').length;
   const pendingUpdateRequestsCount = (appState.updateRequests || []).length;
@@ -164,48 +195,18 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
     const currentPlanRank = planOrder[currentPlan] || 1;
     const requiredPlanRank = planOrder[tab.plan] || 1;
     
-    const action = () => {
-        if (currentPlanRank < requiredPlanRank) {
-          setActiveTab('upgrade');
-          toast({
-            variant: "destructive",
-            title: "Upgrade Required",
-            description: `The "${tab.label}" feature is only available on the ${tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)} plan or higher.`
-          });
-        } else {
-          setActiveTab(tab.id);
-        }
-    };
-    
-    if (currentPlan === 'standard' && tab.id !== 'upgrade' && tab.id !== 'settings') {
-        const newNavCount = navCount + 1;
-        setNavCount(newNavCount);
-
-        if (newNavCount >= 3) {
-            setNavAction(() => action);
-            setIsUpgradeAdOpen(true);
-            setNavCount(0);
-        } else {
-            action();
-        }
+    if (currentPlanRank < requiredPlanRank) {
+      setActiveTab('upgrade');
+      toast({
+        variant: "destructive",
+        title: "Upgrade Required",
+        description: `The "${tab.label}" feature is only available on the ${tab.plan.charAt(0).toUpperCase() + tab.plan.slice(1)} plan or higher.`
+      });
     } else {
-       action();
+      setActiveTab(tab.id);
     }
   }
 
-  const handleContinueToFree = () => {
-      if (navAction) {
-          navAction();
-      }
-      setIsUpgradeAdOpen(false);
-      setNavAction(null);
-  }
-  
-  const handleUpgradeFromAd = () => {
-      setActiveTab('upgrade');
-      setIsUpgradeAdOpen(false);
-      setNavAction(null);
-  }
 
   useEffect(() => {
     const { defaults = {}, tenants = [], payments = [], rooms = [] } = appState;
@@ -414,12 +415,6 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
           appState={appState}
           setAppState={setAppState}
           user={user}
-        />
-        <UpgradeAd
-            isOpen={isUpgradeAdOpen}
-            onOpenChange={setIsUpgradeAdOpen}
-            onUpgrade={handleUpgradeFromAd}
-            onContinue={handleContinueToFree}
         />
       </div>
     </SidebarProvider>

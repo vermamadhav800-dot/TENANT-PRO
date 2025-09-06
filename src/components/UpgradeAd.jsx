@@ -1,9 +1,10 @@
 
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const PRO_FEATURES = [
@@ -15,11 +16,49 @@ const PRO_FEATURES = [
 ];
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
+    const [showClose, setShowClose] = useState(false);
+    const [countdown, setCountdown] = useState(10);
+    
+    useEffect(() => {
+        setShowClose(false);
+        setCountdown(10);
+
+        if (isOpen) {
+            const timer = setInterval(() => {
+                setCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setShowClose(true);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(timer);
+        }
+    }, [isOpen]);
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" closeButton={false}>
-                <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
+            <DialogContent className="sm:max-w-lg p-0 border-0 bg-transparent shadow-none" showCloseButton={false}>
+                 <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
+                    
+                    {showClose && (
+                        <DialogClose asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-4 right-4 text-white/70 hover:text-white"
+                              onClick={onContinue}
+                            >
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Close</span>
+                            </Button>
+                        </DialogClose>
+                    )}
+
                     <div className="relative p-8 text-center text-white">
                         <DialogHeader className="sr-only">
                             <DialogTitle>Upgrade to Pro</DialogTitle>
@@ -48,9 +87,11 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                             <Button size="lg" className="w-full text-lg h-12 font-bold text-black bg-gradient-to-r from-amber-400 to-yellow-500 shadow-lg shadow-yellow-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/50 hover:scale-105" onClick={onUpgrade}>
                                 Upgrade to Pro Now
                             </Button>
-                            <Button variant="link" className="text-muted-foreground" onClick={onContinue}>
-                                Continue to Free Version
-                            </Button>
+                             {!showClose && (
+                                <p className="text-sm text-muted-foreground">
+                                    Or wait {countdown} seconds to continue...
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

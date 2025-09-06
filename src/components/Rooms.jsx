@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 
-export default function Rooms({ appState, setAppState }) {
+export default function Rooms({ appState, setAppState, triggerUpgradeAd }) {
   const { rooms, tenants } = appState;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
@@ -19,8 +19,16 @@ export default function Rooms({ appState, setAppState }) {
   const { toast } = useToast();
 
   const openModal = (room) => {
-    setEditingRoom(room);
-    setIsModalOpen(true);
+    const action = () => {
+      setEditingRoom(room);
+      setIsModalOpen(true);
+    };
+    
+    if (!room) { // Only trigger ad for adding a new room
+        triggerUpgradeAd(action);
+    } else { // Allow editing without ad
+        action();
+    }
   };
   
   const recalculateRentForRoom = (unitNo, newRent, allTenants) => {

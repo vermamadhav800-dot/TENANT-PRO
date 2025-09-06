@@ -392,7 +392,7 @@ const NotificationModal = ({ tenant, isOpen, setIsOpen, setAppState }) => {
 };
 
 
-export default function Tenants({ appState, setAppState }) {
+export default function Tenants({ appState, setAppState, triggerUpgradeAd }) {
   const { tenants, rooms, payments, notifications = [] } = appState;
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -482,8 +482,16 @@ export default function Tenants({ appState, setAppState }) {
   };
 
   const handleOpenForm = (tenant) => {
-    setSelectedTenant(tenant);
-    setIsFormModalOpen(true);
+    const action = () => {
+      setSelectedTenant(tenant);
+      setIsFormModalOpen(true);
+    };
+    
+    if (!tenant) { // Only trigger for adding a new tenant
+      triggerUpgradeAd(action);
+    } else { // Allow editing without ad
+      action();
+    }
   };
   
   const handleViewDetails = (tenant) => {
