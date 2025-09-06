@@ -23,6 +23,7 @@ import {
   Lock,
   FolderArchive,
   BrainCircuit,
+  MoreHorizontal,
 } from "lucide-react";
 import AppLogo from "@/components/AppLogo";
 import Dashboard from "@/components/Dashboard";
@@ -60,6 +61,8 @@ import { Badge } from "./ui/badge";
 import Documents from "./Documents";
 import AIAssistant from "./AIAssistant";
 import UpgradeAd from "./UpgradeAd";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, plan: 'standard', group: 'main' },
@@ -341,48 +344,39 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
                 </div>
               )}
             </div>
-             <div className="flex items-center gap-3 p-2 border-t">
-               <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
-                  <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-              <div className="overflow-hidden">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.username}</p>
-              </div>
-            </div>
             <Separator className="my-1"/>
-            <SidebarMenu>
-               <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setActiveTab("settings")}
-                    isActive={activeTab === "settings"}
-                    tooltip={{ children: "Settings" }}
-                  >
-                    <Settings />
-                    <span>Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                   <SidebarMenuButton
-                    onClick={() => setActiveTab("upgrade")}
-                    isActive={activeTab === "upgrade"}
-                    tooltip={{ children: "Manage Plan" }}
-                  >
-                    <Star />
-                    <span>Manage Plan</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                   <SidebarMenuButton
-                    onClick={onLogout}
-                    tooltip={{ children: "Log Out" }}
-                  >
-                    <LogOut />
-                    <span>Log Out</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.username}`} alt={user.name} />
+                    <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="overflow-hidden flex-1">
+                    <p className="text-sm font-medium truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.username}</p>
+                  </div>
+                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setActiveTab('settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('upgrade')}>
+                  <Star className="mr-2 h-4 w-4" />
+                  <span>Manage Plan</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onLogout} className="text-red-500 focus:text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
         <AppContent
@@ -396,3 +390,5 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
     </SidebarProvider>
   );
 }
+
+    
