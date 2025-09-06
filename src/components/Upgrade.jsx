@@ -113,7 +113,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         if (isCurrent) {
             return (
-                <Button className="w-full text-lg py-6" variant="outline" disabled>
+                <Button className="w-full text-base md:text-lg py-6" variant="outline" disabled>
                    Your Current Plan
                 </Button>
             );
@@ -125,7 +125,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         if (plan.id === 'business' || plan.id === 'premium') buttonClass = 'btn-gradient-orange';
 
         return (
-            <Button className={cn("w-full text-lg py-6", buttonClass)} onClick={() => handlePlanActionClick(plan)}>
+            <Button className={cn("w-full text-base md:text-lg py-6", buttonClass)} onClick={() => handlePlanActionClick(plan)}>
                 {plan.cta}
             </Button>
         );
@@ -146,7 +146,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
 
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
+                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 relative overflow-hidden shadow-lg",
                 "ring-2 ring-offset-2 ring-offset-black",
                 ringClasses[plan.id]
             )}>
@@ -193,13 +193,13 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         <div className="w-full min-h-screen dark-bg-futuristic text-white py-12">
             <div className="max-w-7xl mx-auto space-y-12 p-4">
                 <div className="text-center space-y-2">
-                    <h1 className="text-5xl font-bold font-headline">Choose the plan that’s right for you</h1>
-                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline">Choose the plan that’s right for you</h1>
+                    <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
                         Unlock powerful features to manage your properties like a pro.
                     </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                    {Object.values(plans).map(plan => renderPlanCard(plan))}
                 </div>
 

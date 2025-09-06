@@ -44,7 +44,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                         placeholder="Email"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="pl-10 py-6"
+                        className="pl-10 py-6 text-base"
                         required
                         disabled={isLoading}
                     />
@@ -58,7 +58,7 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 py-6"
+                        className="pl-10 pr-10 py-6 text-base"
                         required
                         disabled={isLoading}
                     />
@@ -119,23 +119,23 @@ const OwnerRegisterForm = ({ onAuth, role, setAuthMode }) => {
         <form onSubmit={handleAuthAction} className="space-y-4">
              <div className="relative">
                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 py-6" required />
+                <Input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 py-6 text-base" required />
             </div>
              <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input type="email" placeholder="Email Address" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10 py-6" required />
+                <Input type="email" placeholder="Email Address" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-10 py-6 text-base" required />
             </div>
              <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 py-6" required />
+                <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 py-6 text-base" required />
             </div>
              <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input type="text" placeholder="Property Name" value={propertyName} onChange={(e) => setPropertyName(e.target.value)} className="pl-10 py-6" required />
+                <Input type="text" placeholder="Property Name" value={propertyName} onChange={(e) => setPropertyName(e.target.value)} className="pl-10 py-6 text-base" required />
             </div>
              <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input type="text" placeholder="Property Address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} className="pl-10 py-6" required />
+                <Input type="text" placeholder="Property Address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} className="pl-10 py-6 text-base" required />
             </div>
 
             <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
@@ -178,7 +178,7 @@ const TenantLoginForm = ({ onAuth, role }) => {
                         placeholder="Enter your Phone Number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="pl-10 py-6"
+                        className="pl-10 py-6 text-base"
                         required
                     />
                 </div>
@@ -224,7 +224,7 @@ export default function Auth({ onAuth }) {
             <Card className="w-full max-w-md shadow-2xl animate-fade-in-scale glass-card">
                 <CardHeader className="text-center">
                     <AppLogo className="w-16 h-16 mx-auto mb-4" iconClassName="w-9 h-9"/>
-                    <CardTitle className="text-3xl font-headline">Welcome to EstateFlow</CardTitle>
+                    <CardTitle className="text-2xl md:text-3xl font-headline">Welcome to EstateFlow</CardTitle>
                     <CardDescription>
                          Your modern solution for property management.
                     </CardDescription>

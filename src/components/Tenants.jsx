@@ -503,12 +503,12 @@ export default function Tenants({ appState, setAppState }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold font-headline">Tenant Management</h2>
+          <h2 className="text-2xl md:text-3xl font-bold font-headline">Tenant Management</h2>
           <p className="text-muted-foreground">A complete list of all tenants in your properties.</p>
         </div>
-        <Button onClick={() => handleOpenForm(null)} className="btn-gradient-glow">
+        <Button onClick={() => handleOpenForm(null)} className="btn-gradient-glow w-full md:w-auto">
           <Plus className="mr-2 h-4 w-4" /> Add Tenant
         </Button>
       </div>

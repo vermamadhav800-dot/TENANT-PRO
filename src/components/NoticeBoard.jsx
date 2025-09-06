@@ -75,14 +75,14 @@ export default function NoticeBoard({ appState, setAppState }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold font-headline">Digital Notice Board</h2>
+          <h2 className="text-2xl md:text-3xl font-bold font-headline">Digital Notice Board</h2>
           <p className="text-muted-foreground">Post announcements for all your tenants.</p>
         </div>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> New Notice</Button>
+            <Button className="w-full md:w-auto"><Plus className="mr-2 h-4 w-4" /> New Notice</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-xl">
             <DialogHeader>

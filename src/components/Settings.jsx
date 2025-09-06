@@ -123,7 +123,7 @@ export default function AppSettings({ appState, setAppState, user }) {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="space-y-1">
-        <h2 className="text-3xl font-bold font-headline">Settings</h2>
+        <h2 className="text-2xl md:text-3xl font-bold font-headline">Settings</h2>
         <p className="text-muted-foreground">Manage your application and user settings.</p>
       </div>
 
@@ -132,22 +132,25 @@ export default function AppSettings({ appState, setAppState, user }) {
           <CardTitle>Theme</CardTitle>
           <CardDescription>Customize the look and feel of your application.</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center gap-4">
+        <CardContent className="flex items-center gap-2 sm:gap-4">
             <Button 
                 variant={theme === 'light' ? 'default' : 'outline'} 
                 onClick={() => setTheme('light')}
+                className="flex-1 sm:flex-none"
             >
                 <Sun className="mr-2 h-4 w-4" /> Light
             </Button>
             <Button 
                 variant={theme === 'dark' ? 'default' : 'outline'} 
                 onClick={() => setTheme('dark')}
+                 className="flex-1 sm:flex-none"
             >
                 <Moon className="mr-2 h-4 w-4" /> Dark
             </Button>
              <Button 
                 variant={theme === 'system' ? 'default' : 'outline'} 
                 onClick={() => setTheme('system')}
+                 className="flex-1 sm:flex-none"
             >
                 <Palette className="mr-2 h-4 w-4" /> System
             </Button>
@@ -160,7 +163,7 @@ export default function AppSettings({ appState, setAppState, user }) {
             <CardDescription>Configure automated features like payment reminders. <span className="text-amber-500 font-semibold">(Pro Feature)</span></CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4">
                 <div>
                     <Label htmlFor="enable-reminders" className="font-semibold">Enable Automatic Reminders</Label>
                     <p className="text-sm text-muted-foreground">Send payment reminders to tenants automatically.</p>
@@ -171,6 +174,7 @@ export default function AppSettings({ appState, setAppState, user }) {
                     checked={defaults.reminderSettings?.enabled || false}
                     onCheckedChange={(checked) => handleReminderSettingsChange({ target: { name: 'enabled', type: 'checkbox', checked } })}
                     disabled={!isPro}
+                    className="shrink-0"
                 />
             </div>
             {defaults.reminderSettings?.enabled && isPro && (
@@ -261,7 +265,7 @@ export default function AppSettings({ appState, setAppState, user }) {
           </div>
            <div className="space-y-2 pt-4 border-t mt-4">
               <Label>Payment QR Code</Label>
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col sm:flex-row items-start gap-4">
                 {qrCodePreview && (
                   <img src={qrCodePreview} alt="QR Code Preview" className="w-24 h-24 rounded-md border p-1"/>
                 )}
@@ -291,7 +295,7 @@ export default function AppSettings({ appState, setAppState, user }) {
           <CardTitle>Data Management</CardTitle>
           <CardDescription>Import or export your application data.</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center gap-4">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Button variant="outline" asChild>
                 <Label htmlFor="import-backup" className="cursor-pointer">
                     <Import className="mr-2 h-4 w-4" /> Import from Backup
@@ -324,7 +328,7 @@ export default function AppSettings({ appState, setAppState, user }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} size="lg" className="btn-gradient-glow">Save All Settings</Button>
+        <Button onClick={handleSave} size="lg" className="btn-gradient-glow w-full sm:w-auto">Save All Settings</Button>
       </div>
 
        <AlertDialog open={isImportAlertOpen} onOpenChange={setIsImportAlertOpen}>

@@ -110,8 +110,14 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
-        const width = pdfWidth - 20;
-        const height = width / ratio;
+        let width = pdfWidth - 20;
+        let height = width / ratio;
+
+        if (height > pdfHeight - 30) {
+          height = pdfHeight - 30;
+          width = height * ratio;
+        }
+
 
         pdf.text("Monthly Rent Roll Report", 10, 10);
         pdf.addImage(imgData, 'PNG', 10, 20, width, height);
@@ -184,12 +190,12 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold font-headline">Reports & Analytics</h2>
-        <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <h2 className="text-2xl md:text-3xl font-bold font-headline">Reports & Analytics</h2>
+        <div className="flex gap-2 w-full md:w-auto">
            <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                   <Download className="mr-2 h-4 w-4" /> Export Data
                 </Button>
               </DropdownMenuTrigger>
@@ -223,21 +229,21 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
 
       <Card>
         <CardHeader><CardTitle>This Month's Summary</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center">
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">₹{totalCollected.toLocaleString('en-IN')}</p>
-                <p className="text-sm text-muted-foreground">Total Collected</p>
+                <p className="text-xl md:text-2xl font-bold">₹{totalCollected.toLocaleString('en-IN')}</p>
+                <p className="text-sm text-muted-foreground">Collected</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">₹{totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
-                <p className="text-sm text-muted-foreground">Total Pending</p>
+                <p className="text-xl md:text-2xl font-bold">₹{totalPending > 0 ? totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0'}</p>
+                <p className="text-sm text-muted-foreground">Pending</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{paidTenantsCount}</p>
+                <p className="text-xl md:text-2xl font-bold">{paidTenantsCount}</p>
                 <p className="text-sm text-muted-foreground">Tenants Paid</p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{pendingTenantsCount}</p>
+                <p className="text-xl md:text-2xl font-bold">{pendingTenantsCount}</p>
                 <p className="text-muted-foreground text-sm">Tenants Pending</p>
             </div>
         </CardContent>
@@ -248,8 +254,8 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
             <CardTitle>Rent Roll: Detailed Payment Status</CardTitle>
         </CardHeader>
         <CardContent className="p-0 pt-4">
-             <div id="report-table" className="overflow-x-auto">
-                <Table>
+             <div id="report-table-container" className="overflow-x-auto">
+                <Table id="report-table">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Tenant</TableHead>
@@ -274,7 +280,7 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
                                             <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="font-medium">{tenant.name}</p>
+                                            <p className="font-medium whitespace-nowrap">{tenant.name}</p>
                                             <p className="text-sm text-muted-foreground">{tenant.phone}</p>
                                         </div>
                                     </div>
@@ -286,13 +292,13 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
                                 <TableCell>
                                     <div className={cn("flex items-center gap-2 font-medium", statusConfig[status].color)}>
                                         <CurrentStatusIcon className="h-4 w-4"/>
-                                        <span>{statusConfig[status].label}</span>
+                                        <span className="whitespace-nowrap">{statusConfig[status].label}</span>
                                     </div>
                                 </TableCell>
                                  <TableCell className="text-right">
                                     {canRemind && (
                                         <Button variant="outline" size="sm" onClick={() => handleRemind(tenant.name)}>
-                                            <Bell className="mr-2 h-4 w-4" /> Remind
+                                            <Bell className="mr-0 sm:mr-2 h-4 w-4" /> <span className="hidden sm:inline">Remind</span>
                                         </Button>
                                     )}
                                 </TableCell>
@@ -356,5 +362,3 @@ export default function Reports({ appState, setAppState, setActiveTab }) {
     </div>
   );
 }
-
-    

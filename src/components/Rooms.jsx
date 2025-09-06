@@ -84,12 +84,12 @@ export default function Rooms({ appState, setAppState }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold font-headline">Room Management</h2>
+          <h2 className="text-2xl md:text-3xl font-bold font-headline">Room Management</h2>
           <p className="text-muted-foreground">Add, edit, and manage all property rooms and units.</p>
         </div>
-        <Button onClick={() => openModal(null)} className="btn-gradient-glow"><Plus className="mr-2 h-4 w-4" /> Add Room</Button>
+        <Button onClick={() => openModal(null)} className="btn-gradient-glow w-full md:w-auto"><Plus className="mr-2 h-4 w-4" /> Add Room</Button>
       </div>
 
       {rooms.length === 0 ? (
@@ -100,7 +100,7 @@ export default function Rooms({ appState, setAppState }) {
           <Button onClick={() => openModal(null)}>Add Your First Room</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {rooms.sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true })).map(room => {
             const occupants = tenants.filter(t => t.unitNo === room.number);
             const isFull = occupants.length >= room.capacity;

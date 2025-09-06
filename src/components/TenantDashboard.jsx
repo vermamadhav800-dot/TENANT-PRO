@@ -96,7 +96,7 @@ const TenantProfile = ({ tenant, setOwnerState }) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20">
+                        <Avatar className="h-16 w-16 md:h-20 md:w-20">
                             <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
                             <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -322,8 +322,8 @@ const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) 
                     </DialogHeader>
                     <div className="py-4 space-y-4 text-center">
                         {adminQrCodeUrl ? 
-                            <img src={adminQrCodeUrl} alt="Payment QR Code" className="w-64 h-64 mx-auto border rounded-lg" />
-                            : <div className="w-64 h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">The owner has not provided a QR code.</div>
+                            <img src={adminQrCodeUrl} alt="Payment QR Code" className="w-48 h-48 sm:w-64 sm:h-64 mx-auto border rounded-lg" />
+                            : <div className="w-48 h-48 sm:w-64 sm:h-64 mx-auto border rounded-lg flex items-center justify-center bg-muted text-muted-foreground">The owner has not provided a QR code.</div>
                         }
                         <p className="font-bold text-xl">Amount Due: ₹{amountDue.toFixed(2)}</p>
                         {upiLink && (
@@ -458,7 +458,7 @@ const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) 
                     <CardTitle>Payment History</CardTitle>
                     <CardDescription>A record of all your submitted payments.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -472,8 +472,8 @@ const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) 
                             {combinedPayments.length > 0 ? (
                                 combinedPayments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{format(new Date(payment.date), 'dd MMMM, yyyy')}</TableCell>
-                                        <TableCell className="font-medium">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{format(new Date(payment.date), 'dd MMM, yyyy')}</TableCell>
+                                        <TableCell className="font-medium whitespace-nowrap">₹{payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                         <TableCell>
                                             {payment.status === 'Processing' ? (
                                                 <span className="flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
@@ -492,7 +492,8 @@ const RentAndPayments = ({ tenant, payments, setOwnerState, room, ownerState }) 
                                                 disabled={payment.status === 'Processing' || !canDownloadReceipts}
                                                 title={!canDownloadReceipts ? "Upgrade to Plus or Premium to download receipts" : ""}
                                             >
-                                                <FileText className="h-4 w-4 mr-2" /> View
+                                                <FileText className="h-4 w-4 mr-0 sm:mr-2" />
+                                                <span className="hidden sm:inline">View</span>
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -550,7 +551,7 @@ const TenantHome = ({ tenant, payments, room, ownerState }) => {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold font-headline">Welcome back, {tenant.name ? tenant.name.split(' ')[0] : ''}!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Welcome back, {tenant.name ? tenant.name.split(' ')[0] : ''}!</h1>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="glass-card">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -697,14 +698,14 @@ const HelpAndSupport = ({ tenant, ownerState, setOwnerState }) => {
     return (
         <div className="space-y-6">
             <Card className="glass-card">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Help & Support</CardTitle>
                         <CardDescription>Submit a maintenance request or complaint.</CardDescription>
                     </div>
                      <Dialog open={isRequestModalOpen} onOpenChange={setIsRequestModalOpen}>
                         <DialogTrigger asChild>
-                            <Button><Wrench className="mr-2 h-4 w-4" /> New Request</Button>
+                            <Button className="w-full sm:w-auto"><Wrench className="mr-2 h-4 w-4" /> New Request</Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -740,7 +741,7 @@ const HelpAndSupport = ({ tenant, ownerState, setOwnerState }) => {
                         </DialogContent>
                      </Dialog>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -754,7 +755,7 @@ const HelpAndSupport = ({ tenant, ownerState, setOwnerState }) => {
                             {tenantRequests.length > 0 ? (
                                 tenantRequests.map(req => (
                                     <TableRow key={req.id}>
-                                        <TableCell>{format(new Date(req.submittedAt), 'dd MMM, yyyy')}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{format(new Date(req.submittedAt), 'dd MMM, yyyy')}</TableCell>
                                         <TableCell>{req.category}</TableCell>
                                         <TableCell className="max-w-xs truncate">{req.description}</TableCell>
                                         <TableCell>
@@ -978,9 +979,9 @@ export default function TenantDashboard({ ownerState, setAppState, tenant, onLog
                         <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                             {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </Button>
-                        <h1 className="text-xl font-semibold hidden md:block">{TABS.find(t => t.id === activeTab)?.label}</h1>
+                        <h1 className="text-xl font-semibold md:hidden">{TABS.find(t => t.id === activeTab)?.label}</h1>
                     </div>
-                    <div className="ml-auto flex items-center gap-4">
+                    <div className="ml-auto flex items-center gap-2 md:gap-4">
                         <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

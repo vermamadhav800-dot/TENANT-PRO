@@ -126,8 +126,8 @@ function AppContent({ activeTab, setActiveTab, ownerState, setOwnerState, user }
     <div className="flex-1 flex flex-col bg-background/90">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-white/10 bg-background/80 backdrop-blur-lg px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         {isMobile && <SidebarTrigger />}
-        <h1 className="text-2xl font-semibold capitalize">{currentTabLabel}</h1>
-        <div className="ml-auto flex items-center gap-4">
+        <h1 className="text-xl md:text-2xl font-semibold capitalize">{currentTabLabel}</h1>
+        <div className="ml-auto flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
