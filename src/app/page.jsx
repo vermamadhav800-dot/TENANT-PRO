@@ -45,10 +45,7 @@ export default function Home() {
         }
       }
     } else { // Register
-      if (appState.MOCK_USER_INITIAL?.username) {
-        toast({ variant: "destructive", title: "Registration Error", description: "An owner account already exists. Please log in." });
-        return false;
-      }
+      // REMOVED CHECK FOR EXISTING OWNER to allow registration anytime.
       const newOwner = {
         name: credentials.name,
         username: credentials.username,
