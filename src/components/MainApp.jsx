@@ -274,6 +274,7 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                     const currentPlanRank = planOrder[currentPlan] || 1;
                     const requiredPlanRank = planOrder[tab.plan] || 1;
                     const isLocked = currentPlanRank < requiredPlanRank;
+                    const hasPendingRequests = tab.id === 'requests' && totalPendingRequests > 0;
                     
                     return (
                       <SidebarMenuItem key={tab.id}>
@@ -282,7 +283,10 @@ export default function MainApp({ onLogout, user, appState, setAppState }) {
                           isActive={activeTab === tab.id}
                           tooltip={{ children: tab.label }}
                           disabled={isLocked}
-                          className={cn(isLocked && "cursor-not-allowed")}
+                          className={cn(
+                            isLocked && "cursor-not-allowed",
+                            hasPendingRequests && "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                          )}
                         >
                           <tab.icon />
                           <span>{tab.label}</span>
