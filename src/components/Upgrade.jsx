@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
@@ -133,12 +133,20 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
         const isCurrent = plan.id === currentPlanId;
         const isHighlighted = plan.id === 'pro' || plan.id === 'plus';
 
+        const ringClasses = {
+            standard: 'ring-cyan-500/50',
+            pro: 'ring-primary/60',
+            business: 'ring-red-500/50',
+            free: 'ring-cyan-500/50',
+            plus: 'ring-primary/60',
+            premium: 'ring-red-500/50'
+        }
+
         return (
              <Card key={plan.id} className={cn(
-                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg border border-white/10",
-                 isHighlighted && "ring-2 ring-primary/60 ring-offset-2 ring-offset-black",
-                 plan.id === 'business' && "ring-2 ring-red-500/50 ring-offset-2 ring-offset-black",
-                 plan.id === 'standard' && "ring-2 ring-cyan-500/50 ring-offset-2 ring-offset-black"
+                "flex flex-col bg-[#111118]/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-4 relative overflow-hidden shadow-lg",
+                "ring-2 ring-offset-2 ring-offset-black",
+                ringClasses[plan.id]
             )}>
                  {isHighlighted && (
                     <div className="absolute top-4 -right-12 rotate-45 bg-primary text-primary-foreground text-xs font-bold px-12 py-1.5">Popular</div>
@@ -160,12 +168,10 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                     
                     <ul className="space-y-3 text-sm text-left">
                         {planFeatures.map((item, i) => {
-                             const planKey = Object.keys(item).find(key => key === plan.id);
-                             if (!planKey || !item[planKey]) return null;
-
-                            return(
-                                <li key={i} className="flex items-center gap-3">
-                                    <Check className="h-5 w-5 text-green-400 shrink-0"/>
+                             const isIncluded = item[plan.id];
+                             return(
+                                <li key={i} className={cn("flex items-center gap-3", !isIncluded && "text-muted-foreground line-through")}>
+                                    {isIncluded ? <Check className="h-5 w-5 text-green-400 shrink-0"/> : <X className="h-5 w-5 text-red-500 shrink-0" />}
                                     <span className="text-foreground">
                                         {item.feature}
                                     </span>
