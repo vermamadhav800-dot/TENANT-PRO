@@ -27,25 +27,30 @@ export default function Home() {
 
   // One-time effect to migrate existing tenants to have a tenantId
   useEffect(() => {
-    let needsUpdate = false;
-    const updatedState = { ...appState };
+    setAppState(currentAppState => {
+        let needsUpdate = false;
+        // Deep copy to avoid direct mutation
+        const updatedState = JSON.parse(JSON.stringify(currentAppState));
 
-    for (const ownerKey in updatedState) {
-        if (updatedState[ownerKey] && updatedState[ownerKey].tenants) {
-            const ownerData = updatedState[ownerKey];
-            ownerData.tenants.forEach(tenant => {
-                if (!tenant.tenantId) {
-                    needsUpdate = true;
-                    tenant.tenantId = Math.floor(100000 + Math.random() * 900000).toString();
-                }
-            });
+        for (const ownerKey in updatedState) {
+            if (updatedState[ownerKey] && updatedState[ownerKey].tenants) {
+                const ownerData = updatedState[ownerKey];
+                ownerData.tenants.forEach(tenant => {
+                    if (!tenant.tenantId) {
+                        needsUpdate = true;
+                        tenant.tenantId = Math.floor(100000 + Math.random() * 900000).toString();
+                    }
+                });
+            }
         }
-    }
 
-    if (needsUpdate) {
-        console.log("Migrating tenants to include unique IDs...");
-        setAppState(updatedState);
-    }
+        if (needsUpdate) {
+            console.log("Migrating tenants to include unique IDs...");
+            return updatedState;
+        }
+        
+        return currentAppState; // Return original state if no changes
+    });
   }, []); // Run only once on initial load
 
   const handleAuth = (credentials, action) => {
