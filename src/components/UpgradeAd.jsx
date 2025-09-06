@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,7 +20,13 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        if (!isOpen && audioRef.current) {
+        if (isOpen && audioRef.current) {
+            // Let's try to play, but catch error if autoplay is blocked.
+            // The user can still click the play button.
+            audioRef.current.play().catch(error => {
+                console.warn("Autoplay was prevented. User must interact to play audio.");
+            });
+        } else if (!isOpen && audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
             setIsPlaying(false);
@@ -34,7 +39,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 audioRef.current.pause();
             } else {
                 audioRef.current.play().catch(error => {
-                    console.error("Audio play failed. User interaction might be needed.", error);
+                    console.error("Audio play failed on click:", error);
                 });
             }
             setIsPlaying(!isPlaying);
@@ -51,7 +56,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     {/* This points to your file in the `public` folder */}
                     <audio 
                         ref={audioRef} 
-                        src="/base64" 
+                        src="/base64.txt" 
                         preload="auto"
                         onPlay={() => setIsPlaying(true)}
                         onPause={() => setIsPlaying(false)}
