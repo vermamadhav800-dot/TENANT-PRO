@@ -61,7 +61,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     
                     <audio 
                         ref={audioRef} 
-                        src="/audio/advertisement-audio.mp3"
+                        src="/C.mp4"
                         preload="auto"
                         loop
                         onPlay={() => setIsPlaying(!audioRef.current?.muted)}
