@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, X, Inbox, UserCheck, ArrowRight } from 'lucide-react';
+import { Check, X, Inbox, UserCheck, ArrowRight, FileText, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -124,6 +124,41 @@ function PaymentApprovals({ appState, setAppState }) {
     );
 }
 
+const ChangePreview = ({ label, oldValue, newValue, isDocument = false }) => {
+    if (!newValue) return null;
+
+    const renderValue = (value, isDoc) => {
+        if (!value) return <span className="text-muted-foreground italic">Not set</span>;
+        if (isDoc) {
+             const isImage = value.startsWith('data:image');
+             return (
+                 <a href={value} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline">
+                     {isImage ? <ImageIcon className="h-4 w-4"/> : <FileText className="h-4 w-4"/>}
+                     View Document
+                 </a>
+             );
+        }
+        return value;
+    };
+    
+    return (
+        <div>
+            <p className="text-sm font-semibold capitalize">{label.replace(/([A-Z])/g, ' $1')}</p>
+            <div className="flex items-center gap-2 text-sm mt-1">
+                <div className="flex-1 p-2 bg-muted/50 rounded-md">
+                    <span className="text-xs text-muted-foreground">Current</span>
+                    <div className="font-medium line-through">{renderValue(oldValue, isDocument)}</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary shrink-0"/>
+                <div className="flex-1 p-2 bg-green-500/10 rounded-md border border-green-500/20">
+                     <span className="text-xs text-green-700">New</span>
+                    <div className="font-semibold text-green-800">{renderValue(newValue, isDocument)}</div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function UpdateRequests({ appState, setAppState }) {
     const { updateRequests = [], tenants } = appState;
     const { toast } = useToast();
@@ -165,7 +200,7 @@ function UpdateRequests({ appState, setAppState }) {
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {updateRequests.map(request => {
                 const tenant = tenants.find(t => t.id === request.tenantId);
-                const changes = Object.entries(request.requestedChanges).filter(([key, value]) => value !== tenant[key]);
+                const changes = Object.entries(request.requestedChanges);
                 
                 if (!tenant) return null;
 
@@ -174,7 +209,7 @@ function UpdateRequests({ appState, setAppState }) {
                         <CardHeader>
                             <div className="flex items-center gap-3">
                                 <Avatar className="w-11 h-11 border">
-                                    <AvatarImage src={tenant.profilePhotoUrl} alt={tenant.name} />
+                                    <AvatarImage src={request.requestedChanges.profilePhotoUrl || tenant.profilePhotoUrl} alt={tenant.name} />
                                     <AvatarFallback>{tenant.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -185,16 +220,18 @@ function UpdateRequests({ appState, setAppState }) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                            <p className="text-sm text-muted-foreground">Submitted: {format(new Date(request.submittedAt), 'dd MMM, yyyy')}</p>
-                           {changes.map(([key, value]) => (
-                               <div key={key}>
-                                   <p className="text-sm font-semibold capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-                                   <div className="flex items-center gap-2 text-sm">
-                                        <span className="text-muted-foreground line-through">{tenant[key]}</span>
-                                        <ArrowRight className="h-4 w-4 text-primary"/>
-                                        <span className="font-medium">{value}</span>
-                                   </div>
-                               </div>
-                           ))}
+                           {changes.map(([key, value]) => {
+                               const isDoc = key.toLowerCase().includes('url');
+                               return (
+                                   <ChangePreview 
+                                       key={key}
+                                       label={key}
+                                       oldValue={tenant[key]}
+                                       newValue={value}
+                                       isDocument={isDoc}
+                                   />
+                               )
+                           })}
                         </CardContent>
                         <CardContent className="grid grid-cols-2 gap-2 pt-0">
                             <Button variant="destructive" onClick={() => handleReject(request.id)}>

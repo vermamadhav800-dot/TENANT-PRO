@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive, Mail, Phone, Edit } from 'lucide-react';
+import { Home, IndianRupee, User, Menu, X, Sun, Moon, LogOut, FileText, BadgeCheck, BadgeAlert, QrCode, ExternalLink, Upload, Zap, Bell, MessageSquare, Wrench, Megaphone, Clock, Star, Sparkles, FolderArchive, Mail, Phone, Edit, Image as ImageIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,22 +28,44 @@ const TenantProfile = ({ tenant, setAppState }) => {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const { toast } = useToast();
     
+    // State for form fields
+    const [name, setName] = useState(tenant.name);
+    const [phone, setPhone] = useState(tenant.phone);
+    const [username, setUsername] = useState(tenant.username);
+    const [profilePhoto, setProfilePhoto] = useState(null);
+    const [aadhaarCard, setAadhaarCard] = useState(null);
+    const [leaseAgreement, setLeaseAgreement] = useState(null);
+
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant.profilePhotoUrl);
+    const [aadhaarCardPreview, setAadhaarCardPreview] = useState(null);
+    const [leaseAgreementPreview, setLeaseAgreementPreview] = useState(null);
+    
+    const handleFileChange = (e, setFile, setPreview) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
     const handleSubmitRequest = (e) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
         
-        const requestedChanges = {
-            name: formData.get('name'),
-            phone: formData.get('phone'),
-            username: formData.get('username'),
-        };
+        const requestedChanges = {};
+        if (name !== tenant.name) requestedChanges.name = name;
+        if (phone !== tenant.phone) requestedChanges.phone = phone;
+        if (username !== tenant.username) requestedChanges.username = username;
+        if (profilePhotoPreview !== tenant.profilePhotoUrl) requestedChanges.profilePhotoUrl = profilePhotoPreview;
+        if (aadhaarCardPreview) requestedChanges.aadhaarCardUrl = aadhaarCardPreview;
+        if (leaseAgreementPreview) requestedChanges.leaseAgreementUrl = leaseAgreementPreview;
+
 
         // Check if any change was actually made
-        if (
-            requestedChanges.name === tenant.name && 
-            requestedChanges.phone === tenant.phone && 
-            requestedChanges.username === tenant.username
-        ) {
+        if (Object.keys(requestedChanges).length === 0) {
             toast({ variant: 'destructive', title: 'No Changes', description: 'You have not made any changes to your profile.' });
             return;
         }
@@ -102,27 +124,55 @@ const TenantProfile = ({ tenant, setAppState }) => {
                                 Request Update
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-2xl">
                              <DialogHeader>
                                 <DialogTitle>Request Profile Update</DialogTitle>
                                 <DialogDescription>
-                                    Your request will be sent to the owner for approval.
+                                    Your request will be sent to the owner for approval. Only fill fields you want to change.
                                 </DialogDescription>
                             </DialogHeader>
-                             <form onSubmit={handleSubmitRequest} className="py-4 space-y-4">
-                                <div>
-                                    <Label htmlFor="name">Full Name</Label>
-                                    <Input id="name" name="name" defaultValue={tenant.name} required />
-                                </div>
-                                <div>
-                                    <Label htmlFor="phone">Phone Number</Label>
-                                    <Input id="phone" name="phone" defaultValue={tenant.phone} required />
+                             <form onSubmit={handleSubmitRequest} className="py-4 space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                                <h3 className="text-lg font-semibold">Contact Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="name">Full Name</Label>
+                                        <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="phone">Phone Number</Label>
+                                        <Input id="phone" name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                                    </div>
                                 </div>
                                 <div>
                                     <Label htmlFor="username">Email</Label>
-                                    <Input id="username" name="username" type="email" defaultValue={tenant.username} required />
+                                    <Input id="username" name="username" type="email" value={username} onChange={(e) => setUsername(e.target.value)} required />
                                 </div>
-                                <DialogFooter>
+                                <h3 className="text-lg font-semibold pt-4 border-t">Documents</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label>Profile Photo</Label>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-16 w-16">
+                                                <AvatarImage src={profilePhotoPreview} alt="New profile photo" />
+                                                <AvatarFallback><ImageIcon /></AvatarFallback>
+                                            </Avatar>
+                                            <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, setProfilePhoto, setProfilePhotoPreview)} />
+                                        </div>
+                                    </div>
+                                     <div>
+                                        <Label>Aadhaar Card</Label>
+                                        <Input type="file" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, setAadhaarCard, setAadhaarCardPreview)} />
+                                        {aadhaarCardPreview && <a href={aadhaarCardPreview} target="_blank" className="text-sm text-blue-500 mt-2">Preview New Aadhaar</a>}
+                                    </div>
+                                     <div>
+                                        <Label>Lease Agreement</Label>
+                                        <Input type="file" accept="image/*,.pdf" onChange={(e) => handleFileChange(e, setLeaseAgreement, setLeaseAgreementPreview)} />
+                                        {leaseAgreementPreview && <a href={leaseAgreementPreview} target="_blank" className="text-sm text-blue-500 mt-2">Preview New Lease</a>}
+                                    </div>
+                                </div>
+
+
+                                <DialogFooter className="!mt-6">
                                     <Button type="submit" className="btn-gradient-glow">Submit Request</Button>
                                 </DialogFooter>
                             </form>
