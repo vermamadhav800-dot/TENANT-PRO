@@ -172,7 +172,7 @@ export default function Upgrade({ appState, setAppState, setActiveTab, userType 
                         {planFeatures.map((item, i) => {
                              const isIncluded = item[plan.id];
                              return(
-                                <li key={i} className={cn("flex items-center gap-3", !isIncluded && "text-muted-foreground line-through")}>
+                                <li key={i} className={cn("flex items-center gap-3", !isIncluded && "text-muted-foreground")}>
                                     {isIncluded ? <Check className="h-5 w-5 text-green-400 shrink-0"/> : <X className="h-5 w-5 text-red-500 shrink-0" />}
                                     <span className="text-foreground">
                                         {item.feature}

@@ -336,8 +336,8 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
                 <div 
                   className={cn(
                     "w-full text-center p-2 rounded-lg text-sm font-semibold flex items-center justify-center",
-                    currentPlan === 'pro' && "bg-blue-500/20 text-blue-300",
-                    currentPlan === 'business' && "bg-violet-500/20 text-violet-300"
+                    currentPlan === 'pro' && "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+                    currentPlan === 'business' && "bg-violet-500/20 text-violet-300 border border-violet-500/30"
                   )}
                 >
                   <CheckCircle className="mr-2 h-4 w-4" />
@@ -394,7 +394,3 @@ export default function MainApp({ onLogout, user, ownerState, setAppState }) {
     </SidebarProvider>
   );
 }
-
-    
-
-    
