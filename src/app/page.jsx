@@ -25,6 +25,29 @@ export default function Home() {
     return () => clearTimeout(startupTimer);
   }, []);
 
+  // One-time effect to migrate existing tenants to have a tenantId
+  useEffect(() => {
+    let needsUpdate = false;
+    const updatedState = { ...appState };
+
+    for (const ownerKey in updatedState) {
+        if (updatedState[ownerKey] && updatedState[ownerKey].tenants) {
+            const ownerData = updatedState[ownerKey];
+            ownerData.tenants.forEach(tenant => {
+                if (!tenant.tenantId) {
+                    needsUpdate = true;
+                    tenant.tenantId = Math.floor(100000 + Math.random() * 900000).toString();
+                }
+            });
+        }
+    }
+
+    if (needsUpdate) {
+        console.log("Migrating tenants to include unique IDs...");
+        setAppState(updatedState);
+    }
+  }, []); // Run only once on initial load
+
   const handleAuth = (credentials, action) => {
     if (action === 'login') {
       if (credentials.role === 'owner') {

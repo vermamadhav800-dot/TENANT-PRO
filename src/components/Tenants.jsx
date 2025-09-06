@@ -207,12 +207,19 @@ const TenantFormModal = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="username">Email Address</Label><Input id="username" name="username" defaultValue={tenant?.username} type="email" required /></div>
-             <div className="flex items-center space-x-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3">
-                <ShieldAlert className="h-5 w-5 text-amber-600" />
-                <p className="text-xs text-amber-800">
-                    Tenants log in with their phone number and a unique 6-digit ID.
-                </p>
-            </div>
+            {tenant ? (
+                <div>
+                  <Label>Login ID</Label>
+                  <Input type="text" value={tenant.tenantId} readOnly disabled className="bg-muted tracking-widest" />
+                </div>
+            ) : (
+                <div className="flex items-center space-x-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3">
+                    <ShieldAlert className="h-5 w-5 text-amber-600" />
+                    <p className="text-xs text-amber-800">
+                        A unique 6-digit Login ID will be auto-generated upon creation.
+                    </p>
+                </div>
+            )}
           </div>
 
           <div className="border-t pt-4 space-y-4">
