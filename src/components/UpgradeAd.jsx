@@ -1,6 +1,7 @@
+
 "use client";
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Check, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,9 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                 <div className="relative rounded-2xl overflow-hidden border border-primary/30 shadow-2xl shadow-primary/20 bg-card">
                     <div className="absolute inset-0 dark-bg-futuristic opacity-50"></div>
                     <div className="relative p-8 text-center text-white">
+                        <DialogHeader className="sr-only">
+                            <DialogTitle>Upgrade to Pro</DialogTitle>
+                        </DialogHeader>
                         <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-yellow-500/30">
                             <Star className="text-black h-12 w-12" />
                         </div>
