@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle, Shield, User, Phone as PhoneIcon, Mail, MapPin } from "lucide-react";
+import { Building2, User as UserIcon, Lock, Eye, EyeOff, LoaderCircle, Shield, User, Phone as PhoneIcon, Mail, MapPin, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,8 +21,8 @@ const OwnerLoginForm = ({ onAuth, role }) => {
 
     const handleAuthAction = async (e) => {
         e.preventDefault();
-        if (!username || !password) {
-            toast({ variant: "destructive", title: "Error", description: "Please enter username and password." });
+        if (!username) {
+            toast({ variant: "destructive", title: "Error", description: "Please enter your email." });
             return;
         }
         setIsLoading(true);
@@ -49,33 +49,9 @@ const OwnerLoginForm = ({ onAuth, role }) => {
                         disabled={isLoading}
                     />
                 </div>
-            </div>
-            <div className="space-y-2">
-                <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 py-6 text-base"
-                        required
-                        disabled={isLoading}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-end">
-                <a href="#" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                </a>
+                 <CardDescription className="text-center text-xs pt-2">
+                    For demo purposes, any password will work for registered owners.
+                </CardDescription>
             </div>
 
             <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>
@@ -151,25 +127,26 @@ const OwnerRegisterForm = ({ onAuth, role, setAuthMode }) => {
 
 const TenantLoginForm = ({ onAuth, role }) => {
     const [phone, setPhone] = useState("");
+    const [tenantId, setTenantId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
     const handleAuthAction = async (e) => {
         e.preventDefault();
-        if (!phone) {
-            toast({ variant: "destructive", title: "Error", description: "Please enter your phone number." });
+        if (!phone || !tenantId) {
+            toast({ variant: "destructive", title: "Error", description: "Please enter your phone number and login ID." });
             return;
         }
         setIsLoading(true);
 
-        const loginSuccess = await onAuth({ username: phone, role }, 'login');
+        const loginSuccess = await onAuth({ username: phone, tenantId, role }, 'login');
         if (!loginSuccess) {
             setIsLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleAuthAction} className="space-y-6">
+        <form onSubmit={handleAuthAction} className="space-y-4">
             <div className="space-y-2">
                 <div className="relative">
                     <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -182,8 +159,21 @@ const TenantLoginForm = ({ onAuth, role }) => {
                         required
                     />
                 </div>
+            </div>
+             <div className="space-y-2">
+                <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="text"
+                        placeholder="Enter your Login ID"
+                        value={tenantId}
+                        onChange={(e) => setTenantId(e.target.value)}
+                        className="pl-10 py-6 text-base"
+                        required
+                    />
+                </div>
                  <CardDescription className="text-center text-xs pt-2">
-                    Your phone number is your key. The owner must register your number before you can log in.
+                    Your phone number is your username and the Login ID is your password, provided by the owner.
                 </CardDescription>
             </div>
             <Button type="submit" className="w-full py-6 text-lg btn-gradient-glow" disabled={isLoading}>

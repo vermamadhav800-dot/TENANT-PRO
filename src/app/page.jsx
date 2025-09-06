@@ -29,8 +29,8 @@ export default function Home() {
     if (action === 'login') {
       if (credentials.role === 'owner') {
         const ownerData = appState[credentials.username];
+        // MOCK LOGIN: Check only if owner exists, not the password
         if (ownerData) {
-            // Mock login: only check if owner exists, not password
             setAuth({ user: ownerData.MOCK_USER_INITIAL, role: 'owner' });
             toast({ title: "Login Successful", description: "Welcome back!" });
             return true;
@@ -40,7 +40,7 @@ export default function Home() {
         for (const ownerKey in appState) {
           const ownerData = appState[ownerKey];
           if (ownerData && ownerData.tenants) { // Check if ownerData and tenants array exist
-            const tenant = ownerData.tenants.find(t => t.phone === credentials.username);
+            const tenant = ownerData.tenants.find(t => t.phone === credentials.username && t.tenantId === credentials.tenantId);
             if (tenant) {
               // We need to know which owner this tenant belongs to for data updates
               setAuth({ user: tenant, role: 'tenant', ownerId: ownerKey }); 

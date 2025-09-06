@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare, FolderArchive, Lock } from 'lucide-react';
+import { Plus, Trash2, Edit, MoreVertical, Users, Home, Eye as ViewIcon, Phone, Mail, FileText, Calendar as CalendarIcon, IdCard, UploadCloud, ShieldAlert, MessageSquare, FolderArchive, Lock, KeyRound, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -27,6 +27,16 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -47,6 +57,7 @@ const TenantFormModal = ({
   rooms,
   tenants,
   appState,
+  onTenantCreated,
 }) => {
   const { toast } = useToast();
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(tenant?.profilePhotoUrl || null);
@@ -109,12 +120,13 @@ const TenantFormModal = ({
         return;
     }
     
+    let newTenantData = null;
+
     setAppState(prev => {
         const tenantData = {
             name: formData.get('name'),
             phone: formData.get('phone'),
             username: formData.get('username'),
-            // password is no longer needed for tenant login
             unitNo: unitNo,
             rentAmount: 0, // This will be recalculated
             dueDate: formData.get('dueDate') ? new Date(formData.get('dueDate')).toISOString() : null,
@@ -132,7 +144,15 @@ const TenantFormModal = ({
         if (tenant) { // Editing existing tenant
             updatedTenants = prev.tenants.map(t => t.id === tenant.id ? { ...t, ...tenantData } : t);
         } else { // Adding new tenant
-            updatedTenants = [...prev.tenants, { ...tenantData, id: Date.now().toString(), createdAt: new Date().toISOString(), otherCharges: [] }];
+            const newTenant = { 
+                ...tenantData, 
+                id: Date.now().toString(), 
+                tenantId: Math.floor(100000 + Math.random() * 900000).toString(), // Generate 6-digit ID
+                createdAt: new Date().toISOString(), 
+                otherCharges: [] 
+            };
+            newTenantData = newTenant; // Capture new tenant data to show ID
+            updatedTenants = [...prev.tenants, newTenant];
         }
 
         // Recalculate rent for the new/updated unit
@@ -149,6 +169,9 @@ const TenantFormModal = ({
     });
 
     setIsOpen(false);
+    if (newTenantData) {
+        onTenantCreated(newTenantData);
+    }
   };
 
   const formatDateForInput = (dateString) => {
@@ -162,7 +185,7 @@ const TenantFormModal = ({
         <DialogHeader>
           <DialogTitle className="text-2xl">{tenant ? 'Edit Tenant' : 'Add New Tenant'}</DialogTitle>
           <DialogDescription>
-            {tenant ? 'Update the details for this tenant.' : 'Fill in the form to add a new tenant to your property. The phone number will be their login.'}
+            {tenant ? 'Update the details for this tenant.' : 'Fill in the form to add a new tenant to your property. A unique 6-digit Login ID will be generated for them.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
@@ -179,7 +202,7 @@ const TenantFormModal = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" defaultValue={tenant?.name} required /></div>
-            <div><Label htmlFor="phone">Phone Number (Tenant Login ID)</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
+            <div><Label htmlFor="phone">Phone Number (Login Username)</Label><Input id="phone" name="phone" defaultValue={tenant?.phone} type="tel" required /></div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +210,7 @@ const TenantFormModal = ({
              <div className="flex items-center space-x-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3">
                 <ShieldAlert className="h-5 w-5 text-amber-600" />
                 <p className="text-xs text-amber-800">
-                    Tenants log in with their phone number. No password is required.
+                    Tenants log in with their phone number and a unique 6-digit ID.
                 </p>
             </div>
           </div>
@@ -242,13 +265,48 @@ const TenantFormModal = ({
           </div>
 
           <DialogFooter className="pt-4 !mt-8">
-             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+             <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>Cancel</Button>
             <Button type="submit" className="btn-gradient-glow">{tenant ? 'Save Changes' : 'Create Tenant'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
+};
+
+const TenantIdDialog = ({ tenant, isOpen, setIsOpen }) => {
+    const { toast } = useToast();
+    if (!tenant) return null;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(tenant.tenantId);
+        toast({ title: 'Copied!', description: 'Tenant ID copied to clipboard.' });
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Tenant Created Successfully!</DialogTitle>
+                    <DialogDescription>
+                        Please share the following Login ID with the tenant. They will need it to log in.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 text-center">
+                    <p className="text-sm text-muted-foreground">Login ID for <span className="font-semibold text-foreground">{tenant.name}</span></p>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                        <p className="text-3xl font-bold tracking-widest bg-muted p-3 rounded-md">{tenant.tenantId}</p>
+                        <Button variant="ghost" size="icon" onClick={handleCopy}>
+                            <Copy className="h-5 w-5"/>
+                        </Button>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={() => setIsOpen(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
 };
 
 const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }) => {
@@ -286,20 +344,20 @@ const DeleteConfirmationDialog = ({ tenant, isOpen, setIsOpen, setAppState }) =>
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Delete Tenant</DialogTitle>
-                    <DialogDescription>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
                         Are you sure you want to delete tenant "{tenant.name}"? This will also remove all associated payment records and recalculate rent for any remaining tenants in the room. This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="pt-2">
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 };
 
@@ -320,6 +378,7 @@ const TenantDetailsModal = ({ tenant, room, isOpen, setIsOpen }) => {
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-1 gap-3 text-sm">
+            <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><KeyRound className="w-4 h-4 text-muted-foreground" /><span>Login ID: <span className="font-bold tracking-wider">{tenant.tenantId}</span></span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Mail className="w-4 h-4 text-muted-foreground" /><span>{tenant.username}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Phone className="w-4 h-4 text-muted-foreground" /><span>{tenant.phone}</span></div>
             <div className="flex items-center gap-3 p-2 rounded-md bg-muted/50"><Home className="w-4 h-4 text-muted-foreground" /><span>Room {tenant.unitNo} (Capacity: {room?.capacity})</span></div>
@@ -383,7 +442,7 @@ const NotificationModal = ({ tenant, isOpen, setIsOpen, setAppState }) => {
                     />
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>Cancel</Button>
                     <Button onClick={handleSend}>Send Notification</Button>
                 </DialogFooter>
             </DialogContent>
@@ -398,6 +457,8 @@ export default function Tenants({ appState, setAppState }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
+  const [isTenantIdModalOpen, setIsTenantIdModalOpen] = useState(false);
+  const [newlyCreatedTenant, setNewlyCreatedTenant] = useState(null);
   const [selectedTenant, setSelectedTenant] = useState(null);
 
   const availableUnits = useMemo(() => {
@@ -499,7 +560,12 @@ export default function Tenants({ appState, setAppState }) {
   const handleNotifyTenant = (tenant) => {
     setSelectedTenant(tenant);
     setIsNotifyModalOpen(true);
-  }
+  };
+  
+  const handleTenantCreated = (newTenant) => {
+      setNewlyCreatedTenant(newTenant);
+      setIsTenantIdModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -614,7 +680,8 @@ export default function Tenants({ appState, setAppState }) {
       </div>
       )}
       
-      {isFormModalOpen && <TenantFormModal isOpen={isFormModalOpen} setIsOpen={setIsFormModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} appState={appState} />}
+      {isFormModalOpen && <TenantFormModal isOpen={isFormModalOpen} setIsOpen={setIsFormModalOpen} tenant={selectedTenant} setAppState={setAppState} availableUnits={availableUnits} rooms={rooms} tenants={tenants} appState={appState} onTenantCreated={handleTenantCreated} />}
+      {isTenantIdModalOpen && <TenantIdDialog isOpen={isTenantIdModalOpen} setIsOpen={setIsTenantIdModalOpen} tenant={newlyCreatedTenant} />}
       {isDeleteModalOpen && <DeleteConfirmationDialog isOpen={isDeleteModalOpen} setIsOpen={setIsDeleteModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
       {isDetailsModalOpen && <TenantDetailsModal isOpen={isDetailsModalOpen} setIsOpen={setIsDetailsModalOpen} tenant={selectedTenant} room={rooms.find(r => r.number === selectedTenant?.unitNo) || null} />}
       {isNotifyModalOpen && <NotificationModal isOpen={isNotifyModalOpen} setIsOpen={setIsNotifyModalOpen} tenant={selectedTenant} setAppState={setAppState} />}
