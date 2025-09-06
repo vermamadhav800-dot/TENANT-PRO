@@ -51,7 +51,7 @@ const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade, onContinue }) => {
                     {/* Use the audio file directly from the public folder */}
                     <audio 
                         ref={audioRef} 
-                        src="/advertisement-audio.mp3"
+                        src="/audio/advertisement-audio.mp3"
                         preload="auto"
                         loop
                         onPlay={() => setIsPlaying(!audioRef.current?.muted)}
