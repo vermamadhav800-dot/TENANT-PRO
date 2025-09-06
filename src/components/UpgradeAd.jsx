@@ -17,7 +17,7 @@ const PRO_FEATURES = [
 ];
 
 // You can replace this URL with your own video ad link.
-const VIDEO_AD_URL = "https://cdn.pixabay.com/video/2020/09/13/49389-459820495.mp4";
+const VIDEO_AD_URL = "https://video-link-generator.replit.app/v/2qvx8pbscxug85183ehrl4";
 
 
 const UpgradeAd = ({ isOpen, onOpenChange, onUpgrade }) => {
